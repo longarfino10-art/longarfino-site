@@ -3,9 +3,9 @@
 ## ONDE ESTAMOS
 
 **Data:** 30/08/2026
-**Etapa concluída:** Semana 1 — Fundação
-**Próxima etapa:** Semana 2, Sessão 5 — criar as 3 primeiras obras reais
-**Bloqueio atual:** acervo de fotos das obras não separado
+**Etapa concluída:** Item 1 — Layout base (Base.astro, tokens, tipografia, botões)
+**Próxima etapa:** Item 2 — Sprite de desenhos técnicos em SVG
+**Bloqueio atual:** acervo de fotos das obras não separado (trava os itens 3, 4, 6, 7, 11)
 
 Site no ar em https://longarfino-site.longarfino10.workers.dev
 Deploy automático funcionando: `git push` publica sozinho.
@@ -29,6 +29,8 @@ Terminal: PowerShell. O `bash` não está no PATH — para rodar .sh use:
 ## ESTADO DOS ARQUIVOS
 
 Criados e commitados:
+- `src/layouts/Base.astro` — layout de todas as páginas, com SEO e as 3 fontes
+- `src/styles/base.css` — reset, tipografia, botões, .ph (foto), .rv (animação)
 - `src/content.config.ts` — schema da coleção `obras`, com `image()`
 - `src/content/obras/_MODELO.md` — modelo de obra (o `_` faz o Astro ignorar)
 - `src/styles/tokens.css` — paleta e tipografia
@@ -46,8 +48,11 @@ Pastas vazias aguardando conteúdo:
 - `src/assets/obras/<slug>` (7 pastas, uma por obra)
 - `src/assets/galeria`
 
-Ainda não existe: nenhum componente, nenhum layout, nenhuma obra real.
-O `index.astro` é o padrão do Astro com o texto trocado.
+Ainda não existe: nenhum componente, nenhuma obra real.
+O `index.astro` é uma página de teste do layout base.
+
+Removidos do template padrão do Astro: `Layout.astro`, `Welcome.astro`,
+`astro.svg`, `background.svg`.
 
 ---
 
@@ -129,6 +134,7 @@ antes de publicar.
 ## ROADMAP
 
 - [x] Semana 1 — Fundação: setup, deploy contínuo
+- [x] Item 1 — Layout base
 - [ ] Semana 2 — Obras: coleção, página da obra, carrossel, portfólio com filtros
 - [ ] Semana 3 — Conteúdo real: home completa, serviços, contato, migração
 - [ ] Semana 4 — SEO, performance, testes, virada de domínio
@@ -155,3 +161,13 @@ Testado: alteração no `index.astro` + push publicou sozinho.
 Descoberto: `bash` fora do PATH do PowerShell; caminho do projeto tem espaço e
 acento (`Projetos PROGRAMAÇÃO`) — suspeito número um se aparecer erro estranho
 de caminho no build.
+
+**30/08/2026 — Item 1: layout base**
+Criados `Base.astro`, `base.css`. Limpeza do template padrão.
+Armadilha encontrada: ao criar arquivo `.astro` pelo VS Code, ele salva como
+`.astro.html`. Conferir com `dir` depois de criar arquivo novo, ou renomear com
+`Rename-Item`.
+Decidido sobre fotos: NÃO converter antes de subir. O `image()` do Astro gera
+WebP com srcset no build (medido: 185 kB → 19 kB). Enviar JPG/PNG original,
+lado maior 2400px+ para capa. Nada de HEIC. Limite por obra: 1 capa + 5 a 7
+internas — a definir quando o acervo estiver à vista.
