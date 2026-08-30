@@ -1,0 +1,94 @@
+---
+// Um bloco de até 4 obras que sempre fecha, sem buraco.
+// Arranjo: uma grande ocupando 2 fileiras, uma larga em cima e duas
+// pequenas embaixo. O lado da grande alterna a cada bloco.
+//
+// Quando o filtro esconde cards, o CSS Grid redistribui os que sobraram
+// dentro do próprio bloco — por isso não precisa de JavaScript aqui.
+
+import type { CollectionEntry } from 'astro:content';
+import ObraCard from './ObraCard.astro';
+
+interface Props {
+  obras: CollectionEntry<'obras'>[];
+  /** Índice do bloco. Par = obra grande à esquerda, ímpar = à direita */
+  indice?: number;
+  /** Sem lazy nas fotos do primeiro bloco */
+  prioridade?: boolean;
+}
+
+const { obras, indice = 0, prioridade = false } = Astro.props;
+const espelhado = indice % 2 === 1;
+---
+
+<div class={`bloco${espelhado ? ' bloco--espelhado' : ''}`} data-bloco>
+  {obras.map((obra, i) => (
+    <ObraCard obra={obra} prioridade={prioridade && i < 2} />
+  ))}
+</div>
+
+<style>
+  /* Duas fileiras. A primeira coluna é a obra grande, as outras duas
+     dividem o lado direito. */
+  .bloco {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr;
+    grid-template-rows: repeat(2, clamp(200px, 20vw, 330px));
+    gap: clamp(14px, 1.8vw, 30px);
+  }
+
+  /* Obra 1: coluna cheia à esquerda, ocupando as duas fileiras */
+  .bloco > :global(:nth-child(1)) { grid-area: 1 / 1 / 3 / 2 }
+
+  /* Obra 2: larga em cima, ocupando as duas colunas da direita */
+  .bloco > :global(:nth-child(2)) { grid-area: 1 / 2 / 2 / 4 }
+
+  /* Obras 3 e 4: pequenas embaixo, lado a lado */
+  .bloco > :global(:nth-child(3)) { grid-area: 2 / 2 / 3 / 3 }
+  .bloco > :global(:nth-child(4)) { grid-area: 2 / 3 / 3 / 4 }
+
+  /* Bloco espelhado: a obra grande vai para a direita */
+  .bloco--espelhado { grid-template-columns: 1fr 1fr 1.35fr }
+  .bloco--espelhado > :global(:nth-child(1)) { grid-area: 1 / 3 / 3 / 4 }
+  .bloco--espelhado > :global(:nth-child(2)) { grid-area: 1 / 1 / 2 / 3 }
+  .bloco--espelhado > :global(:nth-child(3)) { grid-area: 2 / 1 / 3 / 2 }
+  .bloco--espelhado > :global(:nth-child(4)) { grid-area: 2 / 2 / 3 / 3 }
+
+  /* Bloco com 3 obras: uma grande e duas empilhadas ao lado */
+  .bloco:has(> :nth-child(3):last-child) {
+    grid-template-columns: 1.35fr 1fr;
+  }
+  .bloco:has(> :nth-child(3):last-child) > :global(:nth-child(1)) { grid-area: 1 / 1 / 3 / 2 }
+  .bloco:has(> :nth-child(3):last-child) > :global(:nth-child(2)) { grid-area: 1 / 2 / 2 / 3 }
+  .bloco:has(> :nth-child(3):last-child) > :global(:nth-child(3)) { grid-area: 2 / 2 / 3 / 3 }
+
+  /* Bloco com 2 obras: lado a lado, uma fileira */
+  .bloco:has(> :nth-child(2):last-child) {
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: clamp(240px, 26vw, 420px);
+  }
+  .bloco:has(> :nth-child(2):last-child) > :global(:nth-child(1)) { grid-area: 1 / 1 / 2 / 2 }
+  .bloco:has(> :nth-child(2):last-child) > :global(:nth-child(2)) { grid-area: 1 / 2 / 2 / 3 }
+
+  /* Bloco com 1 obra: largura cheia */
+  .bloco:has(> :first-child:last-child) {
+    grid-template-columns: 1fr;
+    grid-template-rows: clamp(280px, 32vw, 500px);
+  }
+  .bloco:has(> :first-child:last-child) > :global(:first-child) { grid-area: 1 / 1 / 2 / 2 }
+
+  /* Esconde o bloco inteiro quando o filtro não deixou nenhuma obra */
+  .bloco:not(:has(> a:not([hidden]))) { display: none }
+
+  @media (max-width: 860px) {
+    .bloco,
+    .bloco--espelhado,
+    .bloco:has(> :nth-child(3):last-child),
+    .bloco:has(> :nth-child(2):last-child),
+    .bloco:has(> :first-child:last-child) {
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+    }
+    .bloco > :global(a) { grid-area: auto !important }
+  }
+</style>

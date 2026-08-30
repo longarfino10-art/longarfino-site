@@ -3,9 +3,12 @@
 ## ONDE ESTAMOS
 
 **Data:** 30/08/2026
-**Etapa concluída:** Item 1 — Layout base (Base.astro, tokens, tipografia, botões)
-**Próxima etapa:** Item 2 — Sprite de desenhos técnicos em SVG
-**Bloqueio atual:** acervo de fotos das obras não separado (trava os itens 3, 4, 6, 7, 11)
+**Etapa concluída:** Itens 1, 2, 3, 4 e 6 — layout base, desenhos técnicos,
+header/footer, coleção de obras, página da obra e portfólio com filtros.
+**Próxima etapa:** Item 7 — Home, ou Item 9 — Contato
+**Bloqueio atual:** acervo de fotos. As obras rodam com placeholder técnico
+(`src/assets/placeholder-obra.svg`), então o código não está travado — mas o
+site não pode ir ao ar assim.
 
 Site no ar em https://longarfino-site.longarfino10.workers.dev
 Deploy automático funcionando: `git push` publica sozinho.
@@ -23,6 +26,10 @@ Repositório: https://github.com/longarfino10-art/longarfino-site
 Pasta local: C:\Users\longa\Documents\Projetos PROGRAMAÇÃO\longarfino-site
 Terminal: PowerShell. O `bash` não está no PATH — para rodar .sh use:
 `& "C:\Program Files\Git\bin\bash.exe" arquivo.sh`
+
+**Criação de arquivo novo:** sempre criar vazio pelo terminal com `New-Item`
+antes de colar o conteúdo. Criar pela interface do VS Code gruda `.txt` ou
+`.html` no fim do nome e quebra o import.
 
 ---
 
@@ -48,8 +55,15 @@ Pastas vazias aguardando conteúdo:
 - `src/assets/obras/<slug>` (7 pastas, uma por obra)
 - `src/assets/galeria`
 
-Ainda não existe: nenhum componente, nenhuma obra real.
-O `index.astro` é uma página de teste do layout base.
+Componentes criados: `layout/Header.astro`, `layout/Footer.astro`,
+`ui/Desenhos.astro`, `ui/Desenho.astro`, `obras/ObraCard.astro`,
+`obras/BlocoObras.astro`, `obras/FichaTecnica.astro`.
+Scripts: `menu.js`, `filtros.js`, `reveal.js`.
+Páginas: `/obras` (portfólio), `/obras/[...slug]` (obra).
+Obras com dados provisórios: praca-abraao, bowl-do-gringo, pista-laguna.
+
+O `index.astro` ainda é uma página de teste. A home de verdade é o item 7.
+Ainda não existem: `/servicos`, `/contato`, `/404`.
 
 Removidos do template padrão do Astro: `Layout.astro`, `Welcome.astro`,
 `astro.svg`, `background.svg`.
@@ -96,8 +110,8 @@ Referência visual: `prototipo-longarfino-v2.html` (fora do repositório).
 | Rota | Estado |
 |---|---|
 | `/` | não iniciada |
-| `/obras` | não iniciada |
-| `/obras/[slug]` | não iniciada |
+| `/obras` | pronta — blocos de 4 + filtros |
+| `/obras/[slug]` | pronta — ficha técnica, capa, estudo de caso, CTA |
 | `/servicos` | não iniciada |
 | `/contato` | não iniciada |
 | `/404` | não iniciada |
@@ -135,6 +149,11 @@ antes de publicar.
 
 - [x] Semana 1 — Fundação: setup, deploy contínuo
 - [x] Item 1 — Layout base
+- [x] Item 2 — Desenhos técnicos em SVG
+- [x] Header e Footer
+- [x] Item 3 — Coleção de obras
+- [x] Item 4 — Página da obra
+- [x] Item 6 — Portfólio com blocos e filtros
 - [ ] Semana 2 — Obras: coleção, página da obra, carrossel, portfólio com filtros
 - [ ] Semana 3 — Conteúdo real: home completa, serviços, contato, migração
 - [ ] Semana 4 — SEO, performance, testes, virada de domínio
@@ -171,3 +190,21 @@ Decidido sobre fotos: NÃO converter antes de subir. O `image()` do Astro gera
 WebP com srcset no build (medido: 185 kB → 19 kB). Enviar JPG/PNG original,
 lado maior 2400px+ para capa. Nada de HEIC. Limite por obra: 1 capa + 5 a 7
 internas — a definir quando o acervo estiver à vista.
+
+**30/08/2026 — Itens 2, 3, 4 e 6**
+Biblioteca de 10 desenhos técnicos + planta grande, como `<symbol>` SVG.
+Coleção de obras validando pelo schema. Página da obra e portfólio prontos.
+
+Decisão de layout do portfólio: grade em BLOCOS de até 4 obras, não uma grade
+única. Cada bloco tem arranjo próprio para 4, 3, 2 ou 1 obra, então o filtro
+esconde cards sem deixar buraco — e o bloco vazio some sozinho via
+`:not(:has(> a:not([hidden])))`. Foi a alternativa a remontar a grade por
+JavaScript, que seria mais frágil.
+
+Armadilha encontrada: usar template literal no atributo `style` de uma tag
+Astro faz a tag não abrir e o HTML vazar como texto na tela. Usar concatenação
+com `+` numa const antes da tag.
+
+Armadilha encontrada: a classe `.rv` deixa o elemento com opacity 0 esperando
+o `reveal.js`. Enquanto o script não estiver carregado na página, qualquer
+elemento com `.rv` fica invisível. O script agora está no `Base.astro`.

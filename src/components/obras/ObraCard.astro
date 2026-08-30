@@ -1,0 +1,153 @@
+---
+// Card de obra do portfólio. Sem caixa e sem borda arredondada:
+// a foto, um fio e os dados técnicos embaixo.
+
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+
+interface Props {
+  obra: CollectionEntry<'obras'>;
+  /** Quantas das 12 colunas o card ocupa */
+  colunas?: number;
+  /** Proporção da foto. Ex.: '4/3', '16/9', '3/4' */
+  proporcao?: string;
+  /** A primeira dobra não deve usar lazy */
+  prioridade?: boolean;
+}
+
+const { obra, colunas = 6, proporcao = '16/10', prioridade = false } = Astro.props;
+const d = obra.data;
+
+// Usado pelo filtro: junta os tipos e o status num só atributo
+const marcadores = [
+  ...d.tipo.map((t) => t.toLowerCase()),
+  d.status === 'em_execucao' ? 'execucao' : null,
+].filter(Boolean).join(' ');
+
+// Variáveis CSS que controlam largura e proporção deste card
+const estilo = '--colunas:' + colunas + ';--proporcao:' + proporcao;
+---
+
+<a class="obra-card rv" href={"/obras/" + obra.id} data-tipo={marcadores} style={estilo}>
+  <div class="ph">
+    <Image
+      src={d.capa}
+      alt={`Skatepark ${d.nome}, em ${d.cidade}`}
+      widths={[500, 900, 1400]}
+      sizes="(max-width: 860px) 100vw, 50vw"
+      loading={prioridade ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+    {d.status === 'em_execucao' && <span class="marca">Em execução</span>}
+
+    <div class="dados">
+      <div>
+        <h3 class="d nome">{d.nome}</h3>
+        <span class="mono-sm">{d.cidade} / {d.uf}</span>
+      </div>
+      <div class="direita">
+        <b class="area">{d.area_m2.toLocaleString('pt-BR')} m²</b>
+        <span class="mono-sm">{d.tipo.join(' · ')}</span>
+      </div>
+    </div>
+  </div>
+</a>
+
+<style>
+  /* O card ocupa a fileira inteira e a foto se estica no espaço que sobra
+     depois dos dados. Assim cards de larguras diferentes ficam alinhados. */
+  /* A posição e a largura vêm do BlocoObras. O card só preenche a célula. */
+  .obra-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .ph { flex: 1; min-height: 0; display: flex }
+
+  /* A foto precisa escurecer no rodapé para o texto ficar legível */
+  .ph::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 55%;
+    background: linear-gradient(transparent, rgba(10, 10, 10, .92));
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .obra-card:hover .ph img {
+    transform: scale(1.035);
+    filter: grayscale(.35) contrast(1.15) brightness(.95);
+  }
+
+  /* Etiqueta de obra em andamento */
+  .marca {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 6px 10px;
+    background: var(--orange);
+    color: var(--white);
+    font-family: var(--ff-mono);
+    font-size: 9.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  /* Faixa de dados sobre a foto, ancorada no rodapé */
+  .dados {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px clamp(14px, 1.6vw, 24px);
+  }
+
+  /* Fio laranja que cresce no hover, na base do card */
+  .dados::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: var(--orange);
+    transition: width .5s var(--ease);
+  }
+  .obra-card:hover .dados::before { width: 100% }
+
+  .nome {
+    font-size: clamp(1.15rem, 1.5vw, 1.6rem);
+    line-height: 1;
+    color: var(--white);
+    margin-bottom: 7px;
+  }
+
+  .direita { flex: none; text-align: right }
+  .area {
+    display: block;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    color: var(--gray-200);
+    margin-bottom: 4px;
+  }
+  .direita .mono-sm { display: block }
+
+  @media (max-width: 860px) {
+    .obra-card { height: auto }
+    .ph { flex: none; aspect-ratio: 4 / 3 }
+    .dados { padding: 16px }
+    .nome { font-size: 1.25rem }
+  }
+</style>

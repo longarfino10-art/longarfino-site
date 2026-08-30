@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200">
+  <!-- Capa provisória. Planta técnica de skatepark no lugar da fotografia.
+       Substituir pelo JPG real quando o acervo estiver separado. -->
+  <rect width="1600" height="1200" fill="#141414"/>
+
+  <!-- Grade de fundo -->
+  <g stroke="#222222" stroke-width="1">
+    <path d="M0 200h1600M0 400h1600M0 600h1600M0 800h1600M0 1000h1600"/>
+    <path d="M200 0v1200M400 0v1200M600 0v1200M800 0v1200M1000 0v1200M1200 0v1200M1400 0v1200"/>
+  </g>
+
+  <!-- Planta do parque -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="2">
+    <rect x="120" y="120" width="1360" height="960"/>
+    <rect x="240" y="380" width="560" height="420" rx="210"/>
+    <rect x="310" y="450" width="420" height="280" rx="140"/>
+    <rect x="380" y="520" width="280" height="140" rx="70"/>
+    <path d="M900 300h420v70H900zM900 300l60-60h420l-60 60"/>
+    <path d="M920 520h60v28h60v28h60v28h60v28h80"/>
+    <path d="M920 520v112h320"/>
+    <circle cx="1180" cy="820" r="140"/>
+    <circle cx="1180" cy="820" r="80"/>
+  </g>
+
+  <!-- Cotas -->
+  <g fill="none" stroke="#2e2e2e" stroke-width="2" stroke-dasharray="10 10">
+    <path d="M1040 820h280M1180 680v280"/>
+  </g>
+
+  <!-- Etiqueta -->
+  <text x="140" y="1150" fill="#6a6a6a"
+        font-family="'IBM Plex Mono',monospace" font-size="30" letter-spacing="10">
+    FOTO PENDENTE
+  </text>
+</svg>

@@ -1,0 +1,29 @@
+---
+// Exibe um desenho técnico da biblioteca (Desenhos.astro).
+// Uso: <Desenho id="dwg-bowl3d" opacidade={0.5} />
+
+interface Props {
+  /** Id do symbol. Ex.: dwg-plan, dwg-quarter, blue-park */
+  id: string;
+  /** 0 a 1. Marca d'água de fundo pede algo entre .08 e .16 */
+  opacidade?: number;
+  /** viewBox do symbol. Os técnicos são 200x120, o blue-park é 620x360 */
+  viewBox?: string;
+  class?: string;
+}
+
+const { id, opacidade = 0.55, viewBox, class: classe = '' } = Astro.props;
+
+// Escolhe o viewBox certo automaticamente quando não for informado
+const vb = viewBox ?? (id === 'blue-park' ? '0 0 620 360' : '0 0 200 120');
+---
+
+<svg
+  class={`dwg ${classe}`}
+  viewBox={vb}
+  style={`opacity:${opacidade}`}
+  aria-hidden="true"
+  focusable="false"
+>
+  <use href={`#${id}`} />
+</svg>

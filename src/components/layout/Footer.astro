@@ -1,0 +1,158 @@
+---
+// Rodapé minimalista. Os dados de contato ficam em mono (linguagem técnica).
+
+const navObras = [
+  { texto: 'Obras', href: '/obras' },
+  { texto: 'Projetos', href: '/#processo' },
+  { texto: 'Serviços', href: '/servicos' },
+];
+
+const navEmpresa = [
+  { texto: 'A Longarfino', href: '/#empresa' },
+  { texto: 'Contato', href: '/contato' },
+];
+
+const ano = new Date().getFullYear();
+---
+
+<footer class="ft">
+  <div class="ft-in">
+    <div>
+      <a href="/" class="mark" aria-label="Longarfino Skateparks — início">
+        <b>LS</b><span>parks</span>
+      </a>
+    </div>
+
+    <div>
+      <h4 class="ft-lema">Projetamos.<br />Executamos.<br />Transformamos espaços.</h4>
+    </div>
+
+    <nav aria-label="Rodapé — obras e serviços">
+      <ul>
+        {navObras.map((l) => <li><a href={l.href}>{l.texto}</a></li>)}
+      </ul>
+    </nav>
+
+    <nav aria-label="Rodapé — empresa">
+      <ul>
+        {navEmpresa.map((l) => <li><a href={l.href}>{l.texto}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="ft-col-contato">
+      <ul class="ft-contato">
+        <li><span aria-hidden="true">◈</span> Garopaba — SC<br />Brasil</li>
+        <li>
+          <span aria-hidden="true">◎</span>
+          <a href="https://instagram.com/longarfinoskateparks" target="_blank" rel="noopener">
+            @longarfinoskateparks
+          </a>
+        </li>
+        <li>
+          <span aria-hidden="true">✆</span>
+          <a href="https://wa.me/5548991079133" target="_blank" rel="noopener">
+            (48) 99107-9133
+          </a>
+        </li>
+        <li>
+          <span aria-hidden="true">✉</span>
+          <a href="mailto:contato@longarfinoskateparks.com.br">
+            contato@longarfinoskateparks.com.br
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ft-bar">
+    <span class="mono-sm">© {ano} Longarfino Skateparks. Todos os direitos reservados.</span>
+    <span class="mono-sm">www.longarfinoskateparks.com.br</span>
+  </div>
+</footer>
+
+<style>
+  .ft {
+    background: var(--concrete);
+    border-top: 1px solid var(--line);
+    padding: clamp(56px, 6vw, 88px) var(--pad) 30px;
+  }
+
+  .ft-in {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 2.2fr) minmax(0, 2.4fr) minmax(0, 1.4fr)
+      minmax(0, 1.4fr) minmax(0, 2.6fr);
+    gap: clamp(24px, 3vw, 48px);
+    padding-bottom: 44px;
+  }
+
+  /* A marca repete o desenho do header */
+  .mark { display: flex; flex-direction: column; line-height: 1; gap: 3px; width: max-content }
+  .mark b {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: 34px;
+    letter-spacing: .06em;
+    color: var(--white);
+  }
+  .mark span {
+    padding-top: 3px;
+    border-top: 1px solid var(--line-2);
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    letter-spacing: .42em;
+    color: var(--gray-200);
+  }
+
+  .ft-lema {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: 1.6rem;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .ft ul { list-style: none; display: flex; flex-direction: column; gap: 11px }
+  .ft nav a {
+    font-family: var(--ff-mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    transition: color .3s;
+  }
+  .ft nav a:hover { color: var(--orange) }
+
+  .ft-contato li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: var(--ff-mono);
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    color: var(--gray-200);
+  }
+  .ft-contato li span { flex: none; width: 14px; color: var(--orange) }
+  .ft-contato a { transition: color .3s }
+  .ft-contato a:hover { color: var(--orange) }
+
+  .ft-bar {
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 1180px) {
+    .ft-in { grid-template-columns: 1fr 1fr 1fr }
+  }
+
+  @media (max-width: 860px) {
+    .ft-in { grid-template-columns: 1fr 1fr; gap: 34px }
+    .ft-in > *:first-child,
+    .ft-col-contato { grid-column: span 2 }
+  }
+</style>

@@ -162,6 +162,11 @@ body::after{
   pointer-events:none;
 }
 
+/* ─── DESENHOS TÉCNICOS ──────────────────────────────────────── */
+/* A cor vem do currentColor, então herda o texto do elemento pai */
+
+.dwg{display:block;width:100%;height:auto;color:var(--gray-200)}
+
 /* ─── ANIMAÇÃO DE ENTRADA ────────────────────────────────────── */
 /* .rv fica invisível até o JS marcar .in ao entrar na tela */
 

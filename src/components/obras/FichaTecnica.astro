@@ -1,0 +1,52 @@
+---
+// Ficha técnica da obra. Tudo em mono, como especificação de engenharia.
+
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  obra: CollectionEntry<'obras'>['data'];
+}
+
+const { obra } = Astro.props;
+
+// Monta só as linhas que têm valor — obra sem cliente não mostra campo vazio
+const linhas = [
+  { rotulo: 'Local', valor: `${obra.cidade} / ${obra.uf}` },
+  { rotulo: 'Área', valor: `${obra.area_m2.toLocaleString('pt-BR')} m²` },
+  { rotulo: 'Tipo', valor: obra.tipo.join(' · ') },
+  obra.cliente && { rotulo: 'Cliente', valor: obra.cliente },
+  obra.duracao && { rotulo: 'Execução', valor: obra.duracao },
+  obra.ano && { rotulo: 'Ano', valor: String(obra.ano) },
+  {
+    rotulo: 'Situação',
+    valor: obra.status === 'em_execucao' ? 'Em execução' : 'Concluída',
+  },
+].filter(Boolean) as { rotulo: string; valor: string }[];
+---
+
+<dl class="ficha">
+  {linhas.map((l) => (
+    <div class="ficha-linha">
+      <dt class="mono-sm">{l.rotulo}</dt>
+      <dd class="mono ficha-valor">{l.valor}</dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .ficha { border-top: 1px solid var(--line-2) }
+
+  .ficha-linha {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ficha-valor {
+    color: var(--white);
+    text-align: right;
+  }
+</style>

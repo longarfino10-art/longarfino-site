@@ -2,6 +2,8 @@
 // Layout base — envolve todas as páginas do site.
 import '../styles/tokens.css';
 import '../styles/base.css';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
 
 interface Props {
   titulo: string;
@@ -46,6 +48,15 @@ const urlOg = new URL(imagemOg, Astro.site);
   />
 </head>
 <body>
-  <slot />
+  <Header />
+  <main>
+    <slot />
+  </main>
+  <Footer />
+
+  <script>
+    import '../scripts/menu.js';
+    import '../scripts/reveal.js';
+  </script>
 </body>
 </html>

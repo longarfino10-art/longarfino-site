@@ -1,11 +1,26 @@
 ---
 import Base from '../layouts/Base.astro';
+import Desenhos from '../components/ui/Desenhos.astro';
+import Desenho from '../components/ui/Desenho.astro';
+import { getCollection } from 'astro:content';
+
+// Teste temporário da coleção. Sai quando a home de verdade entrar.
+const obras = await getCollection('obras');
+obras.sort((a, b) => a.data.ordem - b.data.ordem);
+
+// Só para conferir a biblioteca. Sai quando a home de verdade entrar.
+const todos = [
+  'dwg-contours', 'dwg-plan', 'dwg-earth', 'dwg-rebar', 'dwg-coping',
+  'dwg-bowl3d', 'dwg-quarter', 'dwg-stairs', 'dwg-slab', 'dwg-repair',
+];
 ---
 
 <Base
   titulo="Longarfino Skateparks — Projeto e execução de skateparks em concreto"
   descricao="Projetamos e executamos skateparks, bowls e estruturas para skate em concreto armado. 18+ anos de experiência, 2.800+ m² construídos. Garopaba — SC."
 >
+  <Desenhos />
+
   <section class="sec">
     <span class="eyebrow">Teste do layout base</span>
     <h1 class="d h-hero">Do projeto<br />ao concreto</h1>
@@ -16,5 +31,32 @@ import Base from '../layouts/Base.astro';
       <a class="btn btn--fill" href="#">Botão preenchido <i class="arw"></i></a>
       <a class="btn" href="#">Botão de borda <i class="arw"></i></a>
     </div>
+
+    <hr class="rule" style="margin:64px 0 40px" />
+
+    <span class="eyebrow">Biblioteca de desenhos técnicos</span>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:40px;margin-top:32px">
+      {todos.map((id) => (
+        <div>
+          <Desenho id={id} />
+          <span class="mono-sm" style="display:block;margin-top:12px">{id}</span>
+        </div>
+      ))}
+    </div>
+
+    <hr class="rule" style="margin:64px 0 40px" />
+
+    <span class="eyebrow">Teste da coleção de obras</span>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:20px;margin-top:24px">
+      {obras.map((o) => (
+        <li style="border-top:1px solid var(--line);padding-top:16px">
+          <strong class="d h-sub" style="display:block;color:var(--white)">{o.data.nome}</strong>
+          <span class="mono-sm">
+            {o.data.cidade} / {o.data.uf} · {o.data.area_m2} m² ·
+            {o.data.tipo.join(', ')} · {o.data.status} · id: {o.id}
+          </span>
+        </li>
+      ))}
+    </ul>
   </section>
 </Base>

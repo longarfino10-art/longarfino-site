@@ -1,0 +1,136 @@
+---
+// Portfólio completo. Grade assimétrica: os cards variam de largura e
+// proporção conforme a posição, criando ritmo em vez de blocos iguais.
+
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Desenhos from '../../components/ui/Desenhos.astro';
+import BlocoObras from '../../components/obras/BlocoObras.astro';
+
+const obras = await getCollection('obras');
+obras.sort((a, b) => a.data.ordem - b.data.ordem);
+
+// Divide as obras em blocos de 4. Cada bloco se vira sozinho com o que
+// receber — 4, 3, 2 ou 1 obra — sem deixar buraco na composição.
+const blocos: (typeof obras)[] = [];
+for (let i = 0; i < obras.length; i += 4) {
+  blocos.push(obras.slice(i, i + 4));
+}
+
+const filtros = [
+  { rotulo: 'Todas', valor: 'todas' },
+  { rotulo: 'Bowl', valor: 'bowl' },
+  { rotulo: 'Street', valor: 'street' },
+  { rotulo: 'Park', valor: 'park' },
+  { rotulo: 'Reforma', valor: 'reforma' },
+  { rotulo: 'Execução', valor: 'execucao' },
+];
+
+// Números do rodapé da seção, calculados do conteúdo real
+const totalM2 = obras.reduce((soma, o) => soma + o.data.area_m2, 0);
+const estados = new Set(obras.map((o) => o.data.uf)).size;
+---
+
+<Base
+  titulo="Obras — Longarfino Skateparks"
+  descricao="Skateparks, bowls e pistas de street projetados e executados pela Longarfino. Veja o portfólio completo de obras em concreto armado."
+>
+  <Desenhos />
+
+  <section class="sec topo">
+    <div class="cabeca">
+      <div>
+        <span class="eyebrow">Portfólio</span>
+        <h1 class="d h-sec">Projetos realizados</h1>
+      </div>
+
+      <div class="resumo mono muted">
+        <span>{obras.length} obras</span>
+        <span>{totalM2.toLocaleString('pt-BR')} m² construídos</span>
+        <span>{estados} {estados === 1 ? 'estado' : 'estados'}</span>
+      </div>
+    </div>
+
+    <div class="filtros" role="group" aria-label="Filtrar obras por tipo">
+      {filtros.map((f, i) => (
+        <button
+          class={`filtro${f.valor === 'todas' ? ' is-on' : ''}`}
+          data-filtro={f.valor}
+          aria-pressed={f.valor === 'todas' ? 'true' : 'false'}
+        >
+          <i>{String(i + 1).padStart(2, '0')}</i>{f.rotulo}
+        </button>
+      ))}
+    </div>
+
+    <div class="grade" id="obras-grade">
+      {blocos.map((bloco, i) => (
+        <BlocoObras obras={bloco} indice={i} prioridade={i === 0} />
+      ))}
+    </div>
+
+    <p class="mono vazio" id="obras-vazio" hidden>
+      Nenhuma obra nesta categoria ainda.
+    </p>
+  </section>
+
+  <script>
+    import '../../scripts/filtros.js';
+  </script>
+</Base>
+
+<style>
+  /* Folga para o header fixo não cobrir o título */
+  .topo { padding-top: clamp(150px, 15vw, 210px) }
+
+  .cabeca {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .cabeca h1 { color: var(--white) }
+
+  .resumo { display: flex; flex-direction: column; gap: 6px; text-align: right }
+
+  /* Filtros como etiquetas técnicas, não como botões de aplicativo */
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 26px;
+    margin: clamp(36px, 4vw, 56px) 0 clamp(28px, 3vw, 44px);
+    border-bottom: 1px solid var(--line);
+  }
+  .filtro {
+    display: flex;
+    gap: 8px;
+    padding: 9px 0 12px;
+    margin-bottom: -1px;
+    border-bottom: 1px solid transparent;
+    font-family: var(--ff-mono);
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    transition: color .3s, border-color .3s;
+  }
+  .filtro i { font-style: normal; color: var(--gray-900); transition: color .3s }
+  .filtro:hover { color: var(--gray-200) }
+  .filtro.is-on { color: var(--white); border-bottom-color: var(--orange) }
+  .filtro.is-on i { color: var(--orange) }
+
+  /* Empilha os blocos com respiro entre eles */
+  .grade {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 1.8vw, 30px);
+  }
+
+  .vazio { padding-top: 40px; color: var(--gray-500) }
+
+  @media (max-width: 860px) {
+    .cabeca { align-items: flex-start }
+    .resumo { text-align: left; flex-direction: row; flex-wrap: wrap; gap: 4px 20px }
+  }
+</style>
