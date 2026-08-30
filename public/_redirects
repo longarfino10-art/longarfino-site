@@ -1,0 +1,4 @@
+# 301 do WordPress antigo → site novo.  Formato:  /antiga  /nova  301
+# Preencher na etapa de SEO, depois de mapear as URLs atuais.
+# /gallery/pista-trindade/   /obras/pista-trindade/   301
+# /portfolio/                /obras/                  301
