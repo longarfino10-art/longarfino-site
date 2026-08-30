@@ -1,0 +1,51 @@
+---
+// Layout base — envolve todas as páginas do site.
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+interface Props {
+  titulo: string;
+  descricao: string;
+  /** Imagem de compartilhamento. Caminho a partir de public/ */
+  imagemOg?: string;
+}
+
+const { titulo, descricao, imagemOg = '/og/padrao.jpg' } = Astro.props;
+
+// URL canônica desta página, montada a partir do `site` do astro.config.mjs
+const canonica = new URL(Astro.url.pathname, Astro.site);
+const urlOg = new URL(imagemOg, Astro.site);
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{titulo}</title>
+  <meta name="description" content={descricao} />
+  <link rel="canonical" href={canonica} />
+  <meta name="theme-color" content="#0A0A0A" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={titulo} />
+  <meta property="og:description" content={descricao} />
+  <meta property="og:image" content={urlOg} />
+  <meta property="og:url" content={canonica} />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Bebas Neue (títulos) · Inter (texto) · IBM Plex Mono (dados técnicos) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <slot />
+</body>
+</html>

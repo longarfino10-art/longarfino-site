@@ -1,11 +1,20 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Base from '../layouts/Base.astro';
 ---
 
-<Layout>
-	Longarfino Skateparks
-</Layout>
+<Base
+  titulo="Longarfino Skateparks — Projeto e execução de skateparks em concreto"
+  descricao="Projetamos e executamos skateparks, bowls e estruturas para skate em concreto armado. 18+ anos de experiência, 2.800+ m² construídos. Garopaba — SC."
+>
+  <section class="sec">
+    <span class="eyebrow">Teste do layout base</span>
+    <h1 class="d h-hero">Do projeto<br />ao concreto</h1>
+    <p class="lead" style="margin-top:24px">
+      Se você está lendo isto em Bebas Neue sobre fundo preto, o layout base está funcionando.
+    </p>
+    <div style="margin-top:32px;display:flex;gap:16px;flex-wrap:wrap">
+      <a class="btn btn--fill" href="#">Botão preenchido <i class="arw"></i></a>
+      <a class="btn" href="#">Botão de borda <i class="arw"></i></a>
+    </div>
+  </section>
+</Base>
