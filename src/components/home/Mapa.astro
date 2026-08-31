@@ -1,0 +1,117 @@
+---
+// Mapa de atuação. O contorno vem de dados cartográficos reais (Natural Earth,
+// domínio público) projetados em Mercator — os pontos das cidades estão nas
+// coordenadas exatas, calculados pela mesma projeção do desenho.
+//
+// O viewBox é mais largo que o mapa para abrir espaço à coluna de rótulos,
+// no formato de prancha técnica com linhas de chamada.
+
+interface Cidade {
+  nome: string;
+  uf: string;
+  x: number;
+  y: number;
+}
+
+const cidades: Cidade[] = [
+  { nome: 'Salvador', uf: 'BA', x: 451, y: 253 },
+  { nome: 'São Paulo', uf: 'SP', x: 353, y: 387 },
+  { nome: 'Curitiba', uf: 'PR', x: 321, y: 412 },
+  { nome: 'Florianópolis', uf: 'SC', x: 330, y: 441 },
+  { nome: 'Porto Alegre', uf: 'RS', x: 298, y: 475 },
+];
+
+// Coluna onde as linhas de chamada terminam
+const COLUNA = 566;
+
+const contorno = 'M271,527L268,519L273,512L266,502L257,495L245,485L240,486L228,475L220,477L236,458L250,445L258,439L268,432L268,421L262,413L256,416L259,408L260,400L260,393L256,390L251,393L247,392L246,387L244,375L242,371L234,368L229,370L216,368L217,350L214,343L217,340L216,333L220,327L222,317L219,310L212,306L211,301L213,294L190,293L185,279L189,279L189,273L186,270L186,262L179,259L171,259L166,255L158,253L153,248L140,246L127,235L128,227L126,222L127,213L112,215L105,220L95,225L92,228L86,229L77,228L70,230L65,228L66,210L56,217L45,217L41,210L33,209L35,204L28,197L24,186L27,184L27,179L34,175L33,169L36,164L37,159L50,150L60,148L62,146L73,147L78,114L78,109L77,102L71,97L71,89L78,87L80,88L81,83L74,82L74,75L97,75L101,71L104,74L107,82L109,80L116,86L125,86L127,82L136,79L141,77L143,72L151,69L151,66L140,65L139,58L139,49L134,46L136,45L145,47L154,50L158,47L167,45L180,41L184,36L183,33L189,32L192,35L190,40L194,42L197,48L194,52L192,62L195,68L196,74L203,79L209,80L211,78L214,77L220,75L224,72L230,73L233,72L240,73L241,71L239,68L240,65L245,66L251,65L258,67L263,70L266,67L269,67L271,70L277,70L281,65L285,56L292,45L296,45L299,51L306,72L312,74L313,83L304,92L307,96L328,98L329,110L338,102L353,106L373,114L379,121L377,128L391,124L414,130L432,130L450,140L466,153L475,157L485,157L489,161L494,176L496,184L491,204L485,212L468,229L460,243L451,253L448,254L445,263L446,286L442,305L441,314L437,319L435,336L423,352L421,366L411,371L408,379L395,379L376,384L368,390L354,394L340,404L330,417L328,427L330,435L328,449L325,455L317,463L304,487L293,499L285,505L279,519Z';
+---
+
+<div class="mapa">
+  <svg viewBox="0 0 720 560" role="img" aria-labelledby="mapa-titulo">
+    <title id="mapa-titulo">
+      Mapa do Brasil marcando as cidades onde a Longarfino executou obras:
+      Salvador, São Paulo, Curitiba, Florianópolis e Porto Alegre.
+    </title>
+
+    <!-- Grade de prancha, não de mapa -->
+    <g class="grade">
+      <path d="M20 120h680M20 240h680M20 360h680M20 480h680" />
+      <path d="M120 20v520M240 20v520M360 20v520M480 20v520" />
+    </g>
+
+    <path class="contorno" d={contorno} />
+
+    {cidades.map((c) => (
+      <g class="marca">
+        <path class="chamada" d={`M${c.x + 7} ${c.y} H${COLUNA}`} />
+        <circle class="halo" cx={c.x} cy={c.y} r="10" />
+        <circle class="ponto" cx={c.x} cy={c.y} r="3.5" />
+        <text class="rotulo" x={COLUNA + 12} y={c.y + 4}>
+          {c.nome} <tspan class="uf">/ {c.uf}</tspan>
+        </text>
+      </g>
+    ))}
+
+    <!-- Coluna vertical fechando as chamadas, como margem de prancha -->
+    <path class="margem" d={`M${COLUNA} 245 V483`} />
+  </svg>
+</div>
+
+<style>
+  .mapa { width: 100%; max-width: 620px }
+  .mapa svg { width: 100%; height: auto; display: block; overflow: visible }
+
+  .contorno {
+    fill: rgba(232, 90, 36, .03);
+    stroke: var(--gray-200);
+    stroke-width: 1;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    opacity: .5;
+  }
+
+  .grade {
+    fill: none;
+    stroke: var(--gray-200);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 2 9;
+    opacity: .12;
+  }
+
+  .chamada {
+    fill: none;
+    stroke: var(--gray-500);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: .5;
+  }
+
+  .margem {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: .5;
+  }
+
+  .halo {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: .35;
+  }
+
+  .ponto { fill: var(--orange) }
+
+  .rotulo {
+    fill: var(--gray-200);
+    font-family: var(--ff-mono);
+    font-size: 13px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .uf { fill: var(--gray-500) }
+</style>

@@ -3,8 +3,8 @@
 
 const navObras = [
   { texto: 'Obras', href: '/obras' },
-  { texto: 'Projetos', href: '/#processo' },
-  { texto: 'Serviços', href: '/servicos' },
+  { texto: 'Como executamos', href: '/#processo' },
+  { texto: 'O que fazemos', href: '/servicos' },
 ];
 
 const navEmpresa = [
@@ -91,16 +91,18 @@ const ano = new Date().getFullYear();
   .mark b {
     font-family: var(--ff-display);
     font-weight: 400;
-    font-size: 34px;
-    letter-spacing: .06em;
+    font-size: 36px;
+    letter-spacing: -.01em;
     color: var(--white);
   }
   .mark span {
-    padding-top: 3px;
+    display: block;
+    width: 100%;
+    padding-top: 4px;
     border-top: 1px solid var(--line-2);
     font-family: var(--ff-mono);
     font-size: 9px;
-    letter-spacing: .42em;
+    letter-spacing: .34em;
     color: var(--gray-200);
   }
 

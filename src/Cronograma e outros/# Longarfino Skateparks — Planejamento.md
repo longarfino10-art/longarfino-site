@@ -3,9 +3,9 @@
 ## ONDE ESTAMOS
 
 **Data:** 30/08/2026
-**Etapa concluída:** Itens 1, 2, 3, 4 e 6 — layout base, desenhos técnicos,
-header/footer, coleção de obras, página da obra e portfólio com filtros.
-**Próxima etapa:** Item 7 — Home, ou Item 9 — Contato
+**Etapa concluída:** Itens 1, 2, 3, 4 e 6. Do item 7 (Home): Hero e Números
+com mapa de atuação.
+**Próxima etapa:** Item 7 — seção "Obras em destaque" na home
 **Bloqueio atual:** acervo de fotos. As obras rodam com placeholder técnico
 (`src/assets/placeholder-obra.svg`), então o código não está travado — mas o
 site não pode ir ao ar assim.
@@ -80,6 +80,10 @@ Removidos do template padrão do Astro: `Layout.astro`, `Welcome.astro`,
 | `public/` | Só favicon, robots, `_redirects`, imagem de OG |
 | Formulário | WhatsApp como CTA principal + Web3Forms em `/contato` |
 | Visual | Preto/concreto + laranja `#E85A24` no máximo 15% da tela |
+| Menu | Obras · Como executamos · O que fazemos · A Longarfino · Contato |
+| CTA | "Solicitar orçamento" no header e no fim. "Falar com a equipe" no hero |
+| Home | Página única com rolagem. `/obras` e `/servicos` aprofundam |
+| Estados atendidos | SC, PR, RS, SP e BA. SP e BA sem registro fotográfico bom |
 | Branch | `main` |
 
 ---
@@ -154,6 +158,8 @@ antes de publicar.
 - [x] Item 3 — Coleção de obras
 - [x] Item 4 — Página da obra
 - [x] Item 6 — Portfólio com blocos e filtros
+- [ ] Item 7 — Home: Hero ✅ · Obras ⬜ · Serviços ⬜ · Processo ⬜ ·
+      A Longarfino ⬜ · Números ✅ · Galeria ⬜ · CTA ⬜
 - [ ] Semana 2 — Obras: coleção, página da obra, carrossel, portfólio com filtros
 - [ ] Semana 3 — Conteúdo real: home completa, serviços, contato, migração
 - [ ] Semana 4 — SEO, performance, testes, virada de domínio
@@ -208,3 +214,30 @@ com `+` numa const antes da tag.
 Armadilha encontrada: a classe `.rv` deixa o elemento com opacity 0 esperando
 o `reveal.js`. Enquanto o script não estiver carregado na página, qualquer
 elemento com `.rv` fica invisível. O script agora está no `Base.astro`.
+
+**31/08/2026 — Home: Hero e Números**
+Hero com foto em duas camadas (colorida à direita, dessaturada à esquerda por
+máscara em degradê), parallax, inclinação com o mouse e fios se traçando na
+faixa de números. Scripts novos: `parallax.js`, `inclinar.js`.
+
+Detalhe técnico: parallax e inclinação escrevem em variáveis CSS separadas
+(`--desloca-y`, `--giro-x`, `--giro-y`) e o `.hero-palco` combina as duas num
+`transform` só. Inclinar cada camada da foto separadamente descola a máscara e
+cria uma diagonal dura na tela.
+
+Mapa de atuação gerado a partir do Natural Earth (domínio público) com d3-geo,
+projeção Mercator. Os pontos das cidades vêm da mesma projeção, então estão nas
+coordenadas corretas. Path simplificado: 1,5 KB.
+
+Decisão de navegação: os rótulos Obras / Projetos / Serviços diziam a mesma
+coisa e "Projetos" apontava para o processo. Trocados por Obras / Como
+executamos / O que fazemos, para cada item responder uma pergunta diferente e
+o menu carregar o diferencial da empresa (executa, não só projeta).
+
+PENDÊNCIA CRÍTICA: a imagem do hero (`src/assets/hero.webp`) é gerada por IA e
+está marcada como provisória no código. Precisa sair antes do lançamento. A
+foto real de reserva está em `src/assets/hero-real-bowl.jpg` (vertical).
+
+Dívida técnica: `Hero.astro` tem comentário no topo citando a planta técnica
+que foi removida, e uma regra `.hero-planta` órfã no bloco mobile.
+`parallax.js` seleciona `[data-parallax]`, atributo que não existe mais.

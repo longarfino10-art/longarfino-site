@@ -2,10 +2,12 @@
 // Cabeçalho fixo. Começa transparente sobre o hero e ganha fundo ao rolar.
 // O menu mobile é um overlay de tela cheia, controlado por src/scripts/menu.js
 
+// Cada item responde uma pergunta diferente do visitante.
+// "Como executamos" carrega o diferencial: a Longarfino põe a mão na obra.
 const links = [
   { texto: 'Obras', href: '/obras' },
-  { texto: 'Projetos', href: '/#processo' },
-  { texto: 'Serviços', href: '/servicos' },
+  { texto: 'Como executamos', href: '/#processo' },
+  { texto: 'O que fazemos', href: '/servicos' },
   { texto: 'A Longarfino', href: '/#empresa' },
   { texto: 'Contato', href: '/contato' },
 ];
@@ -81,23 +83,28 @@ const links = [
 
   /* Marca: LS grande com "parks" em mono embaixo de um fio */
   .mark { display: flex; flex-direction: column; line-height: 1; gap: 3px }
+  /* Monograma: as letras coladas, quase um bloco só */
   .mark b {
     font-family: var(--ff-display);
     font-weight: 400;
-    font-size: 34px;
-    letter-spacing: .06em;
+    font-size: 36px;
+    letter-spacing: -.01em;
     color: var(--white);
   }
+
+  /* O fio acompanha a largura do LS, não a da palavra "parks" */
   .mark span {
-    padding-top: 3px;
+    display: block;
+    width: 100%;
+    padding-top: 4px;
     border-top: 1px solid var(--line-2);
     font-family: var(--ff-mono);
     font-size: 9px;
-    letter-spacing: .42em;
+    letter-spacing: .34em;
     color: var(--gray-200);
   }
 
-  .nav { display: flex; gap: clamp(18px, 2.3vw, 38px) }
+  .nav { display: flex; gap: clamp(14px, 1.8vw, 30px) }
   .nav a {
     position: relative;
     padding: 6px 0;
