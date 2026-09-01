@@ -194,7 +194,19 @@ disso.
 | `/obras/[slug]` | pronta — ficha técnica, capa, estudo de caso, CTA |
 | `/404` | **pronta** — atalhos + crédito do dev |
 | `/contato` | não iniciada — **travada na chave do Web3Forms**, que o Lucas precisa gerar |
+| `/a-longarfino` | **pronta** — história, dois registros de época, equipe |
 
+## Novas decisões
+
+- A história da empresa cita a **Onlybyskate**, equipe de street skate criada
+  em 2011 por Paulo Longarfino com Rodrigo Rosa, organizada com o jornalista
+  Nilo Dias Cabral. Dados usados: 1ª etapa no Banx da Restinga em set/2011,
+  30 competidores e ~300 pessoas; aniversário em 2012 no Cecores, 51
+  competidores, ~400 pessoas e 40 kg de alimentos doados.
+- Não foram publicados: nomes das creches e escolas beneficiadas, lista de
+  apoiadores, telefones pessoais que constavam nos documentos originais.
+- Equipe publicada: Paulo (proprietário e execução), Lucas (TI e
+  administrativo), Grazi (administrativo), Leandro (engenheiro civil).
 ---
 
 ## COMPONENTES DA HOME
@@ -254,6 +266,12 @@ disso.
 - Descrever os `alt` das 5 fotos da galeria
 - Confirmar a espessura de concreto da cota do desenho da laje
 - Confirmar se "15+ obras entregues" é o número real
+- Número do CREA do Leandro — vale para licitação pública
+- A foto de 1997 tem muitas pessoas, várias aparentando ser menores na época.
+  Conferir se há algum problema em mantê-la publicada.
+- A foto `inicio-2011.png` tem 2,9 MB. Se existir o original em JPG, trocar.
+- A versão da foto de 2011 gerada por IA foi descartada: ela apagava uma
+  pessoa que estava na cena. Só a original vai ao ar.
 
 **Técnicas**
 - Mapear as URLs do WordPress para os 301 (lista já levantada acima)
