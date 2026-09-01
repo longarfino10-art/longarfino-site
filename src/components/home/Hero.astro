@@ -1,9 +1,10 @@
 ---
-// Primeira tela. A planta técnica atravessa o fundo em baixa opacidade —
-// é o elemento estrutural da marca, não decoração.
+// Primeira tela. A foto entra em duas camadas: colorida embaixo e
+// dessaturada por cima, com máscara em degradê — a cor aparece só à
+// direita, onde não há texto.
 //
-// Quando houver fotografia real da obra, ela entra como <img> dentro de
-// .hero-fundo, por baixo da planta, com o mesmo tratamento das outras fotos.
+// O .hero-palco carrega as duas camadas juntas, para o parallax e a
+// inclinação não descolarem a máscara.
 
 import { Image } from 'astro:assets';
 // PROVISÓRIA — imagem gerada por IA, só para validar a composição.
@@ -11,16 +12,20 @@ import { Image } from 'astro:assets';
 // A foto real de reserva está em assets/hero-real-bowl.jpg (vertical).
 import fotoHero from '../../assets/hero.webp';
 
+// Mesma fonte da seção A Longarfino: o ano se calcula sozinho.
+const ANO_INICIO = 2007;
+const anos = new Date().getFullYear() - ANO_INICIO;
+
 const numeros = [
-  { valor: '18+', rotulo: 'Anos de experiência' },
-  { valor: '2.800+', rotulo: 'M² construídos' },
+  { valor: anos + '+', rotulo: 'Anos de experiência' },
+  { valor: '12.360', rotulo: 'M² construídos' },
   { valor: 'Brasil', rotulo: 'Atuação nacional' },
 ];
 ---
 
 <section class="hero">
   <div class="hero-fundo">
-    <div class="hero-palco" data-inclinar>
+    <div class="hero-palco" data-inclinar data-parallax>
     <Image
       src={fotoHero}
       alt="Bowl em concreto durante a execução, com coping instalado"
@@ -56,7 +61,7 @@ const numeros = [
 
     <div class="hero-acoes">
       <a class="btn btn--fill" href="#obras">Ver nossas obras <i class="arw"></i></a>
-      <a class="btn btn--bare" href="/contato">Falar com a equipe <i class="arw"></i></a>
+      <a class="btn btn--bare" href="#contato">Falar com a equipe <i class="arw"></i></a>
     </div>
   </div>
 
@@ -156,9 +161,6 @@ const numeros = [
       linear-gradient(to top, rgba(10, 10, 10, .9) 0%, transparent 32%);
   }
 
-  /* A planta ocupa só o canto superior direito, cortada pela borda.
-     Fica atrás do vazio da composição, nunca atrás do título. */
-
 
   /* Sem max-width: o conteúdo segue a mesma margem do header (--pad) */
   .hero-conteudo {
@@ -257,7 +259,6 @@ const numeros = [
 
   @media (max-width: 860px) {
     .hero { padding-top: 120px }
-    .hero-planta { width: 130vw; right: -45%; opacity: .09 }
 
     .hero-numeros { grid-template-columns: 1fr; border-top: 0 }
     .numero {

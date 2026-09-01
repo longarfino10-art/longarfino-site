@@ -346,3 +346,16 @@ só na Chamada, porque apareciam duas vezes a 200px de distância.
 **Texto do CTA.** "Vamos tirar o projeto do papel?" virou "Conte onde vai ser
 a pista." O anterior terminava em "projeto", contradizendo o posicionamento de
 quem executa.
+
+- Página de política de privacidade: existe e está indexada no site antigo.
+  O site usa Google Tag Manager e Pixel do Facebook, então a página é
+  necessária também por LGPD.
+- Os slugs do `_redirects` precisam bater com os slugs reais dos .md das
+  obras. Se mudar um, muda o outro.
+- Levantar as URLs de /services/<slug>/ do site antigo (3 delas).
+- Park Abraão aparece na home do site antigo mas NÃO está no portfólio.
+  Conferir se a obra existe.
+- Pista Morrinhos: dados reais do site antigo são 600 m² (não 420),
+  cliente Garopaba/SC, obra de 6/jan a 4/abr de 2025.
+- Armadilha: o parallax do hero depende do atributo `data-parallax` no
+  `.hero-palco`. Sem ele o script não acha nada e o efeito some sem erro.
