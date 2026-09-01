@@ -1,0 +1,156 @@
+---
+// Seção "Como executamos" da home. Seis etapas em fileira, ligadas por um
+// fio de 1px com um ponto por etapa — a mesma leitura de uma linha de tempo
+// de obra. Aqui os desenhos são os seis numerados da biblioteca, na ordem
+// para que foram feitos.
+//
+// PROVISÓRIO: as descrições são rascunho e precisam da revisão do Lucas.
+
+import Desenho from '../ui/Desenho.astro';
+
+const etapas = [
+  {
+    numero: '01',
+    titulo: 'Levantamento',
+    texto: 'Medição do terreno, cotas de nível e leitura das condições do solo.',
+    desenho: 'dwg-contours',
+  },
+  {
+    numero: '02',
+    titulo: 'Projeto',
+    texto: 'Desenho cotado das transições, do fluxo e de cada obstáculo.',
+    desenho: 'dwg-plan',
+  },
+  {
+    numero: '03',
+    titulo: 'Preparação',
+    texto: 'Escavação, taludes, compactação da sub-base e drenagem.',
+    desenho: 'dwg-earth',
+  },
+  {
+    numero: '04',
+    titulo: 'Execução',
+    texto: 'Armação, formas e concretagem com controle de traço e cura.',
+    desenho: 'dwg-rebar',
+  },
+  {
+    numero: '05',
+    titulo: 'Acabamento',
+    texto: 'Coping assentado, superfície alisada e juntas serradas.',
+    desenho: 'dwg-coping',
+  },
+  {
+    numero: '06',
+    titulo: 'Entrega',
+    texto: 'Limpeza, teste de uso e repasse da pista pronta para andar.',
+    desenho: 'dwg-bowl3d',
+  },
+];
+---
+
+<section class="sec processo" id="como-executamos">
+  <header class="rv">
+    <span class="eyebrow">Nosso processo</span>
+    <h2 class="d h-sec">Do projeto ao concreto</h2>
+  </header>
+
+    <ol class="linha">
+      {etapas.map((e) => (
+        <li class="etapa rv">
+          <div class="desenho" aria-hidden="true">
+            <Desenho id={e.desenho} opacidade={0.28} />
+          </div>
+          <span class="ponto" aria-hidden="true"></span>
+          <span class="numero">{e.numero}</span>
+          <h3 class="d nome">{e.titulo}</h3>
+          <p class="texto">{e.texto}</p>
+        </li>
+      ))}
+  </ol>
+</section>
+
+<style>
+  .processo { border-top: 1px solid var(--line) }
+
+  .linha {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: clamp(10px, 1.4vw, 24px);
+    margin-top: clamp(36px, 4vw, 60px);
+    list-style: none;
+    padding: 0;
+  }
+
+  .etapa {
+    position: relative;
+    padding-top: clamp(96px, 10vw, 132px);
+  }
+
+  /* O desenho fica acima do fio, encostado à esquerda da coluna */
+  .desenho {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: clamp(88px, 9.5vw, 128px);
+    color: var(--white);
+    pointer-events: none;
+  }
+
+  /* Fio contínuo atravessando os seis. Cada etapa desenha o próprio
+     trecho, então ele acompanha a grade sem cálculo de largura. */
+  .etapa::before {
+    content: "";
+    position: absolute;
+    top: clamp(80px, 8.4vw, 110px);
+    left: 0;
+    right: calc(clamp(10px, 1.4vw, 24px) * -1);
+    height: 1px;
+    background: var(--line-2);
+  }
+
+  .etapa:last-child::before { right: 0 }
+
+  .ponto {
+    position: absolute;
+    top: clamp(77px, 8.1vw, 107px);
+    left: 0;
+    width: 7px;
+    height: 7px;
+    background: var(--orange);
+  }
+
+  .numero {
+    display: block;
+    margin-top: 18px;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    color: var(--orange);
+  }
+
+  .nome {
+    margin-top: 6px;
+    font-size: clamp(1.05rem, 1.3vw, 1.4rem);
+    line-height: 1.05;
+    color: var(--white);
+  }
+
+  .texto {
+    margin-top: 10px;
+    font-size: .8125rem;
+    line-height: 1.55;
+    color: var(--gray-200);
+  }
+
+  @media (max-width: 1080px) {
+    .linha { grid-template-columns: repeat(3, 1fr) }
+    /* Com 3 colunas o fio não pode atravessar o fim de cada fileira */
+    .etapa:nth-child(3n)::before { right: 0 }
+  }
+
+  @media (max-width: 640px) {
+    .linha { grid-template-columns: repeat(2, 1fr) }
+    .etapa:nth-child(3n)::before { right: calc(clamp(10px, 1.4vw, 24px) * -1) }
+    .etapa:nth-child(2n)::before { right: 0 }
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+// Página de erro 404. O Cloudflare serve este arquivo quando a URL não
+// existe. Além do aviso, oferece caminhos de saída para o visitante não
+// simplesmente fechar a aba.
+
+import Base from '../layouts/Base.astro';
+import Desenhos from '../components/ui/Desenhos.astro';
+import Desenho from '../components/ui/Desenho.astro';
+
+const atalhos = [
+  { texto: 'Ver as obras', href: '/obras' },
+  { texto: 'O que fazemos', href: '/#servicos' },
+  { texto: 'Falar com a equipe', href: '/#contato' },
+];
+
+// Contato do desenvolvedor
+const devZap = '5551986158345';
+---
+
+<Base
+  titulo="Página não encontrada — Longarfino Skateparks"
+  descricao="A página que você procura não existe ou foi movida."
+>
+  <Desenhos />
+
+  <section class="sec erro">
+    <div class="grade">
+      <div class="lado">
+        <span class="eyebrow">Erro 404</span>
+        <h1 class="d h-sec">Essa página<br />não existe.</h1>
+        <p class="lead">
+          O endereço pode ter mudado ou a página foi removida.
+          Abaixo estão os caminhos mais usados.
+        </p>
+
+        <ul class="atalhos">
+          {atalhos.map((a) => (
+            <li>
+              <a href={a.href}>
+                <span>{a.texto}</span>
+                <i class="arw"></i>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="lado desenho" aria-hidden="true">
+        <Desenho id="dwg-reforma-cota" opacidade={0.3} />
+      </div>
+    </div>
+
+    <p class="credito mono-sm">
+      Desenvolvido por Lucas Longarfino ·
+      <a href={'https://wa.me/' + devZap} target="_blank" rel="noopener">
+        (51) 98615-8345
+      </a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .erro {
+    min-height: 76vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: clamp(140px, 16vw, 200px);
+  }
+
+  .grade {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: center;
+  }
+
+  .lead { margin-top: 22px }
+
+  .atalhos {
+    list-style: none;
+    margin-top: clamp(32px, 4vw, 52px);
+    border-top: 1px solid var(--line);
+  }
+
+  .atalhos li { border-bottom: 1px solid var(--line) }
+
+  .atalhos a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 0;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gray-200);
+    transition: color .3s var(--ease), padding .3s var(--ease);
+  }
+
+  .atalhos a:hover {
+    color: var(--orange);
+    padding-left: 12px;
+  }
+
+  .atalhos a:hover .arw { width: 38px }
+
+  .desenho { color: var(--white) }
+
+  .credito {
+    margin-top: clamp(48px, 6vw, 80px);
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .credito a { color: var(--gray-200); transition: color .3s }
+  .credito a:hover { color: var(--orange) }
+
+  @media (max-width: 860px) {
+    .grade { grid-template-columns: 1fr }
+    .desenho { display: none }
+  }
+</style>

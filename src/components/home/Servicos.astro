@@ -1,0 +1,173 @@
+---
+// Seção "O que fazemos" da home. Seis serviços numerados, cada um com o
+// desenho técnico correspondente da biblioteca de símbolos.
+//
+// PROVISÓRIO: os textos abaixo são rascunho, escritos como ponto de partida.
+// Precisam ser revisados pelo Lucas antes do lançamento.
+
+import Desenho from '../ui/Desenho.astro';
+
+const servicos = [
+  {
+    numero: '01',
+    titulo: 'Projeto e design',
+    texto: 'Levantamento do terreno, estudo de fluxo e desenho de cada transição antes de qualquer concreto. O projeto sai cotado e pronto para executar — não é ilustração.',
+    desenho: 'dwg-projeto-cota',
+  },
+  {
+    numero: '02',
+    titulo: 'Construção em concreto',
+    texto: 'Concreto armado moldado no local, com traço, cura e juntas controladas. É a etapa que define se a pista dura cinco ou trinta anos.',
+    desenho: 'dwg-laje-cota',
+  },
+  {
+    numero: '03',
+    titulo: 'Bowls e transições',
+    texto: 'Raio contínuo, coping alinhado e superfície sem emenda. Bowl mal transicionado não se corrige depois — se refaz.',
+    desenho: 'dwg-quarter-cota',
+  },
+  {
+    numero: '04',
+    titulo: 'Street skateparks',
+    texto: 'Escadas, corrimãos, bancos, caixas, gaps e obstáculos com medida de rua. O que funciona na cidade tem que funcionar na pista.',
+    desenho: 'dwg-street-cota',
+  },
+  {
+    numero: '05',
+    titulo: 'Reforma e recuperação',
+    texto: 'Recuperação de pistas com trinca, desnível ou coping solto. Diagnóstico do que é estrutural e do que é superfície, antes de orçar.',
+    desenho: 'dwg-reforma-cota',
+  },
+  {
+    numero: '06',
+    titulo: 'Consultoria técnica',
+    texto: 'Leitura de projeto, revisão de orçamento e acompanhamento técnico de obra executada por terceiros. A mesma experiência de quem constrói, aplicada ao projeto de outro.',
+    desenho: 'dwg-revisao-cota',
+  },
+];
+---
+
+<section class="sec servicos" id="servicos">
+  <header class="rv">
+    <span class="eyebrow">O que fazemos</span>
+    <h2 class="d h-sec">Serviços</h2>
+  </header>
+
+    <div class="grade">
+      {servicos.map((s) => (
+        <article class="item rv">
+          <div class="topo">
+            <span class="numero">{s.numero}</span>
+            <h3 class="d nome">{s.titulo}</h3>
+          </div>
+          <p class="texto">{s.texto}</p>
+          <div class="desenho" aria-hidden="true">
+            <Desenho id={s.desenho} opacidade={0.16} />
+          </div>
+        </article>
+      ))}
+  </div>
+</section>
+
+<style>
+  .servicos { border-top: 1px solid var(--line) }
+
+  /* Três colunas separadas por fio de 1px, sem card e sem caixa.
+     As bordas ficam só à direita e embaixo para não dobrar espessura. */
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: clamp(28px, 3.2vw, 48px);
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+
+  .item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(300px, 28vw, 390px);
+    padding: clamp(24px, 2.4vw, 38px);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  /* Fio laranja que cresce no topo do item no hover */
+  .item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--orange);
+    transition: width .5s var(--ease);
+  }
+  .item:hover::before { width: 100% }
+
+  .topo {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .numero {
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    color: var(--orange);
+  }
+
+  .nome {
+    font-size: clamp(1.15rem, 1.5vw, 1.55rem);
+    line-height: 1.05;
+    color: var(--white);
+    font-family: var(--ff-display);
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  .texto {
+    max-width: 34ch;
+    font-size: .875rem;
+    line-height: 1.6;
+    color: var(--gray-200);
+    /* Espaço reservado embaixo para o desenho não encostar no texto */
+    margin-bottom: clamp(110px, 11vw, 155px);
+  }
+
+  /* Desenho técnico no canto inferior direito, discreto até o hover */
+  .desenho {
+    position: absolute;
+    right: clamp(20px, 2vw, 34px);
+    bottom: clamp(14px, 1.4vw, 22px);
+    width: clamp(190px, 19vw, 270px);
+    color: var(--white);
+    transition: transform .5s var(--ease);
+    pointer-events: none;
+  }
+
+  /* A opacidade vem do style inline do Desenho.astro (prop `opacidade`),
+     então o hover precisa de !important para vencer o inline. */
+  .desenho :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: opacity .4s var(--ease);
+  }
+
+  .item:hover .desenho :global(svg) { opacity: .34 !important }
+  .item:hover .desenho { transform: translate(-6px, -6px) }
+
+  @media (max-width: 1080px) {
+    .grade { grid-template-columns: repeat(2, 1fr) }
+  }
+
+  @media (max-width: 700px) {
+    .grade { grid-template-columns: 1fr }
+    .item { min-height: 0 }
+    .texto { max-width: none }
+  }
+</style>

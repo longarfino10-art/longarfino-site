@@ -1,11 +1,14 @@
 ---
 // Exibe um desenho técnico da biblioteca (Desenhos.astro).
 // Uso: <Desenho id="dwg-bowl3d" opacidade={0.5} />
+//
+// Este arquivo NÃO guarda desenho nenhum. Os <symbol> moram todos no
+// Desenhos.astro (com "s"), que é injetado uma vez por página.
 
 interface Props {
-  /** Id do symbol. Ex.: dwg-plan, dwg-quarter, blue-park */
+  /** Id do symbol. Ex.: dwg-plan, dwg-quarter-cota, blue-park */
   id: string;
-  /** 0 a 1. Marca d'água de fundo pede algo entre .08 e .16 */
+  /** 0 a 1. Marca d'água pede .08 a .16. Desenho cotado pede ~.4 */
   opacidade?: number;
   /** viewBox do symbol. Os técnicos são 200x120, o blue-park é 620x360 */
   viewBox?: string;

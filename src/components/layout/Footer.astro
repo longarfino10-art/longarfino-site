@@ -1,16 +1,22 @@
 ---
-// Rodapé minimalista. Os dados de contato ficam em mono (linguagem técnica).
+// Rodapé minimalista. Os dados de contato ficam na seção Chamada, logo
+// acima — aqui só navegação, Instagram e o crédito de desenvolvimento.
 
 const navObras = [
   { texto: 'Obras', href: '/obras' },
-  { texto: 'Como executamos', href: '/#processo' },
-  { texto: 'O que fazemos', href: '/servicos' },
+  { texto: 'O que fazemos', href: '/#servicos' },
+  { texto: 'Nossa diferença', href: '/#diferenca' },
 ];
 
+// "Contato" saiu daqui: apontava para a seção logo acima do rodapé.
 const navEmpresa = [
-  { texto: 'A Longarfino', href: '/#empresa' },
-  { texto: 'Contato', href: '/contato' },
+  { texto: 'A Longarfino', href: '/#numeros' },
+  { texto: 'Obras em destaque', href: '/#obras' },
 ];
+
+// Contato do desenvolvedor do site
+const devZap = '5551986158345';
+const devZapTexto = '(51) 98615-8345';
 
 const ano = new Date().getFullYear();
 ---
@@ -41,23 +47,11 @@ const ano = new Date().getFullYear();
 
     <div class="ft-col-contato">
       <ul class="ft-contato">
-        <li><span aria-hidden="true">◈</span> Garopaba — SC<br />Brasil</li>
+        <li><span aria-hidden="true">◈</span> Garopaba — SC, Brasil</li>
         <li>
           <span aria-hidden="true">◎</span>
           <a href="https://instagram.com/longarfinoskateparks" target="_blank" rel="noopener">
             @longarfinoskateparks
-          </a>
-        </li>
-        <li>
-          <span aria-hidden="true">✆</span>
-          <a href="https://wa.me/5548991079133" target="_blank" rel="noopener">
-            (48) 99107-9133
-          </a>
-        </li>
-        <li>
-          <span aria-hidden="true">✉</span>
-          <a href="mailto:contato@longarfinoskateparks.com.br">
-            contato@longarfinoskateparks.com.br
           </a>
         </li>
       </ul>
@@ -66,7 +60,10 @@ const ano = new Date().getFullYear();
 
   <div class="ft-bar">
     <span class="mono-sm">© {ano} Longarfino Skateparks. Todos os direitos reservados.</span>
-    <span class="mono-sm">www.longarfinoskateparks.com.br</span>
+    <span class="mono-sm credito-dev">
+      Site desenvolvido por Lucas Longarfino ·
+      <a href={'https://wa.me/' + devZap} target="_blank" rel="noopener">{devZapTexto}</a>
+    </span>
   </div>
 </footer>
 
@@ -84,6 +81,7 @@ const ano = new Date().getFullYear();
       minmax(0, 1.4fr) minmax(0, 2.6fr);
     gap: clamp(24px, 3vw, 48px);
     padding-bottom: 44px;
+    align-items: start;
   }
 
   /* A marca repete o desenho do header */
@@ -106,6 +104,8 @@ const ano = new Date().getFullYear();
     color: var(--gray-200);
   }
 
+  /* O Bebas Neue tem entrelinha curta, então o texto nasce alguns pixels
+     acima da linha de base das outras colunas. O padding compensa. */
   .ft-lema {
     font-family: var(--ff-display);
     font-weight: 400;
@@ -113,6 +113,7 @@ const ano = new Date().getFullYear();
     line-height: 1.05;
     text-transform: uppercase;
     color: var(--white);
+    padding-top: 3px;
   }
 
   .ft ul { list-style: none; display: flex; flex-direction: column; gap: 11px }
@@ -138,6 +139,9 @@ const ano = new Date().getFullYear();
   .ft-contato li span { flex: none; width: 14px; color: var(--orange) }
   .ft-contato a { transition: color .3s }
   .ft-contato a:hover { color: var(--orange) }
+
+  .credito-dev a { color: var(--gray-200); transition: color .3s }
+  .credito-dev a:hover { color: var(--orange) }
 
   .ft-bar {
     border-top: 1px solid var(--line);

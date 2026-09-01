@@ -1,78 +1,107 @@
 ---
-// Números da empresa com o mapa de atuação ao lado.
-// Visual de relatório técnico: fios finos separando, nada de faixa colorida.
+// Seção "A Longarfino": números da empresa e feedbacks de clientes.
+// A tira de fotos (Galeria.astro) vem logo em seguida e fecha o bloco.
+//
+// O mapa de atuação saiu daqui: os números já dizem "5 estados", e o
+// mapa mostrava capitais, não as cidades das obras. O componente
+// Mapa.astro segue no projeto, para a página /obras.
 
-import Mapa from './Mapa.astro';
+const ANO_INICIO = 2007;
+const anos = new Date().getFullYear() - ANO_INICIO;
 
 const dados = [
-  { valor: '18+', titulo: 'Anos', complemento: 'de experiência' },
-  { valor: '2.800+', titulo: 'M² de pistas', complemento: 'construídas' },
+  { valor: anos + '+', titulo: 'Anos', complemento: 'de experiência' },
+  { valor: '12.360', titulo: 'M² de pistas', complemento: 'construídas' },
   { valor: '15+', titulo: 'Obras', complemento: 'entregues' },
   { valor: '5', titulo: 'Estados', complemento: 'atendidos' },
+];
+
+// PROVISÓRIO — TEXTO DE EXEMPLO, NÃO PUBLICAR
+// Estes três não são depoimentos reais: são exemplos com o tamanho e o
+// tom do que virá, só para ver o layout funcionando. Precisam ser
+// substituídos pelos comentários verdadeiros, copiados dos posts, com
+// o @ de quem escreveu.
+const feedbacks = [
+  {
+    texto: 'A pista ficou perfeita. As transições e o acabamento fizeram toda a diferença para quem anda.',
+    autor: '@exemplo',
+    local: 'Florianópolis / SC',
+  },
+  {
+    texto: 'Entregaram no prazo e o acabamento do concreto ficou liso do jeito que a gente pediu.',
+    autor: '@exemplo',
+    local: 'Laguna / SC',
+  },
+  {
+    texto: 'Trabalho técnico do começo ao fim. A equipe explicou cada etapa da obra para a comunidade.',
+    autor: '@exemplo',
+    local: 'Garopaba / SC',
+  },
 ];
 ---
 
 <section class="sec numeros" id="numeros">
-  <div class="numeros-in">
-    <div class="coluna-dados rv">
-      <span class="eyebrow">Em números</span>
+  <span class="eyebrow rv">Em números</span>
 
-      <div class="figuras">
-        {dados.map((d) => (
-          <div class="figura">
-            <b>{d.valor}</b>
-            <span>{d.titulo}<br />{d.complemento}</span>
-          </div>
-        ))}
-      </div>
+  <div class="topo">
+    <div class="figuras rv">
+      {dados.map((d) => (
+        <div class="figura">
+          <b>{d.valor}</b>
+          <span>{d.titulo}<br />{d.complemento}</span>
+        </div>
+      ))}
     </div>
 
-    <div class="coluna-mapa rv rv-d1">
-      <span class="mono-sm rotulo-mapa">Onde já construímos</span>
-      <Mapa />
-    </div>
+    <figure class="dep rv rv-d1">
+      <span class="aspas" aria-hidden="true">"</span>
+      <blockquote class="fala">{feedbacks[0].texto}</blockquote>
+      <figcaption class="autor mono-sm">
+        {feedbacks[0].autor} · {feedbacks[0].local}
+      </figcaption>
+    </figure>
   </div>
 </section>
 
 <style>
   .numeros {
     border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    padding-bottom: clamp(28px, 3.4vw, 48px);
   }
 
-  .numeros-in {
+  /* Fileira de números, separados por fio vertical */
+  /* Números à esquerda, um depoimento à direita — como no mockup */
+  .topo {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: clamp(40px, 5vw, 90px);
-    align-items: center;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
   }
 
-  /* Duas colunas de números, com fio vertical entre elas */
   .figuras {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(32px, 4vw, 56px) 0;
-    margin-top: clamp(24px, 3vw, 40px);
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .figura {
-    padding-left: clamp(16px, 2.4vw, 40px);
+    padding-inline: clamp(16px, 2.4vw, 42px);
     border-left: 1px solid var(--line);
+    white-space: nowrap;
   }
-  .figura:nth-child(odd) { padding-left: 0; border-left: 0 }
+  .figura:first-child { padding-left: 0; border-left: 0 }
 
   .figura b {
     display: block;
     font-family: var(--ff-display);
     font-weight: 400;
-    font-size: clamp(2.8rem, 5.2vw, 5rem);
+    font-size: clamp(1.8rem, 2.8vw, 2.9rem);
     line-height: .86;
     color: var(--white);
   }
 
   .figura span {
     display: block;
-    margin-top: 14px;
+    margin-top: 12px;
     font-family: var(--ff-mono);
     font-size: 10px;
     letter-spacing: .18em;
@@ -80,11 +109,42 @@ const dados = [
     color: var(--gray-500);
   }
 
-  .coluna-mapa { display: flex; flex-direction: column; align-items: flex-end }
-  .rotulo-mapa { margin-bottom: 18px }
+  /* As aspas ficam fora do fluxo para o texto do depoimento nascer na
+     mesma linha do "19+" da esquerda. */
+  .dep {
+    position: relative;
+    padding-left: clamp(28px, 3vw, 44px);
+  }
 
-  @media (max-width: 980px) {
-    .numeros-in { grid-template-columns: 1fr }
-    .coluna-mapa { align-items: flex-start; margin-top: 24px }
+  .aspas {
+    position: absolute;
+    left: 0;
+    top: -6px;
+    font-family: var(--ff-display);
+    font-size: 3rem;
+    line-height: 1;
+    color: var(--orange);
+  }
+
+  .fala {
+    font-size: clamp(1.05rem, 1.3vw, 1.3rem);
+    line-height: 1.5;
+    color: var(--white);
+  }
+
+  .autor {
+    display: block;
+    margin-top: 14px;
+    color: var(--orange);
+  }
+
+  @media (max-width: 860px) {
+    .topo { grid-template-columns: 1fr }
+    .dep { padding-left: 0; padding-top: 28px; border-top: 1px solid var(--line) }
+  }
+
+  @media (max-width: 620px) {
+    .figuras { grid-template-columns: repeat(2, 1fr); gap: 28px 0 }
+    .figura:nth-child(3) { padding-left: 0; border-left: 0 }
   }
 </style>

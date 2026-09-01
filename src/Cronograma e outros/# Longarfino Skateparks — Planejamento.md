@@ -2,16 +2,33 @@
 
 ## ONDE ESTAMOS
 
-**Data:** 30/08/2026
-**Etapa concluída:** Itens 1, 2, 3, 4 e 6. Do item 7 (Home): Hero e Números
-com mapa de atuação.
-**Próxima etapa:** Item 7 — seção "Obras em destaque" na home
-**Bloqueio atual:** acervo de fotos. As obras rodam com placeholder técnico
-(`src/assets/placeholder-obra.svg`), então o código não está travado — mas o
-site não pode ir ao ar assim.
+**Data:** 01/09/2026
+**Etapa concluída:** Home completa estruturalmente. Todas as seções existem,
+todos os links funcionam, âncoras param no lugar certo.
+**Próxima etapa:** conteúdo real — a lista de obras é o que mais destrava.
+**Bloqueio atual:** não é mais técnico, é de conteúdo. O código está pronto e
+rodando com dados de exemplo marcados como provisórios.
 
 Site no ar em https://longarfino-site.longarfino10.workers.dev
 Deploy automático funcionando: `git push` publica sozinho.
+
+---
+
+## ⚠ O QUE NÃO PODE IR AO AR
+
+Lista curta e crítica. Tudo abaixo está **no código agora** e é falso ou
+provisório. Conferir item por item antes da virada de domínio.
+
+| O quê | Onde | Por quê |
+|---|---|---|
+| Obras inventadas | `src/content/obras/` | Bowl do Gringo não existe. Park Campeche, Estaleirinho e Imbituba vieram do protótipo |
+| Feedbacks `@exemplo` | `Numeros.astro` | São texto de exemplo, não depoimento real |
+| Textos dos 6 serviços | `Servicos.astro` | Rascunho escrito pela IA, nunca revisado pelo Lucas |
+| Texto da Nossa diferença | `Diferenca.astro` | Idem |
+| Imagem do hero | `src/assets/hero.webp` | Gerada por IA |
+| `alt` da galeria | `Galeria.astro` | Descrições genéricas, ruins para SEO |
+| Espessura 120mm | `dwg-laje-cota` em `Desenhos.astro` | Valor escolhido dentro da faixa usual, não confirmado |
+| "15+ obras entregues" | `Numeros.astro` | Se o portfólio mostrar 6, o número vira contradição visível |
 
 ---
 
@@ -31,42 +48,93 @@ Terminal: PowerShell. O `bash` não está no PATH — para rodar .sh use:
 antes de colar o conteúdo. Criar pela interface do VS Code gruda `.txt` ou
 `.html` no fim do nome e quebra o import.
 
+**Nome de arquivo:** minúsculo, com hífen, sem espaço e sem acento. O build do
+Cloudflare roda em Linux, onde `.JPEG` e `.jpeg` são arquivos diferentes —
+import com caixa errada passa no Windows e quebra no deploy.
+
 ---
 
-## ESTADO DOS ARQUIVOS
+## DADOS OFICIAIS DA EMPRESA
 
-Criados e commitados:
-- `src/layouts/Base.astro` — layout de todas as páginas, com SEO e as 3 fontes
-- `src/styles/base.css` — reset, tipografia, botões, .ph (foto), .rv (animação)
-- `src/content.config.ts` — schema da coleção `obras`, com `image()`
-- `src/content/obras/_MODELO.md` — modelo de obra (o `_` faz o Astro ignorar)
-- `src/styles/tokens.css` — paleta e tipografia
-- `public/_redirects` — vazio, preencher na etapa de SEO
-- `public/robots.txt`
-- `wrangler.jsonc` — deploy
-- `astro.config.mjs` — com `site` e `sitemap()`
-- `LEIAME.md`
+Confirmados com o Lucas em 01/09. **O site antigo tem telefone e e-mail
+errados** — estavam no protótipo e foram parar em produção.
 
-Pastas vazias aguardando conteúdo:
-- `src/components/{layout,home,obras,ui}`
-- `src/layouts`
-- `src/pages/obras`
-- `src/scripts`
-- `src/assets/obras/<slug>` (7 pastas, uma por obra)
-- `src/assets/galeria`
+| Item | Valor |
+|---|---|
+| m² construídos | **12.360** (não 2.800) |
+| Ano de início | **2007** — os anos se calculam sozinhos no código |
+| Estados atendidos | 5 — SC, PR, RS, SP, BA |
+| WhatsApp | **(51) 98624-5321** |
+| E-mail | **longarfinoparks@gmail.com** |
+| Instagram | @longarfinoskateparks |
+| Cidade | Garopaba — SC |
+| WhatsApp do dev | (51) 98615-8345 — rodapé e /404 |
 
-Componentes criados: `layout/Header.astro`, `layout/Footer.astro`,
-`ui/Desenhos.astro`, `ui/Desenho.astro`, `obras/ObraCard.astro`,
-`obras/BlocoObras.astro`, `obras/FichaTecnica.astro`.
-Scripts: `menu.js`, `filtros.js`, `reveal.js`.
-Páginas: `/obras` (portfólio), `/obras/[...slug]` (obra).
-Obras com dados provisórios: praca-abraao, bowl-do-gringo, pista-laguna.
+---
 
-O `index.astro` ainda é uma página de teste. A home de verdade é o item 7.
-Ainda não existem: `/servicos`, `/contato`, `/404`.
+## SITE ANTIGO — o que foi extraído
 
-Removidos do template padrão do Astro: `Layout.astro`, `Welcome.astro`,
-`astro.svg`, `background.svg`.
+Extraído de https://longarfinoskateparks.com.br em 01/09.
+
+**Obras no portfólio antigo:** Centro de Treinamento de Curitiba, Piso Polido,
+Pista Trindade, Pista Palhoça, Pista Morrinhos, Skate Street Indaial,
+Skate Park Abraão.
+
+**Serviços que o site antigo vende:** Consultoria, Execução, Reforma e
+Manutenção. São três — o novo site tem seis, que é uma escolha deliberada
+de destrinchar o que já existe.
+
+**URLs para os 301:** `/servicos/`, `/portfolio/`, `/contato/`,
+`/gallery/<slug>/` (7 delas), `/services/<slug>/` (3) e
+`/politica-de-privacidade/`.
+
+---
+
+## OBRAS — TRÊS LISTAS QUE NÃO BATEM
+
+Este é o principal bloqueio. Existem três fontes e elas divergem:
+
+| Fonte | Obras |
+|---|---|
+| Site antigo | Curitiba, Piso Polido, Trindade, Palhoça, Morrinhos, Indaial, Abraão |
+| Pastas do Drive (com foto) | Indaial, Morrinhos, Piso Polido, Trindade, Palhoça, Abraão, Curitiba |
+| Descrito pelo Lucas em 01/09 | Laguna, Curitiba, Campo Bom/RS, Garopaba (Ferraz/Morrinhos), Imbituba |
+
+Só **Curitiba** e **Morrinhos** aparecem nas três.
+
+**A coleção atual está errada.** Precisa sair: Bowl do Gringo (nome errado,
+não existe), Park Campeche, Estaleirinho, Reforma Imbituba. Precisa entrar:
+CT Curitiba, Morrinhos, Indaial, Palhoça.
+
+**Dados confirmados até agora:**
+- Pista Laguna — 360 m², em execução, sem foto ainda
+- Piso Polido — o Lucas não quer publicar
+
+**Slugs sugeridos** (os três últimos iguais aos do site antigo, para não
+precisar de 301): `ct-curitiba`, `pista-morrinhos`, `pista-trindade`,
+`pista-palhoca`, `skate-street-indaial`, `park-abraao`.
+
+**Falta de cada obra:** cidade/UF, m², tipo, ano, cliente, status.
+
+---
+
+## MATERIAL BRUTO PARA OS TEXTOS DAS OBRAS
+
+Fatos verificáveis levantados em 01/09. São fortes e não precisam de aspas.
+
+- **Laguna** — Pista da Praça da Udesc. Obra pública de R$ 318,2 mil, com
+  intermediação social da Cufa Laguna.
+- **Curitiba** — Centro de Treinamento, sob diretrizes da CBSk e World Skate,
+  para receber seletivas.
+- **Campo Bom/RS** — Pista do Projeto Criança Cidadã, desenvolvimento
+  esportivo para crianças em vulnerabilidade social.
+- **Garopaba** — Pista do Bairro Ferraz, obra municipal de R$ 549,8 mil.
+- **Imbituba** — Pista da Bea Aloha School, projeto privado.
+
+⚠ **Sobre os elogios:** o material recebido traz elogios parafraseados de
+redes sociais, sem autor identificado e sem transcrição literal. **Não usar
+como depoimento com aspas.** Para virar feedback no site, é preciso abrir o
+post, copiar o comentário como está escrito e registrar o @ de quem escreveu.
 
 ---
 
@@ -80,10 +148,12 @@ Removidos do template padrão do Astro: `Layout.astro`, `Welcome.astro`,
 | `public/` | Só favicon, robots, `_redirects`, imagem de OG |
 | Formulário | WhatsApp como CTA principal + Web3Forms em `/contato` |
 | Visual | Preto/concreto + laranja `#E85A24` no máximo 15% da tela |
-| Menu | Obras · Como executamos · O que fazemos · A Longarfino · Contato |
-| CTA | "Solicitar orçamento" no header e no fim. "Falar com a equipe" no hero |
-| Home | Página única com rolagem. `/obras` e `/servicos` aprofundam |
-| Estados atendidos | SC, PR, RS, SP e BA. SP e BA sem registro fotográfico bom |
+| **Menu** | **Obras · O que fazemos · Nossa diferença · A Longarfino · Contato** |
+| CTA | "Solicitar orçamento" no header. "Conte onde vai ser a pista" no fim |
+| Home | Página única com rolagem. `/obras` aprofunda |
+| Contato | Dados só na seção Chamada. O rodapé não repete |
+| Mapa de atuação | **Fora da home.** O componente segue no projeto, para `/obras` |
+| Seção Processo | **Removida da home.** `Processo.astro` segue no projeto, sem uso |
 | Branch | `main` |
 
 ---
@@ -105,37 +175,41 @@ Regras que não se negociam: canto reto, sem gradiente, sem sombra, sem card
 arredondado, grid assimétrico. Desenhos técnicos em SVG são estrutura da
 interface, não enfeite.
 
-Referência visual: `prototipo-longarfino-v2.html` (fora do repositório).
+**Exceção registrada:** a seção Nossa diferença usa `linear-gradient` como véu
+sobre a foto, para o texto ler por cima. É véu, não decoração de superfície.
+
+**Toda seção usa `.sec`** do `base.css` para container e ritmo vertical, e as
+classes globais `.eyebrow`, `.h-sec`, `.btn`, `.arw`, `.mono-sm`. Não criar
+container próprio por seção — foi corrigido em 01/09 justamente por causa
+disso.
 
 ---
 
-## PÁGINAS PLANEJADAS
+## PÁGINAS
 
 | Rota | Estado |
 |---|---|
-| `/` | não iniciada |
+| `/` | **pronta** — Hero · Obras · Serviços · Diferença · A Longarfino · Galeria · Chamada |
 | `/obras` | pronta — blocos de 4 + filtros |
 | `/obras/[slug]` | pronta — ficha técnica, capa, estudo de caso, CTA |
-| `/servicos` | não iniciada |
-| `/contato` | não iniciada |
-| `/404` | não iniciada |
+| `/404` | **pronta** — atalhos + crédito do dev |
+| `/contato` | não iniciada — **travada na chave do Web3Forms**, que o Lucas precisa gerar |
 
 ---
 
-## OBRAS A PUBLICAR
+## COMPONENTES DA HOME
 
-| Slug | Nome | Cidade | m² | Tipo | Fotos |
-|---|---|---|---|---|---|
-| praca-abraao | Praça do Skate — Abraão | Florianópolis/SC | 1250 | Street | pendente |
-| bowl-do-gringo | Bowl do Gringo | Garopaba/SC | 650 | Bowl | pendente |
-| pista-laguna | Pista Laguna | Laguna/SC | 420 | Street, em execução | pendente |
-| park-campeche | Park Campeche | Florianópolis/SC | 780 | Park | pendente |
-| pista-trindade | Pista Trindade | Florianópolis/SC | 450 | Bowl | pendente |
-| pista-estaleirinho | Pista Estaleirinho | Balneário Camboriú/SC | 380 | Park | pendente |
-| reforma-imbituba | Reforma Imbituba | Imbituba/SC | 300 | Reforma | pendente |
-
-Os números acima vieram do protótipo e **precisam ser conferidos** com o Lucas
-antes de publicar.
+| Arquivo | O que é |
+|---|---|
+| `home/Hero.astro` | Foto em duas camadas, parallax, inclinação |
+| `home/Obras.astro` | 4 destaques via `BlocoObras`. Obra em execução ganha o card grande |
+| `home/Servicos.astro` | 6 serviços com desenho cotado no rodapé de cada bloco |
+| `home/Diferenca.astro` | Foto aérea de Morrinhos com 5 etiquetas ancoradas |
+| `home/Numeros.astro` | 4 números em fileira + 1 depoimento grande ao lado |
+| `home/Galeria.astro` | Tira de 5 fotos, gap de 8px |
+| `home/Chamada.astro` | CTA final com WhatsApp, e-mail e dados |
+| `home/Processo.astro` | **Sem uso.** Removido da home, guardado |
+| `home/Mapa.astro` | **Sem uso na home.** Guardado para `/obras` |
 
 ---
 
@@ -158,22 +232,38 @@ antes de publicar.
 - [x] Item 3 — Coleção de obras
 - [x] Item 4 — Página da obra
 - [x] Item 6 — Portfólio com blocos e filtros
-- [ ] Item 7 — Home: Hero ✅ · Obras ⬜ · Serviços ⬜ · Processo ⬜ ·
-      A Longarfino ⬜ · Números ✅ · Galeria ⬜ · CTA ⬜
-- [ ] Semana 2 — Obras: coleção, página da obra, carrossel, portfólio com filtros
-- [ ] Semana 3 — Conteúdo real: home completa, serviços, contato, migração
-- [ ] Semana 4 — SEO, performance, testes, virada de domínio
-- [ ] Semana 5 — Acompanhamento no Search Console
+- [x] Item 7 — Home completa (estrutura)
+- [ ] **Conteúdo real** — obras, fotos, textos, feedbacks
+- [ ] `/contato` com Web3Forms
+- [ ] SEO — metadata, sitemap, 301
+- [ ] Performance e testes
+- [ ] Virada de domínio
+- [ ] Acompanhamento no Search Console
 
 ---
 
 ## PENDÊNCIAS EM ABERTO
 
-- Separar o acervo de fotos por obra (BLOQUEIO da Semana 2)
-- Mapear as URLs atuais do WordPress para os 301
-- Conferir os números das obras (m², cliente, datas) com o Lucas
+**Conteúdo (bloqueiam o lançamento)**
+- Fechar a lista definitiva de obras com cidade, m², tipo, ano e cliente
+- Baixar as fotos do Drive para `src/assets/obras/<slug>/`
+- Escrever os `.md` das obras com dados reais
+- Copiar os feedbacks reais dos posts, com o @ de quem escreveu
+- Revisar os 6 textos de Serviços e o da Nossa diferença
+- Substituir a imagem do hero por foto real
+- Descrever os `alt` das 5 fotos da galeria
+- Confirmar a espessura de concreto da cota do desenho da laje
+- Confirmar se "15+ obras entregues" é o número real
+
+**Técnicas**
+- Mapear as URLs do WordPress para os 301 (lista já levantada acima)
 - Definir: site com `www.` ou sem? A outra recebe 301
-- Página "A Longarfino" separada ou seção da home?
+- Gerar a chave do Web3Forms para a `/contato`
+- Limpar desenhos sem uso: `dwg-quarter`, `dwg-stairs`, `dwg-slab`, `dwg-repair`
+- Dívida no `Hero.astro`: comentário órfão citando planta removida, regra
+  `.hero-planta` sem uso, e `parallax.js` selecionando `[data-parallax]`,
+  atributo que não existe mais
+- `galeria-03.jpeg` está na pasta sem uso
 
 ---
 
@@ -182,62 +272,77 @@ antes de publicar.
 **30/08/2026 — Semana 1 concluída**
 Projeto Astro criado, estrutura de pastas gerada por script, sitemap instalado,
 repositório no GitHub, Worker conectado ao repo com build automático.
-Testado: alteração no `index.astro` + push publicou sozinho.
 Descoberto: `bash` fora do PATH do PowerShell; caminho do projeto tem espaço e
 acento (`Projetos PROGRAMAÇÃO`) — suspeito número um se aparecer erro estranho
 de caminho no build.
 
 **30/08/2026 — Item 1: layout base**
 Criados `Base.astro`, `base.css`. Limpeza do template padrão.
-Armadilha encontrada: ao criar arquivo `.astro` pelo VS Code, ele salva como
-`.astro.html`. Conferir com `dir` depois de criar arquivo novo, ou renomear com
-`Rename-Item`.
+Armadilha: ao criar arquivo `.astro` pelo VS Code, ele salva como `.astro.html`.
+Conferir com `dir` depois de criar arquivo novo.
 Decidido sobre fotos: NÃO converter antes de subir. O `image()` do Astro gera
-WebP com srcset no build (medido: 185 kB → 19 kB). Enviar JPG/PNG original,
-lado maior 2400px+ para capa. Nada de HEIC. Limite por obra: 1 capa + 5 a 7
-internas — a definir quando o acervo estiver à vista.
+WebP com srcset no build (medido: 185 kB → 19 kB).
 
 **30/08/2026 — Itens 2, 3, 4 e 6**
-Biblioteca de 10 desenhos técnicos + planta grande, como `<symbol>` SVG.
-Coleção de obras validando pelo schema. Página da obra e portfólio prontos.
-
-Decisão de layout do portfólio: grade em BLOCOS de até 4 obras, não uma grade
-única. Cada bloco tem arranjo próprio para 4, 3, 2 ou 1 obra, então o filtro
-esconde cards sem deixar buraco — e o bloco vazio some sozinho via
-`:not(:has(> a:not([hidden])))`. Foi a alternativa a remontar a grade por
-JavaScript, que seria mais frágil.
-
-Armadilha encontrada: usar template literal no atributo `style` de uma tag
-Astro faz a tag não abrir e o HTML vazar como texto na tela. Usar concatenação
-com `+` numa const antes da tag.
-
-Armadilha encontrada: a classe `.rv` deixa o elemento com opacity 0 esperando
-o `reveal.js`. Enquanto o script não estiver carregado na página, qualquer
-elemento com `.rv` fica invisível. O script agora está no `Base.astro`.
+Biblioteca de 10 desenhos técnicos como `<symbol>` SVG. Coleção de obras
+validando pelo schema. Página da obra e portfólio prontos.
+Decisão de layout do portfólio: grade em BLOCOS de até 4 obras, com arranjo
+próprio para 4, 3, 2 ou 1 — o bloco vazio some sozinho via `:has()`.
+Armadilha: template literal no atributo `style` de uma tag Astro faz a tag não
+abrir e o HTML vazar como texto. Usar concatenação com `+`.
+Armadilha: a classe `.rv` deixa o elemento com opacity 0 esperando o
+`reveal.js`. Sem o script, o elemento fica invisível para sempre.
 
 **31/08/2026 — Home: Hero e Números**
-Hero com foto em duas camadas (colorida à direita, dessaturada à esquerda por
-máscara em degradê), parallax, inclinação com o mouse e fios se traçando na
-faixa de números. Scripts novos: `parallax.js`, `inclinar.js`.
+Hero com foto em duas camadas, parallax e inclinação.
+Detalhe: parallax e inclinação escrevem em variáveis CSS separadas e o
+`.hero-palco` combina as duas num `transform` só. Inclinar cada camada
+separadamente descola a máscara.
+Mapa gerado do Natural Earth com d3-geo, projeção Mercator.
 
-Detalhe técnico: parallax e inclinação escrevem em variáveis CSS separadas
-(`--desloca-y`, `--giro-x`, `--giro-y`) e o `.hero-palco` combina as duas num
-`transform` só. Inclinar cada camada da foto separadamente descola a máscara e
-cria uma diagonal dura na tela.
+**01/09/2026 — Home completa**
 
-Mapa de atuação gerado a partir do Natural Earth (domínio público) com d3-geo,
-projeção Mercator. Os pontos das cidades vêm da mesma projeção, então estão nas
-coordenadas corretas. Path simplificado: 1,5 KB.
+Sessão longa. Feito: Obras em destaque, Serviços, Nossa diferença, A Longarfino
+reestruturada, Galeria, Chamada reescrita, `/404`, Header e Footer corrigidos.
 
-Decisão de navegação: os rótulos Obras / Projetos / Serviços diziam a mesma
-coisa e "Projetos" apontava para o processo. Trocados por Obras / Como
-executamos / O que fazemos, para cada item responder uma pergunta diferente e
-o menu carregar o diferencial da empresa (executa, não só projeta).
+**Descoberta mais importante:** ao extrair o site antigo, apareceu que a
+coleção de obras estava com dados inventados pelo protótipo e que o telefone
+e o e-mail do rodapé estavam errados — em produção, provavelmente há meses.
+Lição: dado que veio do protótipo precisa ser tratado como suspeito até o
+Lucas confirmar.
 
-PENDÊNCIA CRÍTICA: a imagem do hero (`src/assets/hero.webp`) é gerada por IA e
-está marcada como provisória no código. Precisa sair antes do lançamento. A
-foto real de reserva está em `src/assets/hero-real-bowl.jpg` (vertical).
+**Desenhos cotados.** Seis símbolos novos com sufixo `-cota`, feitos a partir
+de medidas reais pesquisadas: quarter h 1200 / R 2100 com coping Ø60, ledge
+400, escada 1200 (faixa da World Skate: 1,2 a 1,6m), laje com junta serrada a
+1/3 da espessura e malha a meia altura. Diferente dos desenhos antigos, estes
+têm cota escrita e por isso pedem opacidade 0.4 — a 0.16 o número some.
 
-Dívida técnica: `Hero.astro` tem comentário no topo citando a planta técnica
-que foi removida, e uma regra `.hero-planta` órfã no bloco mobile.
-`parallax.js` seleciona `[data-parallax]`, atributo que não existe mais.
+Armadilha: `font-family="var(--ff-mono)"` não funciona em atributo de
+apresentação do SVG. Precisa ser `style="font-family:var(--ff-mono)"`.
+
+Armadilha grave: colar `<symbol>` no `Desenho.astro` (singular, o exibidor) em
+vez do `Desenhos.astro` (plural, a biblioteca) duplica os símbolos uma vez por
+uso e faz o `<text>` vazar como texto solto na página. A diferença entre os
+dois arquivos é só o "s" final.
+
+**Ordem do menu.** Os itens do menu precisam seguir a mesma ordem das seções
+na página, senão clicar em um desce e no seguinte sobe. Corrigido.
+
+**Âncora com header fixo.** Precisa de `[id]{scroll-margin-top:...}` no
+`base.css`, senão o header cobre o topo da seção. Calibrado em
+`clamp(63px,6.6vw,83px)` por tentativa.
+
+**Container.** As seções novas nasceram com `.faixa` própria, inventada sem
+consultar o `base.css`, o que desalinhou a margem lateral. Todas foram
+convertidas para `.sec`. Regra: consultar o `base.css` antes de criar
+qualquer utilitário de layout.
+
+**Decisões de conteúdo tomadas:** o Processo saiu da home (o Lucas preferiu
+Nossa diferença no lugar); o mapa saiu da seção de Números, porque custava
+metade da seção para dizer o que "5 estados" já diz em três palavras, e
+mostrava capitais em vez das cidades das obras; os dados de contato ficaram
+só na Chamada, porque apareciam duas vezes a 200px de distância.
+
+**Texto do CTA.** "Vamos tirar o projeto do papel?" virou "Conte onde vai ser
+a pista." O anterior terminava em "projeto", contradizendo o posicionamento de
+quem executa.

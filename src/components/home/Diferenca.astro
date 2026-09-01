@@ -1,0 +1,198 @@
+---
+// Seção "Nossa diferença". A única da home que argumenta em vez de listar:
+// mostra uma pista real e nomeia os elementos que definem como ela anda.
+// Foto: Pista de Morrinhos, Garopaba/SC.
+//
+// O texto fica DENTRO da foto, sobre o degradê da esquerda — mesma leitura
+// do hero. Por isso a seção sangra até a borda (.bleed).
+//
+// PROVISÓRIO: o texto é rascunho e precisa da revisão do Lucas.
+
+import { Image } from 'astro:assets';
+import foto from '../../assets/home/morrinho-pista.webp';
+
+// Posição de cada etiqueta em % sobre a foto. `lado` define de que lado
+// o fio sai. Todas ficam na metade direita, longe do texto.
+const pontos = [
+  { nome: 'Ledge',     x: 70, y: 22, lado: 'dir' },
+  { nome: 'Coping',    x: 58, y: 40, lado: 'dir' },
+  { nome: 'Transição', x: 68, y: 52, lado: 'dir' },
+  { nome: 'Bowl',      x: 62, y: 74, lado: 'dir' },
+  { nome: 'Flat',      x: 78, y: 66, lado: 'esq' },
+];
+---
+
+<section class="sec bleed diferenca" id="diferenca">
+  <figure class="palco">
+    <div class="ph">
+      <Image
+        src={foto}
+        alt="Vista aérea da pista de Morrinhos, em Garopaba"
+        widths={[900, 1400, 2000]}
+      />
+    </div>
+
+    {pontos.map((p) => (
+      <span
+        class={'marca marca--' + p.lado}
+        style={'left:' + p.x + '%;top:' + p.y + '%'}
+      >
+        <i class="alvo" aria-hidden="true"></i>
+        <b class="rotulo">{p.nome}</b>
+      </span>
+    ))}
+
+    <div class="texto rv">
+      <span class="eyebrow">Nossa diferença</span>
+      <h2 class="d h-sec">Skatepark não é<br />apenas concreto.</h2>
+      <p class="lead">
+        Cada transição, cada raio e cada obstáculo interfere direto na
+        experiência de quem anda. Por isso projeto e execução precisam
+        conversar desde o primeiro traço.
+      </p>
+      <figcaption class="mono-sm credito">Pista de Morrinhos — Garopaba / SC</figcaption>
+    </div>
+  </figure>
+</section>
+
+<style>
+  .diferenca {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding-block: 0;
+  }
+
+  .palco {
+    position: relative;
+    min-height: clamp(460px, 56vw, 780px);
+    display: flex;
+    align-items: center;
+    isolation: isolate;
+  }
+
+  /* O ::after do .ph (fio de borda) não faz sentido em foto de fundo */
+  .palco .ph::after { display: none }
+
+  .palco .ph {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  .palco .ph img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 68%;
+    filter: grayscale(.78) contrast(1.16) brightness(.6);
+  }
+
+  /* Véu escurecendo a esquerda, para o texto ler por cima da foto.
+     Mesma leitura do hero: preto sólido virando transparente. */
+  .palco .ph::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      95deg,
+      rgba(10, 10, 10, .96) 0%,
+      rgba(10, 10, 10, .88) 22%,
+      rgba(10, 10, 10, .46) 46%,
+      rgba(10, 10, 10, .1) 70%,
+      rgba(10, 10, 10, .3) 100%
+    );
+    pointer-events: none;
+  }
+
+  .texto {
+    position: relative;
+    z-index: 3;
+    max-width: min(52%, 640px);
+    padding: clamp(48px, 6vw, 96px) var(--pad);
+  }
+
+  /* O <br> do título já define a quebra — nada mais deve quebrá-lo */
+  .texto h2 { white-space: nowrap }
+
+  .texto .lead {
+    margin-top: 22px;
+    max-width: 42ch;
+  }
+
+  .credito {
+    display: block;
+    margin-top: clamp(28px, 3vw, 44px);
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .marca {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  /* Ponto pequeno e discreto, quase só um pixel de mira */
+  .alvo {
+    position: relative;
+    flex: none;
+    width: 5px;
+    height: 5px;
+    background: var(--orange);
+  }
+  .alvo::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1px solid rgba(232, 90, 36, .45);
+  }
+
+  /* Fio de 1px saindo do ponto até a etiqueta */
+  .rotulo {
+    position: relative;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--white);
+    white-space: nowrap;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .9);
+  }
+  .rotulo::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: clamp(28px, 4vw, 58px);
+    height: 1px;
+    background: var(--line-2);
+  }
+
+  .marca--dir .rotulo { padding-left: calc(clamp(28px, 4vw, 58px) + 12px) }
+  .marca--dir .rotulo::before { left: 6px }
+
+  .marca--esq { flex-direction: row-reverse }
+  .marca--esq .rotulo { padding-right: calc(clamp(28px, 4vw, 58px) + 12px) }
+  .marca--esq .rotulo::before { right: 6px }
+
+  /* No mobile o texto precisa da tela toda, então as etiquetas somem
+     e o véu passa a escurecer de cima para baixo. */
+  @media (max-width: 860px) {
+    .marca { display: none }
+    .texto { max-width: none }
+    .palco .ph::before {
+      background: linear-gradient(
+        180deg,
+        rgba(10, 10, 10, .92) 0%,
+        rgba(10, 10, 10, .78) 55%,
+        rgba(10, 10, 10, .6) 100%
+      );
+    }
+  }
+</style>

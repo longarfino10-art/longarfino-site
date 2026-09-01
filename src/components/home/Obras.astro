@@ -1,0 +1,65 @@
+---
+// Seção "Obras em destaque" da home. Reaproveita o BlocoObras do portfólio:
+// mesmo arranjo, mesma proporção. Sem filtro aqui de propósito — filtrar
+// 4 cards não ajuda ninguém, o filtro vive em /obras.
+
+import { getCollection } from 'astro:content';
+import BlocoObras from '../obras/BlocoObras.astro';
+
+const todas = await getCollection('obras');
+
+// Ordem de prioridade: obra em execução primeiro (fica no slot grande do
+// bloco e mostra que a empresa está com obra na rua), depois as marcadas
+// como destaque, e por último a `ordem` de cada uma.
+const emExecucao = (o) => o.data.status === 'em_execucao';
+
+const destaques = todas
+  .sort((a, b) => {
+    if (emExecucao(a) !== emExecucao(b)) return emExecucao(a) ? -1 : 1;
+    if (a.data.destaque !== b.data.destaque) return a.data.destaque ? -1 : 1;
+    return a.data.ordem - b.data.ordem;
+  })
+  .slice(0, 4);
+---
+
+<section class="sec destaques" id="obras">
+  <header class="rv">
+    <span class="eyebrow">Obras em destaque</span>
+    <h2 class="d h-sec">Obras executadas</h2>
+  </header>
+
+    <div class="grade">
+      <BlocoObras obras={destaques} indice={0} prioridade={true} />
+    </div>
+
+    <a class="ver-todas rv" href="/obras">
+      <span>Ver todas as obras</span>
+    <i class="arw"></i>
+  </a>
+</section>
+
+<style>
+  .destaques { border-top: 1px solid var(--line) }
+
+  .grade { margin-top: clamp(28px, 3.2vw, 48px) }
+
+  /* Link para o portfólio, com fio de 1px acima */
+  .ver-todas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: clamp(28px, 3vw, 46px);
+    padding-top: clamp(24px, 2.6vw, 40px);
+    border-top: 1px solid var(--line);
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--gray-200);
+    transition: color .3s var(--ease);
+  }
+
+  .ver-todas:hover { color: var(--orange) }
+  .ver-todas:hover .arw { width: 38px }
+</style>

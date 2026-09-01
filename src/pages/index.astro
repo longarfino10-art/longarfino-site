@@ -1,18 +1,29 @@
 ---
-// Home. As seções entram uma a uma, na ordem definida com o cliente:
-// hero, obras, serviços, processo, empresa, números, galeria, CTA.
+// Home. As seções na ordem em que o visitante as encontra:
+// hero, obras, o que fazemos, nossa diferença, a Longarfino (números), CTA.
+// O menu do Header segue esta mesma ordem — se mudar aqui, muda lá.
 
 import Base from '../layouts/Base.astro';
 import Desenhos from '../components/ui/Desenhos.astro';
 import Hero from '../components/home/Hero.astro';
+import Obras from '../components/home/Obras.astro';
+import Servicos from '../components/home/Servicos.astro';
+import Diferenca from '../components/home/Diferenca.astro';
 import Numeros from '../components/home/Numeros.astro';
+import Galeria from '../components/home/Galeria.astro';
+import Chamada from '../components/home/Chamada.astro';
 ---
 
 <Base
   titulo="Longarfino Skateparks — Projeto e execução de skateparks em concreto"
-  descricao="Projetamos e executamos skateparks, bowls e estruturas para skate em concreto armado. 18+ anos de experiência, 2.800+ m² construídos. Garopaba — SC."
+  descricao="Projetamos e executamos skateparks, bowls e estruturas para skate em concreto armado. Desde 2007, 12.360 m² construídos. Garopaba — SC."
 >
   <Desenhos />
   <Hero />
+  <Obras />
+  <Servicos />
+  <Diferenca />
   <Numeros />
+  <Galeria />
+  <Chamada />
 </Base>

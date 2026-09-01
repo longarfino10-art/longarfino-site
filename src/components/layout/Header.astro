@@ -4,12 +4,14 @@
 
 // Cada item responde uma pergunta diferente do visitante.
 // "Como executamos" carrega o diferencial: a Longarfino põe a mão na obra.
+// Enquanto /servicos, /contato e a seção da empresa não existirem como
+// página própria, os itens apontam para as âncoras da home.
 const links = [
   { texto: 'Obras', href: '/obras' },
-  { texto: 'Como executamos', href: '/#processo' },
-  { texto: 'O que fazemos', href: '/servicos' },
-  { texto: 'A Longarfino', href: '/#empresa' },
-  { texto: 'Contato', href: '/contato' },
+  { texto: 'O que fazemos', href: '/#servicos' },
+  { texto: 'Nossa diferença', href: '/#diferenca' },
+  { texto: 'A Longarfino', href: '/#numeros' },
+  { texto: 'Contato', href: '/#contato' },
 ];
 ---
 
@@ -22,7 +24,7 @@ const links = [
     {links.map((l) => <a href={l.href}>{l.texto}</a>)}
   </nav>
 
-  <a class="btn hd-cta" href="/contato">Solicitar orçamento <i class="arw"></i></a>
+  <a class="btn hd-cta" href="/#contato">Solicitar orçamento <i class="arw"></i></a>
 
   <button
     class="burger"
@@ -50,7 +52,7 @@ const links = [
   </nav>
 
   <div>
-    <a class="btn btn--fill menu-cta" href="/contato">
+    <a class="btn btn--fill menu-cta" href="/#contato">
       Solicitar orçamento <i class="arw"></i>
     </a>
     <p class="mono-sm" style="margin-top:22px">Garopaba — SC / Brasil</p>

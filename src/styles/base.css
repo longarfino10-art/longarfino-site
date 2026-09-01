@@ -5,6 +5,10 @@
 
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 
+/* O header é fixo, então a âncora precisa parar antes do topo real
+   da seção — senão o header cobre o começo dela. */
+[id]{scroll-margin-top:clamp(60px,6.4vw,80px)}
+
 body{
   background:var(--black);
   color:var(--off);

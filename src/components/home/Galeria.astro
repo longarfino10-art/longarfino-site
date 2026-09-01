@@ -1,0 +1,78 @@
+---
+// Tira de fotos que fecha a seção "A Longarfino". É o único lugar da home
+// onde a obra em andamento aparece — as outras seções mostram pista pronta.
+//
+// PROVISÓRIO: os textos alternativos são genéricos porque ainda não sei
+// o que cada foto mostra. Precisam ser descritos antes do lançamento
+// (o alt entra na indexação de imagem do Google).
+
+import { Image } from 'astro:assets';
+
+import g1 from '../../assets/galeria/galeria-01.jpeg';
+import g2 from '../../assets/galeria/galeria-02.jpeg';
+import g4 from '../../assets/galeria/galeria-04.jpeg';
+import g5 from '../../assets/galeria/galeria-05.jpeg';
+import g6 from '../../assets/galeria/galeria-06.jpeg';
+
+// A sequência mostra a obra do início ao fim: terreno, moldagem,
+// acabamento e pista pronta.
+const fotos = [
+  { src: g1, alt: 'Pista de Morrinhos concluída, vista aérea — Garopaba/SC' },
+  { src: g2, alt: 'Escavação do terreno no início da obra' },
+  { src: g4, alt: 'Transição de concreto moldada, com acabamento alisado' },
+  { src: g5, alt: 'Coping assentado na borda do bowl' },
+  { src: g6, alt: 'Skatepark em construção, vista aérea' },
+];
+---
+
+<section class="sec galeria" aria-label="Registros de obra">
+  <div class="tira">
+    {fotos.map((f) => (
+      <div class="quadro ph">
+        <Image src={f.src} alt={f.alt} widths={[420, 700]} />
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .galeria { padding-block: 0 }
+
+  /* Seis quadros iguais, separados por fio de 1px. Sangra até a borda. */
+  .tira {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    background: transparent;
+  }
+
+  .quadro {
+    aspect-ratio: 4 / 3;
+    background: var(--concrete);
+  }
+
+  /* O fio de borda do .ph dobraria com o gap da grade */
+  .quadro::after { display: none }
+
+  .quadro img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A foto ganha cor no hover — o resto do site é dessaturado */
+  .quadro:hover img {
+    filter: grayscale(.2) contrast(1.06) brightness(.95);
+    transform: scale(1.04);
+  }
+
+  /* Com 5 colunas, quebrar em 3 deixaria 2 órfãs na segunda fileira */
+  @media (max-width: 980px) {
+    .tira { grid-template-columns: repeat(2, 1fr) }
+    .quadro:first-child { grid-column: span 2 }
+  }
+
+  @media (max-width: 560px) {
+    .tira { grid-template-columns: repeat(2, 1fr) }
+  }
+</style>

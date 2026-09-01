@@ -1,0 +1,127 @@
+---
+// CTA final da home. É o único lugar da página com os dados de contato —
+// o rodapé não os repete, para não dizer a mesma coisa duas vezes a
+// 200px de distância.
+
+const telefone = '5551986245321';
+const telefoneTexto = '(51) 98624-5321';
+const email = 'longarfinoparks@gmail.com';
+
+const mensagem = encodeURIComponent(
+  'Olá! Vim pelo site e gostaria de falar sobre uma pista.'
+);
+const whatsapp = 'https://wa.me/' + telefone + '?text=' + mensagem;
+---
+
+<section class="sec chamada" id="contato">
+  <div class="grade">
+    <div class="rv">
+      <span class="eyebrow">Contato</span>
+      <h2 class="d titulo">Conte onde<br />vai ser a pista.</h2>
+    </div>
+
+    <div class="rv rv-d1">
+      <p class="texto">
+        Cidade, tamanho aproximado do terreno e o tipo de pista que você
+        imagina. Com isso já conseguimos falar sobre prazo, execução e
+        orçamento.
+      </p>
+
+      <div class="acoes">
+        <a class="btn btn--fill" href={whatsapp} target="_blank" rel="noopener">
+          Chamar no WhatsApp <i class="arw"></i>
+        </a>
+
+        <a class="btn" href={'mailto:' + email}>Enviar e-mail</a>
+      </div>
+
+      <ul class="dados">
+        <li>
+          <span class="rot">Telefone</span>
+          <a href={'https://wa.me/' + telefone} target="_blank" rel="noopener">{telefoneTexto}</a>
+        </li>
+        <li>
+          <span class="rot">E-mail</span>
+          <a href={'mailto:' + email}>{email}</a>
+        </li>
+        <li>
+          <span class="rot">Onde estamos</span>
+          Garopaba — SC
+        </li>
+        <li>
+          <span class="rot">Instagram</span>
+          <a href="https://instagram.com/longarfinoskateparks" target="_blank" rel="noopener">
+            @longarfinoskateparks
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .chamada { border-top: 1px solid var(--line) }
+
+  .grade {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(28px, 4vw, 72px);
+    align-items: start;
+  }
+
+  .titulo {
+    font-size: clamp(2.4rem, 5.4vw, 5rem);
+    line-height: .9;
+    color: var(--white);
+  }
+
+  .texto {
+    max-width: 46ch;
+    font-size: .9375rem;
+    line-height: 1.65;
+    color: var(--gray-200);
+  }
+
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(24px, 2.6vw, 36px);
+  }
+
+  /* Dados em duas colunas com rótulo em cima — preenche a altura que
+     antes ficava vazia embaixo do título */
+  .dados {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px 28px;
+    margin-top: clamp(32px, 3.4vw, 48px);
+    padding-top: clamp(24px, 2.6vw, 34px);
+    border-top: 1px solid var(--line);
+    list-style: none;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--gray-200);
+  }
+
+  .dados a { transition: color .3s var(--ease) }
+  .dados a:hover { color: var(--orange) }
+
+  .rot {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 9.5px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+
+  @media (max-width: 860px) {
+    .grade { grid-template-columns: 1fr }
+  }
+
+  @media (max-width: 460px) {
+    .dados { grid-template-columns: 1fr }
+  }
+</style>
