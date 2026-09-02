@@ -21,14 +21,14 @@ provisório. Conferir item por item antes da virada de domínio.
 
 | O quê | Onde | Por quê |
 |---|---|---|
-| Obras inventadas | `src/content/obras/` | Bowl do Gringo não existe. Park Campeche, Estaleirinho e Imbituba vieram do protótipo |
+
 | Feedbacks `@exemplo` | `Numeros.astro` | São texto de exemplo, não depoimento real |
 | Textos dos 6 serviços | `Servicos.astro` | Rascunho escrito pela IA, nunca revisado pelo Lucas |
 | Texto da Nossa diferença | `Diferenca.astro` | Idem |
 | Imagem do hero | `src/assets/hero.webp` | Gerada por IA |
 | `alt` da galeria | `Galeria.astro` | Descrições genéricas, ruins para SEO |
 | Espessura 120mm | `dwg-laje-cota` em `Desenhos.astro` | Valor escolhido dentro da faixa usual, não confirmado |
-| "15+ obras entregues" | `Numeros.astro` | Se o portfólio mostrar 6, o número vira contradição visível |
+| "15+ obras entregues" | `Numeros.astro` | O portfólio mostra 6. Confirmar se 15 é real e publicar as demais |
 
 ---
 
@@ -90,31 +90,35 @@ de destrinchar o que já existe.
 
 ---
 
-## OBRAS — TRÊS LISTAS QUE NÃO BATEM
+## OBRAS PUBLICADAS
 
-Este é o principal bloqueio. Existem três fontes e elas divergem:
+Seis obras com dados conferidos, fotos reais e slugs alinhados ao `_redirects`.
+Somam 5.412 m² dos 12.360 totais — o resto são obras ainda não publicadas.
 
-| Fonte | Obras |
-|---|---|
-| Site antigo | Curitiba, Piso Polido, Trindade, Palhoça, Morrinhos, Indaial, Abraão |
-| Pastas do Drive (com foto) | Indaial, Morrinhos, Piso Polido, Trindade, Palhoça, Abraão, Curitiba |
-| Descrito pelo Lucas em 01/09 | Laguna, Curitiba, Campo Bom/RS, Garopaba (Ferraz/Morrinhos), Imbituba |
+| Slug | Obra | Cidade | m² | Tipo | Período |
+|---|---|---|---|---|---|
+| pista-trindade | Pista Trindade | Florianópolis/SC | 2.068 | Street | out/2022 a mai/2023 |
+| park-abraao | Park Abraão | Florianópolis/SC | 1.600 | Bowl, Street | fev/2023 a fev/2024 |
+| ct-curitiba | Centro de Treinamento de Curitiba | Curitiba/PR | 1.200 | Park, Street, Bowl | jan a mai/2025 |
+| pista-morrinhos | Pista Morrinhos | Garopaba/SC | 600 | Bowl, Street | jan a abr/2025 |
+| skate-street-indaial | Skate Street Indaial | Indaial/SC | 500 | Street | mai/2023 a mar/2025 |
+| pista-palhoca | Pista Palhoça | Palhoça/SC | 312 | Street | dez/2022 a jan/2023 |
 
-Só **Curitiba** e **Morrinhos** aparecem nas três.
+Destaques na home: Trindade, Curitiba, Abraão e Morrinhos.
 
-**A coleção atual está errada.** Precisa sair: Bowl do Gringo (nome errado,
-não existe), Park Campeche, Estaleirinho, Reforma Imbituba. Precisa entrar:
-CT Curitiba, Morrinhos, Indaial, Palhoça.
+**Papel da Longarfino:** execução. Na Trindade, o projeto arquitetônico foi de
+outras empresas (Ruaria e Spot) — a Longarfino executou a obra. Os textos
+dizem "execução", não "projeto e execução".
 
-**Dados confirmados até agora:**
-- Pista Laguna — 360 m², em execução, sem foto ainda
-- Piso Polido — o Lucas não quer publicar
+**Pendências das obras:**
+- Pista Palhoça está sem estudo de caso. A descrição do Drive e a do site
+  antigo estavam trocadas com a de Indaial. Falta o texto do Lucas.
+- Pista Laguna: 360 m², em execução, sem fotos. Entra quando houver.
 
-**Slugs sugeridos** (os três últimos iguais aos do site antigo, para não
-precisar de 301): `ct-curitiba`, `pista-morrinhos`, `pista-trindade`,
-`pista-palhoca`, `skate-street-indaial`, `park-abraao`.
-
-**Falta de cada obra:** cidade/UF, m², tipo, ano, cliente, status.
+**Dados úteis levantados:** a Trindade custou R$ 1,8 milhão à prefeitura, tem
+2.068,40 m² e se chama "Trinda Times", em homenagem ao skatista Eduardo de
+Oliveira Coelho Pinto. Laguna foi obra pública de R$ 318,2 mil com
+intermediação da Cufa; Garopaba, obra municipal de R$ 549,8 mil.
 
 ---
 
@@ -266,12 +270,7 @@ disso.
 - Descrever os `alt` das 5 fotos da galeria
 - Confirmar a espessura de concreto da cota do desenho da laje
 - Confirmar se "15+ obras entregues" é o número real
-- Número do CREA do Leandro — vale para licitação pública
-- A foto de 1997 tem muitas pessoas, várias aparentando ser menores na época.
-  Conferir se há algum problema em mantê-la publicada.
-- A foto `inicio-2011.png` tem 2,9 MB. Se existir o original em JPG, trocar.
-- A versão da foto de 2011 gerada por IA foi descartada: ela apagava uma
-  pessoa que estava na cena. Só a original vai ao ar.
+
 
 **Técnicas**
 - Mapear as URLs do WordPress para os 301 (lista já levantada acima)
