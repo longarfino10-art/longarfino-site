@@ -7,7 +7,9 @@
   --line:rgba(255,255,255,.12);
   --line-2:rgba(255,255,255,.25);
 
-  --ff-display:'Bebas Neue',Impact,sans-serif;        /* títulos e números */
+  /* Fallback condensado: enquanto a Bebas não chega, o salto é menor.
+     Impact era largo demais e o texto pulava na troca. */
+  --ff-display:'Bebas Neue','Arial Narrow','Haettenschweiler',sans-serif-condensed,sans-serif;
   --ff-body:'Inter',system-ui,sans-serif;              /* texto e navegação */
   --ff-mono:'IBM Plex Mono',ui-monospace,monospace;    /* dados técnicos */
 

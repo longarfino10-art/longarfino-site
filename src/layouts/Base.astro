@@ -2,6 +2,12 @@
 // Layout base — envolve todas as páginas do site.
 // Fontes locais. latin traz A-Z; latin-ext traz os acentos e o cedilha.
 // Os dois são necessários: latin-ext sozinho não cobre as letras comuns.
+// As duas fontes acima da dobra entram com preload, para chegarem antes da
+// primeira pintura. Sem isso o texto pisca: aparece no fallback e troca.
+// O import resolve o hash do arquivo a cada build — caminho fixo quebraria.
+import bebasWoff from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
+import interWoff from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
+
 import '@fontsource/bebas-neue/latin-400.css';
 import '@fontsource/bebas-neue/latin-ext-400.css';
 import '@fontsource/ibm-plex-mono/latin-400.css';
@@ -40,6 +46,11 @@ const urlOg = new URL(imagemOg, Astro.site);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fontes acima da dobra, com prioridade alta. Sem isso o texto aparece
+       no fallback e troca quando o arquivo chega — a tela pisca. -->
+  <link rel="preload" as="font" type="font/woff2" href={bebasWoff} crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href={interWoff} crossorigin />
 
   <title>{titulo}</title>
   <meta name="description" content={descricao} />
