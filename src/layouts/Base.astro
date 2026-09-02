@@ -1,5 +1,21 @@
 ---
 // Layout base — envolve todas as páginas do site.
+// Fontes locais. latin traz A-Z; latin-ext traz os acentos e o cedilha.
+// Os dois são necessários: latin-ext sozinho não cobre as letras comuns.
+import '@fontsource/bebas-neue/latin-400.css';
+import '@fontsource/bebas-neue/latin-ext-400.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-ext-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '@fontsource/ibm-plex-mono/latin-ext-500.css';
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-ext-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-ext-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-ext-600.css';
+import '@fontsource/inter/latin-700.css';
+import '@fontsource/inter/latin-ext-700.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
 import Header from '../components/layout/Header.astro';
@@ -40,12 +56,7 @@ const urlOg = new URL(imagemOg, Astro.site);
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
   <!-- Bebas Neue (títulos) · Inter (texto) · IBM Plex Mono (dados técnicos) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <!-- Fontes servidas pelo próprio site. Nada é buscado no Google. -->
 </head>
 <body>
   <Header />

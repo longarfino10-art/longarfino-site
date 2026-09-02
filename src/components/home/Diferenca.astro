@@ -1,198 +1,239 @@
 ---
-// Seção "Nossa diferença". A única da home que argumenta em vez de listar:
-// mostra uma pista real e nomeia os elementos que definem como ela anda.
+// Seção "Nossa diferença". A única da home que argumenta em vez de listar.
+//
+// Estrutura em três andares:
+//   1. Faixa de foto sangrada (.bleed) com o título sobre o véu
+//   2. Especificação técnica do concreto — dados reais fornecidos pelo Lucas
+//   3. Selo do atestado da CBSk, com link para /atestado
+//
 // Foto: Pista de Morrinhos, Garopaba/SC.
 //
-// O texto fica DENTRO da foto, sobre o degradê da esquerda — mesma leitura
-// do hero. Por isso a seção sangra até a borda (.bleed).
-//
-// PROVISÓRIO: o texto é rascunho e precisa da revisão do Lucas.
-
+// A versão anterior, com as cinco etiquetas ancoradas na foto, está guardada
+// em Diferenca-etiquetas.astro.bak.
 import { Image } from 'astro:assets';
 import foto from '../../assets/home/morrinho-pista.webp';
 
-// Posição de cada etiqueta em % sobre a foto. `lado` define de que lado
-// o fio sai. Todas ficam na metade direita, longe do texto.
-const pontos = [
-  { nome: 'Ledge',     x: 70, y: 22, lado: 'dir' },
-  { nome: 'Coping',    x: 58, y: 40, lado: 'dir' },
-  { nome: 'Transição', x: 68, y: 52, lado: 'dir' },
-  { nome: 'Bowl',      x: 62, y: 74, lado: 'dir' },
-  { nome: 'Flat',      x: 78, y: 66, lado: 'esq' },
+// Especificação técnica. Dados reais, confirmados pelo Lucas em 02/09.
+const especificacoes = [
+  {
+    n: '01',
+    titulo: 'Traço do concreto',
+    valor: '30 a 40 MPa · A/C 0,40–0,42',
+    detalhe: '40 MPa nas áreas de impacto. Fibras de polipropileno contra fissura. Acabamento polido manual: liso, mas com aderência.',
+  },
+  {
+    n: '02',
+    titulo: 'Piso plano',
+    valor: '12 a 15 cm · malha Q-192',
+    detalhe: 'Malha de aço simples, mínimo Q-192, assentada sobre lona plástica.',
+  },
+  {
+    n: '03',
+    titulo: 'Transição',
+    valor: '15 a 20 cm · malha dupla',
+    detalhe: 'Nas curvas a espessura sobe e a malha dobra, para suportar carga dinâmica.',
+  },
+  {
+    n: '04',
+    titulo: 'Fôrmas curvas',
+    valor: 'Compensado naval · corte CNC',
+    detalhe: 'Costelas cortadas a laser. Solo selado com 5 cm de concreto magro. Concreto projetado (shotcrete) moldado com régua flexível. Coping de aço soldado na malha antes da concretagem.',
+  },
 ];
+
+// A lista completa dos trechos vistoriados vive em /atestado.
+// Aqui a home mostra só o selo com o número do documento.
 ---
 
-<section class="sec bleed diferenca" id="diferenca">
-  <figure class="palco">
-    <div class="ph">
-      <Image
-        src={foto}
-        alt="Vista aérea da pista de Morrinhos, em Garopaba"
-        widths={[900, 1400, 2000]}
-      />
-    </div>
+<div class="bleed df-foto" id="diferenca">
+  <Image
+    src={foto}
+    alt="Vista aérea da pista de Morrinhos, em Garopaba"
+    widths={[900, 1440, 1920]}
+    sizes="100vw"
+    loading="lazy"
+    class="df-img"
+  />
+  <div class="df-veu"></div>
+  <div class="df-cab">
+    <p class="eyebrow">Nossa diferença</p>
+    <span class="df-fio"></span>
+    <h2 class="d h-sec df-h">Quem atesta<br />não somos nós.</h2>
+  </div>
+</div>
 
-    {pontos.map((p) => (
-      <span
-        class={'marca marca--' + p.lado}
-        style={'left:' + p.x + '%;top:' + p.y + '%'}
-      >
-        <i class="alvo" aria-hidden="true"></i>
-        <b class="rotulo">{p.nome}</b>
-      </span>
+<section class="sec df">
+  <p class="lead rv">
+    Pista de skate em concreto armado tem norma. A Confederação Brasileira de
+    Skate, entidade que regula o esporte no país, vistoriou trechos das nossas
+    obras e emitiu atestado de capacidade técnica para projeto e construção
+    dentro dessas normas.
+  </p>
+  <p class="lead rv">O que sustenta o atestado está abaixo, aberto.</p>
+
+  <div class="df-spec rv">
+    {especificacoes.map((e) => (
+      <div class="df-item">
+        <span class="mono-sm df-n">{e.n}</span>
+        <h3 class="df-it">{e.titulo}</h3>
+        <p class="df-iv">{e.valor}</p>
+        <p class="df-id">{e.detalhe}</p>
+      </div>
     ))}
+  </div>
 
-    <div class="texto rv">
-      <span class="eyebrow">Nossa diferença</span>
-      <h2 class="d h-sec">Skatepark não é<br />apenas concreto.</h2>
-      <p class="lead">
-        Cada transição, cada raio e cada obstáculo interfere direto na
-        experiência de quem anda. Por isso projeto e execução precisam
-        conversar desde o primeiro traço.
-      </p>
-      <figcaption class="mono-sm credito">Pista de Morrinhos — Garopaba / SC</figcaption>
-    </div>
-  </figure>
+  <p class="df-nota rv">
+    Dimensões e especificações podem variar conforme o projeto, a modalidade e a
+    topografia de cada obra.
+  </p>
+
+  <div class="df-selo rv">
+    <p class="mono-sm df-sl">Atestado de capacidade técnica nº 004/2026</p>
+    <p class="df-st">Confederação Brasileira de Skate</p>
+    <p class="df-sd">
+      Sete trechos de obra vistoriados em Santa Catarina e no Paraná,
+      somando 4.343,66 m².
+    </p>
+  </div>
+
+  <div class="df-acoes rv">
+    <a href="/obras" class="btn">Ver obras <span class="arw"></span></a>
+    <a href="/atestado" class="btn">Visualizar atestado <span class="arw"></span></a>
+  </div>
 </section>
 
 <style>
-  .diferenca {
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    padding-block: 0;
-  }
-
-  .palco {
+  .df-foto {
     position: relative;
-    min-height: clamp(460px, 56vw, 780px);
-    display: flex;
-    align-items: center;
-    isolation: isolate;
+    margin-right: var(--pad);
+    height: clamp(230px, 27vw, 340px);
+    overflow: hidden;
+    background: var(--concrete);
   }
-
-  /* O ::after do .ph (fio de borda) não faz sentido em foto de fundo */
-  .palco .ph::after { display: none }
-
-  .palco .ph {
-    position: absolute;
-    inset: 0;
-    height: 100%;
-    width: 100%;
-  }
-
-  .palco .ph img {
+  .df-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 68%;
-    filter: grayscale(.78) contrast(1.16) brightness(.6);
+    display: block;
   }
-
-  /* Véu escurecendo a esquerda, para o texto ler por cima da foto.
-     Mesma leitura do hero: preto sólido virando transparente. */
-  .palco .ph::before {
-    content: "";
+  /* Véu, não decoração: garante contraste do título sobre a foto. */
+  .df-veu {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background: linear-gradient(
-      95deg,
-      rgba(10, 10, 10, .96) 0%,
-      rgba(10, 10, 10, .88) 22%,
-      rgba(10, 10, 10, .46) 46%,
-      rgba(10, 10, 10, .1) 70%,
-      rgba(10, 10, 10, .3) 100%
-    );
-    pointer-events: none;
-  }
-
-  .texto {
-    position: relative;
-    z-index: 3;
-    max-width: min(52%, 640px);
-    padding: clamp(48px, 6vw, 96px) var(--pad);
-  }
-
-  /* O <br> do título já define a quebra — nada mais deve quebrá-lo */
-  .texto h2 { white-space: nowrap }
-
-  .texto .lead {
-    margin-top: 22px;
-    max-width: 42ch;
-  }
-
-  .credito {
-    display: block;
-    margin-top: clamp(28px, 3vw, 44px);
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    text-align: left;
-  }
-
-  .marca {
-    position: absolute;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  /* Ponto pequeno e discreto, quase só um pixel de mira */
-  .alvo {
-    position: relative;
-    flex: none;
-    width: 5px;
-    height: 5px;
-    background: var(--orange);
-  }
-  .alvo::after {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    border: 1px solid rgba(232, 90, 36, .45);
-  }
-
-  /* Fio de 1px saindo do ponto até a etiqueta */
-  .rotulo {
-    position: relative;
-    font-family: var(--ff-mono);
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-    color: var(--white);
-    white-space: nowrap;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, .9);
-  }
-  .rotulo::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: clamp(28px, 4vw, 58px);
-    height: 1px;
-    background: var(--line-2);
-  }
-
-  .marca--dir .rotulo { padding-left: calc(clamp(28px, 4vw, 58px) + 12px) }
-  .marca--dir .rotulo::before { left: 6px }
-
-  .marca--esq { flex-direction: row-reverse }
-  .marca--esq .rotulo { padding-right: calc(clamp(28px, 4vw, 58px) + 12px) }
-  .marca--esq .rotulo::before { right: 6px }
-
-  /* No mobile o texto precisa da tela toda, então as etiquetas somem
-     e o véu passa a escurecer de cima para baixo. */
-  @media (max-width: 860px) {
-    .marca { display: none }
-    .texto { max-width: none }
-    .palco .ph::before {
-      background: linear-gradient(
-        180deg,
-        rgba(10, 10, 10, .92) 0%,
-        rgba(10, 10, 10, .78) 55%,
-        rgba(10, 10, 10, .6) 100%
+    background:
+      linear-gradient(
+        to bottom,
+        var(--black) 0%,
+        rgba(10, 10, 10, 0.55) 38%,
+        rgba(10, 10, 10, 0.25) 100%
+      ),
+      linear-gradient(
+        to right,
+        var(--black) 8%,
+        rgba(10, 10, 10, 0.82) 42%,
+        rgba(10, 10, 10, 0.15) 100%
       );
-    }
+  }
+  .df-cab {
+    position: absolute;
+    left: var(--pad);
+    right: var(--pad);
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: min(560px, 52%);
+  }
+  .df-fio {
+    display: block;
+    width: 52px;
+    height: 1px;
+    background: var(--orange);
+    margin: 12px 0 16px;
+  }
+  .df-h { color: var(--white); margin: 0 }
+
+  /* A foto já abre a seção. O respiro do .sec no topo seria dobrado. */
+  .df { padding-top: clamp(24px, 2.8vw, 40px) }
+
+  .df-spec {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    margin-top: clamp(26px, 3vw, 40px);
+  }
+  .df-item {
+    padding: 18px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .df-item:nth-child(odd) {
+    padding-right: clamp(16px, 2.2vw, 32px);
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .df-item:nth-child(even) { padding-left: clamp(16px, 2.2vw, 32px) }
+  .df-n { color: var(--orange) }
+  .df-it {
+    font-family: var(--ff-display);
+    font-size: clamp(19px, 1.6vw, 24px);
+    font-weight: 400;
+    color: var(--white);
+    line-height: 1.1;
+    margin: 6px 0 8px;
+  }
+  .df-iv {
+    font-family: var(--ff-mono);
+    font-size: clamp(12px, 1vw, 14px);
+    color: var(--white);
+    line-height: 1.5;
+    margin: 0 0 6px;
+  }
+  .df-id {
+    font-size: clamp(12px, 1vw, 13px);
+    line-height: 1.6;
+    color: var(--gray-500);
+    margin: 0;
+  }
+  .df-nota {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--gray-500);
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    padding-left: 12px;
+    margin: 16px 0 0;
+    max-width: 70ch;
+  }
+
+  /* Selo do atestado. A lista completa das obras vive em /atestado. */
+  .df-selo {
+    margin-top: clamp(32px, 4vw, 56px);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    padding-top: 16px;
+    max-width: 58ch;
+  }
+  .df-sl { color: var(--orange); margin: 0 }
+  .df-st {
+    font-family: var(--ff-display);
+    font-size: clamp(22px, 2.1vw, 31px);
+    color: var(--white);
+    line-height: 1.05;
+    margin: 8px 0 10px;
+  }
+  .df-sd {
+    font-size: clamp(12px, 1vw, 13px);
+    line-height: 1.6;
+    color: var(--gray-500);
+    margin: 0;
+  }
+
+  .df-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(22px, 2.6vw, 34px);
+  }
+
+  @media (max-width: 700px) {
+    .df-spec { grid-template-columns: 1fr }
+    .df-item:nth-child(odd) { padding-right: 0; border-right: 0 }
+    .df-item:nth-child(even) { padding-left: 0 }
+    .df-hd span:last-child { display: none }
   }
 </style>

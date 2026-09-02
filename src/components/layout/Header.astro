@@ -85,6 +85,9 @@ const links = [
 
   /* Marca: LS grande com "parks" em mono embaixo de um fio */
   .mark { display: flex; flex-direction: column; line-height: 1; gap: 3px }
+  /* O logo leva à home. Sem sinal de hover ninguém descobre. */
+  .mark span { transition: border-color .25s var(--ease), color .25s var(--ease) }
+  .mark:hover span { border-top-color: var(--orange); color: var(--white) }
   /* Monograma: as letras coladas, quase um bloco só */
   .mark b {
     font-family: var(--ff-display);

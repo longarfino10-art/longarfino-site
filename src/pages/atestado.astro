@@ -1,0 +1,199 @@
+---
+// Atestado de Capacidade Técnica emitido pela Confederação Brasileira de
+// Skate. Página pública, linkada a partir da Nossa diferença na home.
+//
+// O PDF em public/documentos/ é a versão com os contatos removidos — os
+// telefones foram apagados do texto, não apenas cobertos. Nunca substituir
+// pelo arquivo original: ele contém oito celulares de clientes.
+//
+// VALIDADE: 05/08/2027. Depois dessa data o documento vence e precisa de
+// renovação junto à CBSk, senão a página passa a exibir atestado vencido.
+import Base from '../layouts/Base.astro';
+import Desenhos from '../components/ui/Desenhos.astro';
+
+const PDF = '/documentos/atestado-cbsk-004-2026.pdf';
+
+// Metragem do trecho vistoriado pela CBSk, não a área total da obra.
+//
+// PENDENTE: a Pista Fábio Pereira (Imbituba/SC, street e bowl, 400 m²) é de
+// cliente pessoa física e está fora até o Lucas obter o aval do proprietário.
+const vistoriados = [
+  { obra: 'Pista de Trindade',      local: 'Florianópolis/SC', tipo: 'Street',                            papel: 'Execução e assessoria técnica',    cliente: 'Satélite Construções e Engenharia', area: '+1.200 m²' },
+  { obra: 'Pista do Abraão',        local: 'Florianópolis/SC', tipo: 'Street, Park',                      papel: 'Execução e acompanhamento técnico', cliente: 'Hefer Construções Civis',           area: '780,11 m²' },
+  { obra: 'Tarumã',                 local: 'Curitiba/PR',      tipo: 'Street, Park',                      papel: 'Execução e assessoria técnica',    cliente: 'RAC Engenharia',                    area: '763,55 m²' },
+  { obra: 'Munari Skatepark',       local: 'Imbituba/SC',      tipo: 'Street, Bowl, Simulador, Miniramp', papel: 'Execução',                         cliente: 'Munari Skatepark',                  area: '600 m²'    },
+  { obra: 'Pista Palhoça',          local: 'Palhoça/SC',       tipo: 'Bowl',                              papel: 'Execução e assessoria técnica',    cliente: 'Crestani Comércio',                 area: '450 m²'    },
+  { obra: 'Miniramp e street raia', local: 'Imbituba/SC',      tipo: 'Madeira e concreto',                papel: 'Projeto e execução',               cliente: 'Cinco Continentes — AEB5CON',       area: '86 m²'     },
+  { obra: 'Estaleirinho',           local: 'Bal. Camboriú/SC', tipo: 'Street',                            papel: 'Execução',                         cliente: 'Prefeitura de Balneário Camboriú',  area: '64 m²'     },
+];
+---
+
+<Base
+  titulo="Atestado de Capacidade Técnica — Longarfino Skateparks"
+  descricao="Atestado nº 004/2026 emitido pela Confederação Brasileira de Skate, com os trechos de obra vistoriados."
+>
+  <Desenhos />
+
+  <section class="sec at-topo">
+    <span class="eyebrow">Documento</span>
+    <h1 class="d h-sec at-h">Atestado de<br />capacidade técnica</h1>
+    <p class="lead">
+      A Confederação Brasileira de Skate, entidade que regula o esporte no país,
+      vistoriou trechos das nossas obras e atesta a capacidade técnica da
+      Longarfino Skate Parks para projeto e construção de pistas em concreto
+      armado, com acabamento próprio para a prática, dentro das normas da CBSk.
+    </p>
+  </section>
+
+  <section class="sec at-dados">
+    <div class="at-grade">
+      <div class="at-campo">
+        <span class="mono-sm">Número</span>
+        <p class="at-v">004/2026</p>
+      </div>
+      <div class="at-campo">
+        <span class="mono-sm">Emissão</span>
+        <p class="at-v">05.08.2026</p>
+      </div>
+      <div class="at-campo">
+        <span class="mono-sm">Validade</span>
+        <p class="at-v">05.08.2027</p>
+      </div>
+      <div class="at-campo">
+        <span class="mono-sm">Emissor</span>
+        <p class="at-v">CBSk</p>
+      </div>
+    </div>
+    <p class="at-nota">
+      Assinado digitalmente por Carlos Eduardo Dias, presidente da Confederação
+      Brasileira de Skateboarding. Os contatos dos clientes foram removidos da
+      versão publicada. O documento íntegro é fornecido sob solicitação para
+      fins de habilitação em licitação.
+    </p>
+  </section>
+
+  <section class="sec at-obras">
+    <span class="eyebrow">Trechos vistoriados</span>
+    <h2 class="d h-sec at-h2">O que foi verificado</h2>
+
+    <div class="at-lista">
+      {vistoriados.map((v) => (
+        <article class="at-linha">
+          <div class="at-obra">
+            <h3 class="at-o">{v.obra}</h3>
+            <p class="mono-sm at-d">{v.local} · {v.tipo}</p>
+          </div>
+          <div class="at-meta">
+            <p class="mono-sm at-p">{v.papel}</p>
+            <p class="mono-sm at-c">{v.cliente}</p>
+          </div>
+          <p class="at-a">{v.area}</p>
+        </article>
+      ))}
+    </div>
+
+    <div class="at-soma">
+      <span class="mono-sm">Soma dos trechos vistoriados · de 12.360 m² construídos</span>
+      <span class="at-total">4.343,66 m²</span>
+    </div>
+
+    <div class="at-acoes">
+      <a href={PDF} target="_blank" rel="noopener" class="btn">
+        Abrir o PDF <span class="arw"></span>
+      </a>
+      <a href="/obras" class="btn">Ver obras <span class="arw"></span></a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .at-topo { padding-bottom: 0 }
+  .at-h { color: var(--white); margin: 12px 0 20px }
+  .at-h2 { color: var(--white); margin: 10px 0 22px }
+
+  .at-dados { padding-block: clamp(24px, 2.6vw, 36px) 0 }
+  .at-obras { padding-top: clamp(28px, 3vw, 44px) }
+  .at-grade {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .at-campo {
+    padding: 16px 0 14px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    padding-right: 16px;
+  }
+  .at-campo:last-child { border-right: 0 }
+  .at-campo + .at-campo { padding-left: 20px }
+  .at-v {
+    font-family: var(--ff-display);
+    font-size: clamp(22px, 2vw, 30px);
+    color: var(--white);
+    line-height: 1;
+    margin: 7px 0 0;
+  }
+  .at-nota {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--gray-500);
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    padding-left: 12px;
+    margin: 18px 0 0;
+    max-width: 72ch;
+  }
+
+  .at-lista { border-top: 1px solid rgba(255, 255, 255, 0.25) }
+  .at-linha {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: baseline;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .at-o {
+    font-family: var(--ff-display);
+    font-size: clamp(18px, 1.6vw, 23px);
+    font-weight: 400;
+    color: var(--white);
+    line-height: 1.15;
+    margin: 0;
+  }
+  .at-d { color: var(--gray-500); margin: 4px 0 0 }
+  .at-p { color: var(--gray-200); margin: 0 }
+  .at-c { color: var(--gray-500); margin: 4px 0 0 }
+  .at-a {
+    font-family: var(--ff-mono);
+    font-size: clamp(12px, 1.1vw, 15px);
+    color: var(--orange);
+    white-space: nowrap;
+    margin: 0;
+  }
+  .at-soma {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-top: 14px;
+  }
+  .at-total {
+    font-family: var(--ff-display);
+    font-size: clamp(21px, 1.9vw, 28px);
+    color: var(--white);
+  }
+
+  .at-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(24px, 2.8vw, 36px);
+  }
+
+  @media (max-width: 820px) {
+    .at-grade { grid-template-columns: 1fr 1fr }
+    .at-campo:nth-child(2) { border-right: 0 }
+    .at-linha { grid-template-columns: minmax(0, 1fr) auto }
+    .at-meta { grid-column: 1 / -1 }
+  }
+</style>

@@ -80,7 +80,7 @@ body::after{
   color:var(--orange);
 }
 
-.lead{font-size:clamp(15px,1.1vw,18px);color:var(--gray-200);max-width:52ch}
+.lead{font-size:clamp(15px,1.1vw,18px);color:var(--gray-200);max-width:70ch}
 .muted{color:var(--gray-500)}
 
 /* ─── ESTRUTURA ──────────────────────────────────────────────── */
