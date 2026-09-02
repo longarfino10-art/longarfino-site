@@ -1,0 +1,146 @@
+---
+// Política de Privacidade. Obrigatória pela LGPD: o site coleta dados via
+// formulário de contato e usa Google Analytics.
+//
+// ATENÇÃO: este texto foi redigido com base na praxe de mercado, não por
+// advogado. Antes do lançamento, vale uma revisão jurídica — a empresa
+// assina contrato público.
+//
+// PENDENTE: o Google Analytics ainda não está instalado no site. Instalar
+// antes de publicar esta página, senão declaramos algo que não fazemos.
+
+import Base from '../layouts/Base.astro';
+import Desenhos from '../components/ui/Desenhos.astro';
+
+const atualizado = '01 de setembro de 2026';
+const email = 'longarfinoparks@gmail.com';
+---
+
+<Base
+  titulo="Política de Privacidade — Longarfino Skateparks"
+  descricao="Como a Longarfino Skate Parks trata os dados pessoais coletados neste site."
+>
+  <Desenhos />
+
+  <section class="sec abertura">
+    <span class="eyebrow">Documento</span>
+    <h1 class="d h-sec">Política de<br />privacidade</h1>
+    <p class="mono-sm atualizado">Atualizada em {atualizado}</p>
+  </section>
+
+  <section class="sec corpo">
+    <div class="texto">
+      <h2 class="d h-sub">Quem somos</h2>
+      <p>
+        Este site é mantido pela LONGARFINO SKATE PARKS LTDA, inscrita no CNPJ
+        33.589.280/0001-74, com sede na Rodovia SC 434, nº 169, bairro
+        Aracatuba, Imbituba — SC, CEP 88.780-000.
+      </p>
+      <p>
+        Para qualquer assunto relacionado a dados pessoais, o contato é
+        <a href={'mailto:' + email}>{email}</a>.
+      </p>
+
+      <h2 class="d h-sub">Quais dados coletamos</h2>
+      <p>
+        <b>Dados que você nos envia.</b> Ao preencher o formulário de contato
+        ou nos chamar pelo WhatsApp, você fornece informações como nome,
+        e-mail, telefone e a descrição do que precisa. Coletamos apenas o que
+        você digitar.
+      </p>
+      <p>
+        <b>Dados de navegação.</b> Usamos o Google Analytics para entender
+        como o site é usado — quantas pessoas o visitam, quais páginas veem e
+        de onde chegaram. Esses dados são estatísticos e não identificam você
+        individualmente.
+      </p>
+      <p>
+        Não coletamos dados sensíveis, não vendemos informação a terceiros e
+        não usamos rastreadores de publicidade.
+      </p>
+
+      <h2 class="d h-sub">Para que usamos</h2>
+      <p>
+        Os dados enviados por formulário servem para responder ao seu contato
+        e elaborar orçamento. Os dados de navegação servem para melhorar o
+        site.
+      </p>
+
+      <h2 class="d h-sub">Com quem compartilhamos</h2>
+      <p>
+        O envio do formulário é processado pelo serviço Web3Forms, que
+        encaminha a mensagem ao nosso e-mail. As estatísticas de navegação são
+        processadas pelo Google Analytics. Nenhum outro compartilhamento é
+        feito, salvo obrigação legal.
+      </p>
+
+      <h2 class="d h-sub">Cookies</h2>
+      <p>
+        O Google Analytics utiliza cookies para distinguir visitantes. Você
+        pode bloqueá-los nas configurações do seu navegador — o site continua
+        funcionando normalmente sem eles.
+      </p>
+
+      <h2 class="d h-sub">Por quanto tempo guardamos</h2>
+      <p>
+        As mensagens recebidas ficam armazenadas em nosso e-mail enquanto
+        forem úteis ao atendimento e à relação comercial. Os dados
+        estatísticos seguem os prazos do Google Analytics.
+      </p>
+
+      <h2 class="d h-sub">Seus direitos</h2>
+      <p>
+        Pela Lei Geral de Proteção de Dados (Lei 13.709/2018), você pode
+        solicitar a confirmação da existência de tratamento, o acesso aos seus
+        dados, a correção de dados incompletos ou desatualizados, a exclusão
+        dos dados e a informação sobre com quem foram compartilhados. Basta
+        escrever para <a href={'mailto:' + email}>{email}</a>.
+      </p>
+
+      <h2 class="d h-sub">Alterações</h2>
+      <p>
+        Esta política pode ser atualizada. A data no topo indica a última
+        revisão.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .abertura {
+    padding-top: clamp(120px, 12vw, 160px);
+    padding-bottom: clamp(24px, 3vw, 40px);
+  }
+
+  .abertura h1 { margin: 6px 0 20px; color: var(--white) }
+  .atualizado { display: block }
+
+  .corpo {
+    border-top: 1px solid var(--line);
+    padding-block: clamp(44px, 5.5vw, 80px);
+  }
+
+  .texto { max-width: 66ch }
+
+  .texto h2 {
+    margin: clamp(36px, 4vw, 52px) 0 16px;
+    color: var(--white);
+  }
+  .texto h2:first-child { margin-top: 0 }
+
+  .texto p {
+    margin-bottom: 16px;
+    font-size: .9375rem;
+    line-height: 1.75;
+    color: var(--gray-200);
+  }
+
+  .texto b { color: var(--white); font-weight: 600 }
+
+  .texto a {
+    color: var(--orange);
+    border-bottom: 1px solid rgba(232, 90, 36, .4);
+    transition: border-color .3s var(--ease);
+  }
+  .texto a:hover { border-bottom-color: var(--orange) }
+</style>

@@ -67,7 +67,10 @@ errados** — estavam no protótipo e foram parar em produção.
 | WhatsApp | **(51) 98624-5321** |
 | E-mail | **longarfinoparks@gmail.com** |
 | Instagram | @longarfinoskateparks |
-| Cidade | Garopaba — SC |
+| Sede | Imbituba — SC. Rod. SC 434, 169, Aracatuba, CEP 88.780-000 |
+| Razão social | LONGARFINO SKATE PARKS LTDA |
+| CNPJ | 33.589.280/0001-74 |
+| Abertura | 10/05/2019 (a experiência desde 2007 é do Paulo, não da empresa) |
 | WhatsApp do dev | (51) 98615-8345 — rodapé e /404 |
 
 ---

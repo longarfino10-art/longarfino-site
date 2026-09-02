@@ -21,4 +21,4 @@
 /gallery/*                              /obras                          301
 
 # PENDENTE: as URLs de /services/<slug>/ ainda não foram levantadas
-# PENDENTE: /politica-de-privacidade/ — a página não existe no site novo
+/politica-de-privacidade/               /politica-de-privacidade        301

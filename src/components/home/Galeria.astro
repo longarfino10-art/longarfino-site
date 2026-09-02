@@ -2,9 +2,9 @@
 // Tira de fotos que fecha a seção "A Longarfino". É o único lugar da home
 // onde a obra em andamento aparece — as outras seções mostram pista pronta.
 //
-// PROVISÓRIO: os textos alternativos são genéricos porque ainda não sei
-// o que cada foto mostra. Precisam ser descritos antes do lançamento
-// (o alt entra na indexação de imagem do Google).
+// Os textos alternativos descrevem a etapa da obra, sem citar cidade.
+// Quando as obras forem identificadas, vale trocar por descrição
+// específica — o alt entra na indexação de imagem do Google.
 
 import { Image } from 'astro:assets';
 
@@ -17,11 +17,11 @@ import g6 from '../../assets/galeria/galeria-06.jpeg';
 // A sequência mostra a obra do início ao fim: terreno, moldagem,
 // acabamento e pista pronta.
 const fotos = [
-  { src: g1, alt: 'Pista de Morrinhos concluída, vista aérea — Garopaba/SC' },
-  { src: g2, alt: 'Escavação do terreno no início da obra' },
-  { src: g4, alt: 'Transição de concreto moldada, com acabamento alisado' },
-  { src: g5, alt: 'Coping assentado na borda do bowl' },
-  { src: g6, alt: 'Skatepark em construção, vista aérea' },
+  { src: g1, alt: 'Skatepark de concreto concluído, visto de cima' },
+  { src: g2, alt: 'Escavação do bowl no início da obra, com maquinário em campo' },
+  { src: g4, alt: 'Acabamento do concreto com alisadora mecânica' },
+  { src: g5, alt: 'Coping assentado na borda do bowl, com a transição acabada' },
+  { src: g6, alt: 'Skatepark em construção visto de cima, na fase de terraplenagem' },
 ];
 ---
 

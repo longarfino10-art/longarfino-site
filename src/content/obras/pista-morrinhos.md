@@ -25,8 +25,8 @@ ordem: 4
 ---
 
 Execução da pista de skate da Praça Morrinhos, na Avenida das Hortênsias, em
-Garopaba. São 600 m² com bowl e área street, na cidade onde fica a sede da
-Longarfino.
+Garopaba. São 600 m² com bowl e área street, a poucos quilômetros da sede da
+Longarfino, em Imbituba.
 
 A obra foi executada em concreto armado com acabamento liso, quinas bem
 definidas e drenagem dimensionada para o volume de chuva da região.

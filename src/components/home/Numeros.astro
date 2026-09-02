@@ -17,7 +17,7 @@ const anos = new Date().getFullYear() - ANO_INICIO;
 const dados = [
   { valor: anos + '+', titulo: 'Anos', complemento: 'de experiência' },
   { valor: '12.360', titulo: 'M² de pistas', complemento: 'construídas' },
-  { valor: '15+', titulo: 'Obras', complemento: 'entregues' },
+  { valor: '15', titulo: 'Obras', complemento: 'entregues' },
   { valor: '5', titulo: 'Estados', complemento: 'atendidos' },
 ];
 
@@ -28,13 +28,27 @@ const equipe = [
   { nome: 'Leandro', funcao: 'Engenheiro civil', foto: fLeandro },
 ];
 
-// PROVISÓRIO — TEXTO DE EXEMPLO, NÃO PUBLICAR
-// Substituir pelo comentário real, copiado do post, com o @ do autor.
-const feedback = {
-  texto: 'A pista ficou perfeita. As transições e o acabamento fizeram toda a diferença para quem anda.',
-  autor: '@exemplo',
-  local: 'Florianópolis / SC',
-};
+// Comentários reais, copiados dos posts do Instagram como foram escritos.
+// Não editar o texto: a graça é justamente ser fala de quem anda.
+const feedbacks = [
+  {
+    texto: 'Munariskatepark padrão Longarfino de qualidade.',
+    autor: '@munariskatepark',
+    local: 'Imbituba / SC',
+  },
+  {
+    texto: 'Galera vai ter uma pista de primeira!!',
+    autor: '@kelvin_simoess',
+    local: 'Kelvin Simões',
+  },
+  {
+    texto: 'Obrigado pela excelência no trabalho realizado',
+    autor: '@viniciusbilly',
+    local: 'Vinícius Billy',
+  },
+];
+
+
 ---
 
 <section class="sec longarfino" id="numeros">
@@ -83,12 +97,32 @@ const feedback = {
     </div>
   </div>
 
-  <figure class="dep rv">
+  <figure class="dep rv" data-rodizio>
     <span class="aspas" aria-hidden="true">"</span>
-    <blockquote class="fala">{feedback.texto}</blockquote>
-    <figcaption class="autor mono-sm">{feedback.autor} · {feedback.local}</figcaption>
+    {feedbacks.map((f, i) => (
+      <div class={'item' + (i === 0 ? ' ativo' : '')}>
+        <blockquote class="fala">{f.texto}</blockquote>
+        <figcaption class="autor mono-sm">{f.autor} · {f.local}</figcaption>
+      </div>
+    ))}
   </figure>
 </section>
+
+<script>
+  // Rodízio dos depoimentos: troca a cada 6s, com transição suave.
+  const caixa = document.querySelector('[data-rodizio]');
+  const itens = caixa ? caixa.querySelectorAll('.item') : [];
+  const parado = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (itens.length > 1 && !parado) {
+    let atual = 0;
+    setInterval(() => {
+      itens[atual].classList.remove('ativo');
+      atual = (atual + 1) % itens.length;
+      itens[atual].classList.add('ativo');
+    }, 7500);
+  }
+</script>
 
 <style>
   .longarfino {
@@ -207,7 +241,7 @@ const feedback = {
   /* Depoimento ocupando a largura toda, fechando a seção */
   .dep {
     position: relative;
-    max-width: 62ch;
+    max-width: 68ch;
     margin-top: clamp(36px, 4.4vw, 60px);
     padding-top: clamp(26px, 3vw, 40px);
     padding-left: clamp(28px, 3vw, 44px);
@@ -223,6 +257,19 @@ const feedback = {
     line-height: 1;
     color: var(--orange);
   }
+
+  /* Os três ocupam o mesmo lugar; só um fica visível por vez.
+     O grid empilhado evita que a altura pule na troca. */
+  .dep { display: grid }
+  /* Só esmaecimento, sem deslocamento: com texto curto o movimento
+     vertical chama mais atenção que a própria frase. */
+  .dep .item {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 1.4s var(--ease);
+    pointer-events: none;
+  }
+  .dep .item.ativo { opacity: 1; pointer-events: auto }
 
   .fala {
     font-size: clamp(1.05rem, 1.3vw, 1.3rem);
