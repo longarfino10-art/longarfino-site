@@ -6,6 +6,7 @@ import type { GetStaticPaths } from 'astro';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import FichaTecnica from '../../components/obras/FichaTecnica.astro';
+import Trilha from '../../components/layout/Trilha.astro';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const obras = await getCollection('obras');
@@ -24,15 +25,13 @@ const d = obra.data;
   titulo={`${d.nome} — Longarfino Skateparks`}
   descricao={d.descricao_curta ?? `Skatepark em ${d.cidade}/${d.uf}, ${d.area_m2} m².`}
 >
+  <Trilha itens={[{ nome: 'Obras', href: '/obras' }, { nome: d.nome }]} />
+
   <article class="obra">
     <!-- Cabeçalho: título grande à esquerda, ficha técnica à direita -->
     <header class="obra-topo sec">
       <div>
-        <a href="/obras" class="btn btn--bare voltar">
-          <i class="arw arw--esq"></i> Todas as obras
-        </a>
-
-        <span class="eyebrow" style="margin-top:28px">
+        <span class="eyebrow">
           {d.cidade} / {d.uf}
           {d.status === 'em_execucao' && ' · Em execução'}
         </span>
@@ -87,12 +86,17 @@ const d = obra.data;
       </section>
     )}
 
+    <!-- Volta ao portfólio logo ao fim das fotos, antes do CTA comercial.
+         Quem quer ver outra obra não precisa passar pelo pedido de orçamento. -->
+    <div class="sec obra-volta">
+      <a class="btn" href="/obras">Ver outras obras <i class="arw"></i></a>
+    </div>
+
     <!-- Chamada final -->
     <section class="sec obra-cta">
       <h2 class="d h-sec">Vamos tirar o<br />projeto do papel<span class="ponto">?</span></h2>
       <div class="obra-cta-acoes">
         <a class="btn btn--fill" href="/contato">Solicitar orçamento <i class="arw"></i></a>
-        <a class="btn btn--bare" href="/obras">Ver outras obras <i class="arw"></i></a>
       </div>
     </section>
   </article>
@@ -105,13 +109,9 @@ const d = obra.data;
     grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
     gap: clamp(32px, 5vw, 90px);
     align-items: end;
-    padding-top: clamp(160px, 16vw, 220px);
+    padding-top: clamp(120px, 12vw, 170px);
     padding-bottom: clamp(40px, 5vw, 72px);
   }
-
-  /* Seta apontando para a esquerda no link de voltar */
-  .voltar { margin-bottom: 8px }
-  .arw--esq { transform: scaleX(-1) }
 
   /* A ficha acompanha a base da coluna de texto */
   .obra-ficha { align-self: end; padding-bottom: 4px }
@@ -141,6 +141,8 @@ const d = obra.data;
   }
 
   .obra-fotos { padding-top: 0 }
+  .obra-volta { padding-block: clamp(20px, 2.4vw, 32px) }
+
   .obra-grade {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -163,12 +165,6 @@ const d = obra.data;
   @media (max-width: 980px) {
     .obra-topo { grid-template-columns: 1fr; align-items: start }
     .obra-ficha { margin-top: 8px }
-  }
-
-  /* A ficha encosta na base junto com o texto de apoio */
-  .obra-ficha { align-self: end }
-
-  @media (max-width: 980px) {
     .obra-grade { grid-template-columns: 1fr }
     .obra-grade .ph:first-child { grid-column: span 1 }
   }

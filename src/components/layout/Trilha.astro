@@ -1,0 +1,65 @@
+---
+// Trilha de navegação (breadcrumb). Só nas páginas internas — a home não usa.
+//
+// Regra do NN/g: o logo sozinho não basta, o site precisa de um link direto
+// para o início em toda página interna. Como o menu não tem item "Início"
+// (a ordem dele acompanha as seções da home), o papel fica com a trilha.
+//
+// Uso:
+//   <Trilha itens={[{ nome: 'Obras', href: '/obras' }, { nome: 'Trindade' }]} />
+// O "Início" entra sozinho. O último item não recebe link.
+interface Item {
+  nome: string;
+  href?: string;
+}
+interface Props {
+  itens: Item[];
+}
+const { itens } = Astro.props;
+---
+
+<nav class="trilha" aria-label="Você está em">
+  <ol>
+    <li><a href="/">Início</a></li>
+    {itens.map((item, i) => (
+      <li>
+        <span class="sep" aria-hidden="true">›</span>
+        {item.href && i < itens.length - 1
+          ? <a href={item.href}>{item.nome}</a>
+          : <span aria-current="page">{item.nome}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  .trilha {
+    /* O header é fixo. O afastamento usa o mesmo valor calibrado para as
+       âncoras no base.css, senão a trilha entra por baixo do logo. */
+    padding: calc(clamp(63px, 6.6vw, 83px) + clamp(14px, 1.6vw, 22px)) var(--pad) 0;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li { display: flex; align-items: center; gap: 8px }
+  a {
+    color: var(--gray-200);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color .25s var(--ease), border-color .25s var(--ease);
+  }
+  a:hover { color: var(--white); border-bottom-color: var(--orange) }
+  .sep { color: var(--gray-500) }
+  [aria-current='page'] { color: var(--gray-500) }
+</style>

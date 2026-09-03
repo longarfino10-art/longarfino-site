@@ -11,6 +11,7 @@
 
 import Base from '../layouts/Base.astro';
 import Desenhos from '../components/ui/Desenhos.astro';
+import Trilha from '../components/layout/Trilha.astro';
 
 const atualizado = '01 de setembro de 2026';
 const email = 'longarfinoparks@gmail.com';
@@ -21,6 +22,7 @@ const email = 'longarfinoparks@gmail.com';
   descricao="Como a Longarfino Skate Parks trata os dados pessoais coletados neste site."
 >
   <Desenhos />
+  <Trilha itens={[{ nome: 'Política de privacidade' }]} />
 
   <section class="sec abertura">
     <span class="eyebrow">Documento</span>

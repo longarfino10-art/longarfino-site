@@ -10,6 +10,7 @@
 // renovação junto à CBSk, senão a página passa a exibir atestado vencido.
 import Base from '../layouts/Base.astro';
 import Desenhos from '../components/ui/Desenhos.astro';
+import Trilha from '../components/layout/Trilha.astro';
 
 const PDF = '/documentos/atestado-cbsk-004-2026.pdf';
 
@@ -33,6 +34,7 @@ const vistoriados = [
   descricao="Atestado nº 004/2026 emitido pela Confederação Brasileira de Skate, com os trechos de obra vistoriados."
 >
   <Desenhos />
+  <Trilha itens={[{ nome: 'Atestado' }]} />
 
   <section class="sec at-topo">
     <span class="eyebrow">Documento</span>
@@ -143,10 +145,17 @@ const vistoriados = [
     max-width: 72ch;
   }
 
-  .at-lista { border-top: 1px solid rgba(255, 255, 255, 0.25) }
-  .at-linha {
+  /* As colunas são definidas no contêiner, com subgrid nas linhas. Sem isso
+     cada linha calcula a própria largura e a coluna do meio desalinha. */
+  .at-lista {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .at-linha {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     gap: 16px;
     align-items: baseline;
     padding: 15px 0;

@@ -5,6 +5,7 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Desenhos from '../components/ui/Desenhos.astro';
+import Trilha from '../components/layout/Trilha.astro';
 
 import f1997 from '../assets/equipe/inicio-1997.jpeg';
 import f2011 from '../assets/equipe/inicio-2011.png';
@@ -30,6 +31,7 @@ const equipe = [
   descricao="De quem viveu o skate para quem vive o skate. A Longarfino Skateparks nasceu em 2007, no bairro Restinga, em Porto Alegre."
 >
   <Desenhos />
+  <Trilha itens={[{ nome: 'A Longarfino' }]} />
 
   <section class="sec abertura">
     <span class="eyebrow rv">A Longarfino</span>

@@ -5,6 +5,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Desenhos from '../../components/ui/Desenhos.astro';
+import Trilha from '../../components/layout/Trilha.astro';
 import BlocoObras from '../../components/obras/BlocoObras.astro';
 
 const obras = await getCollection('obras');
@@ -36,6 +37,7 @@ const estados = new Set(obras.map((o) => o.data.uf)).size;
   descricao="Skateparks, bowls e pistas de street projetados e executados pela Longarfino. Veja o portfólio completo de obras em concreto armado."
 >
   <Desenhos />
+  <Trilha itens={[{ nome: 'Obras' }]} />
 
   <section class="sec topo">
     <div class="cabeca">
