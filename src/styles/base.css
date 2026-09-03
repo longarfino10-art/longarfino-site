@@ -119,7 +119,9 @@ body::after{
 }
 .btn:hover{background:var(--white);color:var(--black);border-color:var(--white)}
 
-.btn--fill{background:var(--orange);border-color:var(--orange)}
+/* Texto preto: branco sobre o laranja da marca dá ~3,3:1, abaixo do mínimo
+   de 4,5:1 do WCAG. O preto passa com folga e preserva a cor. */
+.btn--fill{background:var(--orange);border-color:var(--orange);color:var(--black)}
 .btn--fill:hover{background:var(--white);border-color:var(--white);color:var(--black)}
 
 .btn--bare{border:0;padding-inline:0;color:var(--gray-200)}
