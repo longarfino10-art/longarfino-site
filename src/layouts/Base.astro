@@ -26,6 +26,7 @@ import '../styles/tokens.css';
 import '../styles/base.css';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
+import Analytics from '../components/layout/Analytics.astro';
 
 interface Props {
   titulo: string;
@@ -65,6 +66,7 @@ const urlOg = new URL(imagemOg, Astro.site);
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <Analytics />
 
   <!-- Bebas Neue (títulos) · Inter (texto) · IBM Plex Mono (dados técnicos) -->
   <!-- Fontes servidas pelo próprio site. Nada é buscado no Google. -->

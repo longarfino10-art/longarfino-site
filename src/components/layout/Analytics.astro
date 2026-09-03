@@ -1,0 +1,24 @@
+---
+// Google Analytics 4. A política de privacidade declara o uso — se um dia
+// sair daqui, tem que sair de lá também.
+//
+// Propriedade: Longarfino Skateparks · Fluxo: Site institucional
+// Código do fluxo: 15670436851
+//
+// Só carrega em produção. Em `npm run dev` o script nem entra na página,
+// para o desenvolvimento não sujar os relatórios.
+const GA = 'G-CRTNZQVV6C';
+const producao = import.meta.env.PROD;
+---
+
+{producao && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA}`}></script>
+    <script is:inline define:vars={{ GA }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', GA);
+    </script>
+  </>
+)}
