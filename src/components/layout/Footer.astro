@@ -125,7 +125,9 @@ const ano = new Date().getFullYear();
     font-size: 10.5px;
     letter-spacing: .18em;
     text-transform: uppercase;
-    color: var(--gray-500);
+    /* gray-500 sobre o preto dá ~4,1:1, abaixo do mínimo de 4,5:1 do WCAG.
+       O gray-200 já é usado no resto do rodapé e passa. */
+    color: var(--gray-200);
     transition: color .3s;
   }
   .ft nav a:hover { color: var(--orange) }
