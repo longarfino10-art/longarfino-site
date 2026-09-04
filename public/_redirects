@@ -5,7 +5,8 @@
 # Páginas principais
 /portfolio/                             /obras                          301
 /servicos/                              /#servicos                      301
-/contato/                               /#contato                       301
+# A /contato passou a existir como página em 04/09. A regra que mandava para
+# a âncora da home foi removida — a URL antiga agora chega ao destino certo.
 
 # Obras — o padrão mudou de /gallery/ para /obras/
 /gallery/curitiba/                      /obras/ct-curitiba              301
@@ -13,6 +14,7 @@
 /gallery/pista-trindade/                /obras/pista-trindade           301
 /gallery/pista-palhoca/                 /obras/pista-palhoca            301
 /gallery/skate-street-indaial/          /obras/skate-street-indaial     301
+/gallery/skate-park-abraao/             /obras/park-abraao              301
 
 # Piso Polido não será publicado — manda para o portfólio
 /gallery/especialistas-em-piso-polido/  /obras                          301
@@ -21,4 +23,5 @@
 /gallery/*                              /obras                          301
 
 # PENDENTE: as URLs de /services/<slug>/ ainda não foram levantadas
-/politica-de-privacidade/               /politica-de-privacidade        301
+# A /politica-de-privacidade tem a mesma URL no site novo — não precisa de
+# regra, e mapear para si mesma pode gerar loop.
