@@ -6,12 +6,22 @@
 // "Como executamos" carrega o diferencial: a Longarfino põe a mão na obra.
 // Enquanto /servicos, /contato e a seção da empresa não existirem como
 // página própria, os itens apontam para as âncoras da home.
+// A contagem e a faixa de metragem saem da coleção, para não desatualizarem
+// quando novas obras forem publicadas.
+import { getCollection } from 'astro:content';
+
+const obras = await getCollection('obras');
+const areas = obras.map((o) => o.data.area_m2).sort((a, b) => a - b);
+const menor = areas[0].toLocaleString('pt-BR');
+const maior = areas[areas.length - 1].toLocaleString('pt-BR');
+
+// `apoio` só aparece no menu mobile. No desktop os itens seguem secos.
 const links = [
-  { texto: 'Obras', href: '/obras' },
-  { texto: 'O que fazemos', href: '/#servicos' },
-  { texto: 'Nossa diferença', href: '/#diferenca' },
-  { texto: 'A Longarfino', href: '/#numeros' },
-  { texto: 'Contato', href: '/contato' },
+  { texto: 'Obras',           href: '/obras',      apoio: `${obras.length} pistas publicadas, de ${menor} a ${maior} m²` },
+  { texto: 'O que fazemos',   href: '/#servicos',  apoio: 'Projeto, concreto, bowl, street, reforma' },
+  { texto: 'Nossa diferença', href: '/#diferenca', apoio: 'Traço, espessura e fôrma, abertos' },
+  { texto: 'A Longarfino',    href: '/#numeros',   apoio: 'Desde 2007, cinco estados' },
+  { texto: 'Contato',         href: '/contato',    apoio: 'Orçamento em até dois dias úteis' },
 ];
 ---
 
@@ -39,23 +49,18 @@ const links = [
 
 <div class="menu" id="menu" aria-hidden="true">
   <nav aria-label="Menu">
-    <ol>
-      {links.map((l, i) => (
-        <li>
-          <a href={l.href}>
-            <em>{String(i + 1).padStart(2, '0')}</em>
-            {l.texto}
-          </a>
-        </li>
+    <ul>
+      {links.map((l) => (
+        <li><a href={l.href}>{l.texto}</a></li>
       ))}
-    </ol>
+    </ul>
   </nav>
 
-  <div>
-    <a class="btn btn--fill menu-cta" href="/contato">
+  <div class="menu-pe">
+    <a class="btn menu-cta" href="/contato">
       Solicitar orçamento <i class="arw"></i>
     </a>
-    <p class="mono-sm" style="margin-top:22px">Imbituba — SC / Brasil</p>
+    <p class="mono-sm menu-local">Imbituba — SC / Brasil</p>
   </div>
 </div>
 
@@ -71,6 +76,8 @@ const links = [
     justify-content: space-between;
     gap: 24px;
     padding: 22px var(--pad);
+    border-bottom: 1px solid transparent;
+    transition: background .4s var(--ease), border-color .4s var(--ease), padding .4s var(--ease);
   }
   /* O nav sai do fluxo e se ancora no centro real da tela. Dentro do flex ele
      nunca ficaria centrado, porque o CTA da direita é mais largo que o logo.
@@ -79,8 +86,6 @@ const links = [
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    border-bottom: 1px solid transparent;
-    transition: background .4s var(--ease), border-color .4s var(--ease), padding .4s var(--ease);
   }
 
   /* Estado após rolar a página */
@@ -196,55 +201,105 @@ const links = [
   .menu.is-open li:nth-child(4) { transition-delay: .21s }
   .menu.is-open li:nth-child(5) { transition-delay: .26s }
 
-  .menu ol { list-style: none }
-  .menu li { border-top: 1px solid var(--line) }
+  .menu ul { list-style: none; margin: 0; padding: 0 }
+  .menu li { border-top: 1px solid var(--line); position: relative }
   .menu li:last-child { border-bottom: 1px solid var(--line) }
-  .menu a {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    padding: 16px 0;
+
+  /* O fio laranja corre sob o item tocado, mesmo gesto do menu no desktop. */
+  .menu li::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 0;
+    height: 1px;
+    background: var(--orange);
+    transition: width .4s var(--ease);
+  }
+  .menu li:active::after { width: 100% }
+
+  .menu nav a {
+    display: block;
+    padding: clamp(15px, 3.4vw, 21px) 0;
     font-family: var(--ff-display);
-    font-size: clamp(1.9rem, 8vw, 2.6rem);
+    font-size: clamp(2rem, 8.5vw, 2.8rem);
     line-height: 1;
     text-transform: uppercase;
+    color: var(--white);
     transition: color .3s var(--ease), padding-left .3s var(--ease);
   }
-  .menu a:active { color: var(--orange); padding-left: 8px }
+  .menu a:active { color: var(--orange); padding-left: 10px }
 
-  .menu a em {
-    flex: none;
-    width: 22px;
-    font-family: var(--ff-mono);
-    font-size: 10px;
-    font-style: normal;
-    letter-spacing: .1em;
-    color: var(--orange);
+  /* O pé sobe junto com a lista em vez de ficar preso no fim da tela —
+     era o vão morto entre o último item e o botão. */
+  /* Num flex column os filhos esticam na horizontal. Sem isto o botão ocupa
+     a largura toda e a seta é empurrada para fora da borda. */
+  .menu-pe {
+    margin-top: clamp(60px, 19vw, 92px);
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
   }
+  .menu-pe { animation: menu-pe-sobe .5s var(--ease) .3s both }
+  @keyframes menu-pe-sobe {
+    from { opacity: 0; transform: translateY(10px) }
+    to   { opacity: 1; transform: none }
+  }
+  .menu:not(.is-open) .menu-pe { animation: none; opacity: 0 }
 
-  /* O rodapé do menu empurrado para baixo, sem vão morto no meio */
-  .menu > div:last-child { margin-top: auto; padding-top: 36px }
 
-  /* O CTA no mobile: uma linha só, sem espalhar as letras */
-  /* CTA do menu mobile: alvo de toque generoso, texto e seta centrados
-     e alinhados na mesma linha. */
+  /* Sem padding vertical o conteúdo cola no topo e a ponta da seta, que fica
+     3px acima do fio, escapa da caixa. */
   .menu-cta {
-    width: 100%;
-    justify-content: center;
-    align-items: center;
     gap: 16px;
-    min-height: 58px;
-    padding: 0 22px;
-    font-size: 11.5px;
+    padding: 19px 26px;
+    font-size: 12.5px;
     letter-spacing: .16em;
-    white-space: nowrap;
   }
 
   /* A seta do .btn é um bloco de 1px de altura; sem isto ela desalinha
      em relação à linha de base do texto. */
   .menu-cta .arw { align-self: center; margin-top: 0 }
 
-  .menu-cta:active { background: var(--white); border-color: var(--white); color: var(--black) }
+  /* Fio laranja correndo pela base ao toque, mesmo gesto dos itens da lista.
+     O ::after fica na borda, por isso o botão precisa ser posicionado. */
+  .menu-cta {
+    position: relative;
+    overflow: hidden;
+    transition: color .3s var(--ease), border-color .3s var(--ease);
+  }
+  /* O fio se traça quando o menu abre, depois dos itens da lista. Não depende
+     do toque: no celular o :active dura menos que a animação. */
+  .menu-cta::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: var(--orange);
+  }
+  .menu.is-open .menu-cta::after {
+    animation: cta-fio .55s var(--ease) .42s forwards;
+  }
+  @keyframes cta-fio {
+    from { width: 0 }
+    to   { width: 100% }
+  }
+  .menu-cta:active {
+    background: transparent;
+    border-color: var(--orange);
+    color: var(--white);
+  }
+  .menu-cta:active .arw { width: 34px }
+
+  /* O endereço fecha o menu, separado por fio — não solto no vazio. */
+  .menu-local {
+    margin: clamp(20px, 4vw, 28px) 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    color: var(--gray-500);
+  }
 
   /* No mobile some a navegação e o CTA, entra o hambúrguer */
   @media (max-width: 1180px) {
