@@ -2,31 +2,122 @@
 
 ## ONDE ESTAMOS
 
-**Data:** 02/09/2026 (segunda sessão do dia)
-**Estado:** site pronto para o ar, salvo três pendências de terceiros.
-Home completa, sete obras publicadas, `/atestado`, `/a-longarfino`, `/404` e
-política de privacidade. Desempenho mobile em 94.
-**Falta:** GA4, `/contato` e a virada de domínio.
+**Data:** 04/09/2026
+**Estado:** **site no ar no domínio próprio.** Home, oito rotas, formulário
+funcionando, GA4 coletando, desempenho mobile em 94.
+**Falta:** acompanhamento e o que está listado em "Depois do ar".
 
-Site em https://longarfino-site.longarfino10.workers.dev
+Site em https://longarfinoskateparks.com.br
 Deploy automático: `git push` publica sozinho.
 
-⚠ **Este arquivo passou a viver no repositório em 02/09.** Antes existia só no
-Projeto do Claude, fora do controle de versão. O repositório é privado — por
-isso pode conter CNPJ, endereço e telefones.
+⚠ **Este arquivo vive no repositório desde 02/09.** Antes existia só no Projeto
+do Claude, fora do controle de versão. O repositório é privado — por isso pode
+conter CNPJ, endereço e telefones.
 
 ---
 
-## ⚠ O QUE AINDA NÃO PODE IR AO AR
+## VIRADA DE DOMÍNIO — 04/09
 
-| O quê | Onde | Situação |
-|---|---|---|
-| Google Analytics | não instalado | A política de privacidade **declara** que o site usa GA. Ou instala, ou tira da política |
-| Revisão jurídica da política | `politica-de-privacidade.astro` | Texto escrito pela IA, não por advogado. A empresa assina contrato público |
-| Estudo de caso da Palhoça | `pista-palhoca.md` | Publicada só com ficha técnica e fotos |
+| Item | Valor |
+|---|---|
+| Registrador | Registro.br |
+| Nameservers | `michael.ns.cloudflare.com` · `nicole.ns.cloudflare.com` |
+| Anteriores | `ns1.dns-parking.com` · `ns2.dns-parking.com` (Hostinger) |
+| Worker conectado a | `longarfinoskateparks.com.br` e `www.` |
+| Redirect `www` → raiz | Regra de redirecionamento, 301, padrão curinga |
+| Plano Cloudflare | Free — 100 mil requisições/dia, folgado para o volume |
 
-**Saiu da lista em 02/09:** o texto da Nossa diferença. O Lucas decidiu manter
-o que está e ajustar com o tempo se precisar.
+**Registros DNS apagados** ao conectar o Worker: dois `A` e dois `AAAA` do
+domínio raiz, mais o `CNAME` do `www` que apontava para o CDN da Hostinger.
+O Worker recusa o domínio enquanto houver registro externo no raiz.
+
+**Registros mantidos:** dois `MX` da Hostinger, o `TXT` do SPF, `ftp`,
+`autoconfig` e `autodiscover`. Preservam e-mail no domínio, que aparentemente
+ninguém usa — o contato oficial é o Gmail.
+
+**O site antigo em WordPress saiu do ar** pelo domínio. A hospedagem na
+Hostinger continua existindo até alguém cancelar.
+
+---
+
+## GOOGLE ANALYTICS 4
+
+| Item | Valor |
+|---|---|
+| Propriedade | Longarfino Skateparks |
+| Fluxo | Site institucional |
+| Código do fluxo | 15670436851 |
+| **ID de métricas** | **G-CRTNZQVV6C** |
+| Componente | `src/components/layout/Analytics.astro` |
+
+Só carrega em produção — `import.meta.env.PROD`. Em `npm run dev` o script nem
+entra na página, para não sujar os relatórios.
+
+**A `/obrigado` serve de conversão.** Criar evento a partir de `page_view` com
+`page_location` contendo `/obrigado` para medir quantos orçamentos o site gera.
+
+---
+
+## FORMULÁRIO DE CONTATO
+
+| Item | Valor |
+|---|---|
+| Serviço | Web3Forms (gratuito) |
+| Chave | `c4324df9-9686-4d5e-8d39-f5c79077278a` — pública por natureza |
+| Destino | longarfinoparks@gmail.com |
+| Assunto | "Pedido de orçamento pelo site" |
+| Campos | Nome · E-mail · Telefone · Cidade/estado · Tipo de obra · Metragem (opcional) · Mensagem |
+| Antispam | Campo `botcheck` escondido no CSS |
+
+**O `redirect` é montado pelo ambiente:** em produção usa o `Astro.site` do
+`astro.config.mjs`; em desenvolvimento usa `Astro.url.origin`. Com endereço
+fixo, o teste local caía na página padrão do Web3Forms, em inglês.
+
+---
+
+## ATESTADO DE CAPACIDADE TÉCNICA — CBSk
+
+| Item | Valor |
+|---|---|
+| Número | 004/2026 |
+| Emissor | Confederação Brasileira de Skate (CBSk) |
+| Emissão | 05/08/2026 |
+| **Validade** | **05/08/2027 — renovar antes** |
+| Assinatura | Digital, Carlos Eduardo Dias, presidente |
+| PDF | `public/documentos/atestado-cbsk-004-2026.pdf` |
+| Página | `/atestado` |
+
+**Metragem do atestado é do TRECHO VISTORIADO, não da obra inteira.** Resolve a
+divergência com as obras publicadas: Abraão aparece com 780,11 m² no atestado e
+1.600 m² no site, e os dois estão certos.
+
+| Obra | Local | Tipo | Papel | Cliente | Trecho |
+|---|---|---|---|---|---|
+| Pista de Trindade | Florianópolis/SC | Street | Execução e assessoria | Satélite Construções | +1.200 m² |
+| Pista do Abraão | Florianópolis/SC | Street, Park | Execução e acompanhamento | Hefer Construções | 780,11 m² |
+| Tarumã | Curitiba/PR | Street, Park | Execução e assessoria | RAC Engenharia | 763,55 m² |
+| Munari Skatepark | Imbituba/SC | Street, Bowl, Simulador, Miniramp | Execução | Munari Skatepark | 600 m² |
+| Pista Palhoça | Palhoça/SC | Bowl | Execução e assessoria | Crestani Comércio | 450 m² |
+| Miniramp e street raia | Imbituba/SC | Madeira e concreto | Projeto e execução | Cinco Continentes — AEB5CON | 86 m² |
+| Estaleirinho | Bal. Camboriú/SC | Street | Execução | Prefeitura de Bal. Camboriú | 64 m² |
+
+Soma publicada: **4.343,66 m²** dos 12.360 construídos.
+
+**Fora da lista:** Pista Fábio Pereira (Imbituba/SC, street e bowl, 400 m²).
+Cliente pessoa física — só entra com aval do proprietário.
+
+**O PDF publicado teve os oito contatos removidos.** Três tentativas foram
+necessárias:
+1. Tarja desenhada por cima — o texto continuava embaixo, legível por `Ctrl+F`
+   e por copiar e colar. **Descartada.**
+2. Redação de verdade, mas dois contatos passaram sem tarja.
+3. Versão final, todos removidos do texto.
+
+**Regra:** nunca substituir pelo arquivo original. Ele expõe celular de
+servidora pública e de pessoa física. Conferir toda nova versão com `Ctrl+F`.
+
+**Nota:** a Prefeitura de Balneário Camboriú é o único cliente público nomeado
+no atestado. Vale mais em licitação do que os 64 m² sugerem.
 
 ---
 
@@ -49,62 +140,12 @@ o que está e ajustar com o tempo se precisar.
 | Instagram | @longarfinoskateparks |
 | WhatsApp do dev | (51) 98615-8345 |
 
-**Atenção:** o site dizia Garopaba, corrigido para Imbituba em 02/09. O e-mail
-no cartão CNPJ ainda é o hotmail antigo — vale atualizar na Receita.
+**Atenção:** o e-mail no cartão CNPJ ainda é o hotmail antigo — vale atualizar
+na Receita.
 
 **Sobre 2007:** a empresa abriu em 2019, mas o site diz "19+ anos de
 experiência" desde 2007, que é quando o Paulo começou a construir. Está
 correto: a seção fala de experiência, não de idade da empresa.
-
----
-
-## ATESTADO DE CAPACIDADE TÉCNICA — CBSk
-
-Documento novo, incorporado em 02/09. É a credencial mais forte que a empresa
-tem para licitação.
-
-| Item | Valor |
-|---|---|
-| Número | 004/2026 |
-| Emissor | Confederação Brasileira de Skate (CBSk) |
-| Emissão | 05/08/2026 |
-| **Validade** | **05/08/2027 — renovar antes** |
-| Assinatura | Digital, Carlos Eduardo Dias, presidente |
-| PDF no site | `public/documentos/atestado-cbsk-004-2026.pdf` |
-| Página | `/atestado` (indexável, entra no sitemap) |
-
-**Metragem do atestado é do TRECHO VISTORIADO, não da obra inteira.** Isso
-resolve a divergência aparente com as obras publicadas: Abraão aparece com
-780,11 m² no atestado e 1.600 m² no site, e os dois estão certos.
-
-| Obra | Local | Tipo | Papel | Cliente | Trecho |
-|---|---|---|---|---|---|
-| Pista de Trindade | Florianópolis/SC | Street | Execução e assessoria | Satélite Construções | +1.200 m² |
-| Pista do Abraão | Florianópolis/SC | Street, Park | Execução e acompanhamento | Hefer Construções | 780,11 m² |
-| Tarumã | Curitiba/PR | Street, Park | Execução e assessoria | RAC Engenharia | 763,55 m² |
-| Munari Skatepark | Imbituba/SC | Street, Bowl, Simulador, Miniramp | Execução | Munari Skatepark | 600 m² |
-| Pista Palhoça | Palhoça/SC | Bowl | Execução e assessoria | Crestani Comércio | 450 m² |
-| Miniramp e street raia | Imbituba/SC | Madeira e concreto | Projeto e execução | Cinco Continentes — AEB5CON | 86 m² |
-| Estaleirinho | Bal. Camboriú/SC | Street | Execução | Prefeitura de Bal. Camboriú | 64 m² |
-
-Soma publicada: **4.343,66 m²** dos 12.360 construídos.
-
-**Fora da lista:** Pista Fábio Pereira (Imbituba/SC, street e bowl, 400 m²).
-Cliente pessoa física — só entra com aval do proprietário.
-
-**O PDF publicado teve os oito contatos removidos.** Três tentativas foram
-necessárias:
-1. Tarja desenhada por cima — o texto continuava embaixo, legível por
-   `Ctrl+F` e por copiar e colar. **Descartada.**
-2. Redação de verdade, mas dois contatos passaram sem tarja.
-3. Versão final, todos removidos do texto.
-
-**Regra:** nunca substituir pelo arquivo original. Ele expõe celular de
-servidora pública e de pessoa física. Conferir toda nova versão com `Ctrl+F`
-procurando um dos números antes de publicar.
-
-**Nota:** a Prefeitura de Balneário Camboriú é o único cliente público
-nomeado no atestado. Vale mais em licitação do que os 64 m² sugerem.
 
 ---
 
@@ -127,28 +168,24 @@ topografia.
 
 ## PESQUISA DE MERCADO (02/09)
 
-As três referências mundiais e o que rodam:
-
 | Empresa | País | Stack do site |
 |---|---|---|
 | California Skateparks | EUA, 500+ pistas | **Wix** |
 | Convic | Austrália, 700+ obras | WordPress, WP Rocket, GTM |
 | Grindline | EUA, 400+ pistas | WordPress + Elementor |
 
-**Conclusão:** nenhuma tem tecnologia melhor que a nossa. Astro estático em
-Cloudflare, com 94 de desempenho, está à frente das três.
+**Conclusão:** nenhuma tem tecnologia melhor que a nossa.
 
 **O que elas têm e nós não:**
 1. Depoimento de gestor público com nome, cargo e município
-2. Processo detalhado em páginas próprias (planejamento, projeto, construção)
+2. Processo detalhado em páginas próprias
 3. Página de prêmios
-4. Mapa de obras (a Grindline tem `/map`)
+4. Mapa de obras
 5. Material para captar contato — relatório grátis em troca do e-mail
-6. Certificação técnica explícita (a Grindline usa o ACI; o equivalente aqui
-   é a CBSk, já feito, e o CREA do Leandro, pendente)
+6. Certificação técnica explícita (a CBSk já está feita; falta o CREA do Leandro)
 
 **Padrão que elas seguem:** cada frase carrega um número ou procedimento
-verificável. Foi o que motivou a reescrita da Nossa diferença.
+verificável.
 
 ---
 
@@ -157,25 +194,22 @@ verificável. Foi o que motivou a reescrita da Nossa diferença.
 - Astro 7.2.9 — exige Node >= 22.12.0
 - Markdown para as obras, sem banco
 - Cloudflare Workers com Static Assets
-- Custo mensal R$0
+- Custo mensal R$0. Único custo: o domínio no Registro.br
 
 Repositório: https://github.com/longarfino10-art/longarfino-site (privado)
 Pasta local: C:\Users\longa\Documents\Projetos PROGRAMAÇÃO\longarfino-site
 Terminal: PowerShell. Para .sh: `& "C:\Program Files\Git\bin\bash.exe" arquivo.sh`
 
-**Fontes locais** desde 02/09, via `@fontsource`. Nada vem do Google.
-Bebas Neue 400, IBM Plex Mono 400/500, Inter 400/500/600/700 — cada uma com
-`latin` E `latin-ext`. Bebas e Inter 400 entram com `preload` no `Base.astro`,
-importadas com `?url` para o Astro resolver o hash a cada build.
+**Fontes locais** via `@fontsource`. Nada vem do Google. Bebas Neue 400,
+IBM Plex Mono 400/500, Inter 400/500/600/700 — cada uma com `latin` E
+`latin-ext`. Bebas e Inter 400 entram com `preload`, importadas com `?url` para
+o Astro resolver o hash a cada build.
 
-**Arquivo novo:** criar vazio com `New-Item` antes de colar. Pela interface do
-VS Code, o nome ganha `.txt` ou `.html` no fim.
+**Arquivo novo:** criar vazio com `New-Item` antes de colar.
 
-**Nome de arquivo:** minúsculo, hífen, sem espaço e sem acento. O build roda em
-Linux, onde `.JPEG` e `.jpeg` são arquivos diferentes.
+**Nome de arquivo:** minúsculo, hífen, sem espaço e sem acento.
 
-**Caminho com colchete no PowerShell:** usar `-LiteralPath`, senão o shell
-trata `[...slug].astro` como filtro e diz que o arquivo não existe.
+**Caminho com colchete no PowerShell:** usar `-LiteralPath`.
 
 ---
 
@@ -184,36 +218,40 @@ trata `[...slug].astro` como filtro e diz que o arquivo não existe.
 | Rota | Estado |
 |---|---|
 | `/` | Hero · Obras · Serviços · Nossa diferença · A Longarfino · Galeria · Chamada |
-| `/obras` | portfólio com blocos e filtros |
+| `/obras` | portfólio com blocos e filtros gerados dos tipos reais |
 | `/obras/[slug]` | seis obras publicadas |
 | `/a-longarfino` | história desde 1997, dois registros de época, equipe |
-| `/atestado` | **nova em 02/09** — atestado da CBSk, sete trechos, link do PDF |
+| `/atestado` | atestado da CBSk, sete trechos, link do PDF |
+| `/contato` | **nova em 04/09** — formulário Web3Forms, sete campos |
+| `/obrigado` | **nova em 04/09** — confirmação com check traçado em SVG |
 | `/404` | atalhos + crédito do dev |
-| `/politica-de-privacidade` | pronta, falta revisão jurídica |
-| `/contato` | **não existe** — travada na chave do Web3Forms |
+| `/politica-de-privacidade` | revisada por advogado em 04/09 |
 
 ### Componentes
 
 | Arquivo | O que é |
 |---|---|
-| `layout/Trilha.astro` | **Novo em 02/09.** Breadcrumb das internas. A home não usa |
+| `layout/Analytics.astro` | **Novo em 04/09.** GA4, só em produção |
+| `layout/Trilha.astro` | Breadcrumb das internas. A home não usa |
 | `home/Hero.astro` | Foto real, parallax, inclinação com o mouse |
 | `home/Obras.astro` | 4 destaques. Obra em execução ganha o card grande |
 | `home/Servicos.astro` | 6 serviços com desenho cotado |
-| `home/Diferenca.astro` | **Refeita em 02/09.** Foto ao topo, especificação técnica, selo do atestado |
+| `home/Diferenca.astro` | Foto ao topo, especificação técnica, selo do atestado |
 | `home/Numeros.astro` | Números, história resumida, equipe, feedback em rodízio |
 | `home/Galeria.astro` | Tira de 5 fotos, gap de 8px |
-| `home/Chamada.astro` | CTA com WhatsApp, e-mail e dados |
-| `home/Processo.astro` | **Sem uso.** Removido da home, guardado |
+| `home/Chamada.astro` | CTA com WhatsApp e link para `/contato` |
+| `home/Processo.astro` | **Sem uso.** Guardado |
 | `home/Mapa.astro` | **Sem uso na home.** Guardado para `/obras` |
-| `home/Diferenca-etiquetas.astro.bak` | Versão anterior da Diferença, com as 5 etiquetas ancoradas na foto |
+| `home/Diferenca-etiquetas.astro.bak` | Versão anterior da Diferença |
+
+**Favicon:** `public/favicon.png` (512×512) e `public/apple-touch-icon.png`
+(180×180), exportados do Corel pelo Lucas em 04/09. Substituíram o SVG padrão
+do template Astro, que estava no ar desde a criação do projeto. Fundo preto
+sólido — favicon transparente some em navegador com tema claro.
 
 ---
 
 ## OBRAS PUBLICADAS
-
-Seis obras com dados conferidos e slugs alinhados ao `_redirects`.
-Somam 5.412 m² dos 12.360 totais.
 
 | Slug | Obra | Cidade | m² | Tipo | Período |
 |---|---|---|---|---|---|
@@ -224,10 +262,15 @@ Somam 5.412 m² dos 12.360 totais.
 | skate-street-indaial | Skate Street Indaial | Indaial/SC | 500 | Street | mai/2023 a mar/2025 |
 | pista-palhoca | Pista Palhoça | Palhoça/SC | 312 | Street | dez/2022 a jan/2023 |
 
-Destaques na home: Trindade, Curitiba, Abraão, Morrinhos.
+Somam 5.412 m² dos 12.360 totais. Destaques na home: Trindade, Curitiba,
+Abraão, Morrinhos.
 
 **Papel da Longarfino: execução.** Na Trindade o projeto foi de outras empresas
-(Ruaria e Spot) — os textos dizem "execução", não "projeto e execução".
+(Ruaria e Spot).
+
+**Nota sobre os filtros:** quase todas as obras têm vários tipos ao mesmo
+tempo, então filtrar muda pouco a grade. Passa a fazer sentido quando as outras
+dez entrarem.
 
 **Fora do site, no Drive (16 pastas):** Reforma Estaleirinho, Ampliação Munari,
 Pista Tormam, Pista Rodrigo Itapiruba, Pista Yerba, Piso Industrial, Mini Ramp
@@ -235,25 +278,20 @@ João Paulo, Concretagem de Obstáculos, Pista Paulo Lopes, Pista Madeira
 Campeche, Mini Rampa Tuco.
 
 **Laguna:** 360 m², em execução, sem fotos. Obra pública de R$ 318,2 mil,
-licitação homologada em Diário Oficial, contrato com a Udesc assinado em
-05/03/2026, prazo de 120 dias. Recurso de emenda parlamentar com intermediação
-da Cufa Laguna. Entra quando houver foto.
+contrato com a Udesc assinado em 05/03/2026, prazo de 120 dias. Recurso de
+emenda parlamentar com intermediação da Cufa Laguna.
 
 ---
 
 ## FEEDBACKS PUBLICADOS
 
-Comentários reais copiados do Instagram, em rodízio de 7,5s na home:
-
 - @munariskatepark — "Munariskatepark padrão Longarfino de qualidade."
 - @kelvin_simoess — "Galera vai ter uma pista de primeira!!"
 - @viniciusbilly — "Obrigado pela excelência no trabalho realizado"
 
-Não usados: @beppigirardi, @philipegh, @graziribaskiprado (esta é da equipe, e
-depoimento de sócia não serve como prova social).
+Não usados: @beppigirardi, @philipegh, @graziribaskiprado (da equipe).
 
 **Regra:** depoimento só entra copiado literalmente do post, com o @ do autor.
-Duas tentativas anteriores usaram texto reconstruído por IA e foram descartadas.
 
 ---
 
@@ -263,19 +301,16 @@ Duas tentativas anteriores usaram texto reconstruído por IA e foram descartadas
 |---|---|
 | Hospedagem | Cloudflare Workers Static Assets |
 | Banco de dados | Nenhum. Markdown |
-| Fotos | `src/assets/obras/<slug>/` no original. O Astro gera WebP com srcset |
-| Fontes | **Locais, via `@fontsource`. Nada do Google.** Preload em Bebas e Inter 400 |
-| **Domínio** | **Sem `www.` — decidido em 02/09. O `www.` recebe 301** |
-| Formulário | WhatsApp como CTA principal + Web3Forms em `/contato` |
+| Fotos | `src/assets/obras/<slug>/` no original |
+| Fontes | Locais, via `@fontsource`. Preload em Bebas e Inter 400 |
+| **Domínio** | **Sem `www.`. O `www.` recebe 301** |
+| Formulário | WhatsApp como CTA rápido + Web3Forms em `/contato` |
 | Visual | Preto/concreto + laranja `#E85A24` em no máximo 15% da tela |
-| **Botões** | **`.btn` de contorno é o padrão. `.btn--fill` laranja só em CTA principal: header, hero e Chamada** |
-| **Navegação** | **Breadcrumb nas internas, sem item "Início" no menu. Logo com hover** |
+| Botões | `.btn` de contorno é o padrão. `.btn--fill` laranja só em CTA principal |
+| Navegação | Breadcrumb nas internas. Menu aponta para `/contato`, não para a âncora |
 | Menu | Obras · O que fazemos · Nossa diferença · A Longarfino · Contato |
-| CTA | "Solicitar orçamento" no header. "Conte onde vai ser a pista" no fim |
-| Contato | Dados só na Chamada. O rodapé não repete |
-| Mapa de atuação | Fora da home. Guardado para `/obras` |
-| Seção Processo | Removida da home. Arquivo guardado |
-| **Serviços** | **Só concreto. Miniramp, madeira, piso polido e simulador ficam de fora — decidido em 02/09** |
+| Menu mobile | Cinco itens em Bebas, sem numeração, com WhatsApp e e-mail no pé |
+| Serviços | Só concreto. Miniramp, madeira, piso polido e simulador ficam de fora |
 | Rastreadores | Google Analytics sim, Pixel do Facebook não |
 | Branch | `main` |
 
@@ -296,29 +331,21 @@ Duas tentativas anteriores usaram texto reconstruído por IA e foram descartadas
 
 Canto reto, sem sombra, sem card arredondado, grid assimétrico.
 
-**Contraste (corrigido em 02/09):**
-- `.ft nav a` usava `--gray-500` (~4,1:1, abaixo do mínimo de 4,5:1). Passou a
-  `--gray-200`.
-- `.btn--fill` tinha texto branco sobre laranja (~3,3:1). Passou a texto preto,
-  o que preserva a cor da marca e resolve o contraste.
+**Contraste:** `.ft nav a` usa `--gray-200`, não `--gray-500`. `.btn--fill` tem
+texto preto sobre o laranja — branco dava ~3,3:1, abaixo do mínimo.
 
 **Fonte: `.d` é obrigatória nos títulos.** A Bebas vem da classe `.d`, não do
-elemento `h1`/`h2`. Título sem `.d` cai no fallback e não parece Bebas.
+elemento `h1`/`h2`.
 
-**Fallback do `--ff-display`:** era `Impact`, trocado por `Arial Narrow` e
-condensadas. Impact mascarava falha de fonte porque é bonito no contexto — o
-título parecia certo mesmo quando a Bebas não carregava.
+**Fallback do `--ff-display`:** `Arial Narrow` e condensadas. Era `Impact`, que
+mascarava falha de fonte por ser bonito no contexto.
 
-**Exceções registradas:** `linear-gradient` como véu sobre foto na Nossa
-diferença e nos registros da `/a-longarfino` — é véu, não decoração. E o
-círculo do marcador do Paulo na foto de 1997.
+**Header:** quatro filhos — logo, nav, CTA e burger. O nav é `position:
+absolute` centrado, porque dentro do flex o CTA mais largo o empurrava. Nada de
+`:first-child` ou `:last-child` aqui.
 
-**Toda seção usa `.sec`** do `base.css` e as classes globais `.eyebrow`,
-`.h-sec`, `.btn`, `.arw`, `.mono-sm`. Não criar container próprio.
-
-**Âncoras:** `[id]{scroll-margin-top:clamp(63px,6.6vw,83px)}` no `base.css`,
-calibrado por tentativa. O `Trilha.astro` usa o mesmo valor no `padding-top`,
-senão entra por baixo do header fixo.
+**Âncoras:** `[id]{scroll-margin-top:clamp(63px,6.6vw,83px)}` no `base.css`.
+O `Trilha.astro` usa o mesmo valor no `padding-top`.
 
 **Ordem do menu = ordem das seções.**
 
@@ -326,9 +353,9 @@ senão entra por baixo do header fixo.
 
 ## DESEMPENHO
 
-Medido no PageSpeed, aba Celular, em 02/09.
+PageSpeed, aba Celular.
 
-| | Site antigo | Novo, manhã | Novo, noite |
+| | Site antigo | 02/09 manhã | 02/09 noite |
 |---|---|---|---|
 | Desempenho | 88 | 87 | **94** |
 | Acessibilidade | 83 | 94 | 94 |
@@ -336,114 +363,103 @@ Medido no PageSpeed, aba Celular, em 02/09.
 | SEO | 92 | 100 | 100 |
 | FCP | 2,0 s | 2,7 s | **1,4 s** |
 | LCP | 3,3 s | 3,2 s | 2,8 s |
-| TBT | 0 ms | 0 ms | 0 ms |
-| CLS | 0.001 | 0 | 0 |
+| TBT / CLS | 0 ms / 0.001 | 0 / 0 | 0 / 0 |
 
-**O que ganhou:** fontes locais tiraram os 750 ms do Google Fonts; o preload
-derrubou o caminho crítico de 851 ms para 390 ms.
+Fontes locais tiraram os 750 ms do Google Fonts; o preload derrubou o caminho
+crítico de 851 ms para 390 ms.
 
-**Sobre o site antigo:** 26 arquivos CSS bloqueando renderização, caminho
-crítico de 2.187 ms, e quatro `.woff2` servidos por `newproject.luawebsites.com`
-— servidor da agência — **retornando ERR_CONNECTION_FAILED**. A home também
-não tem meta description e tem sete links sem texto acessível.
-
-**Ainda em aberto:** 269 KiB de imagem "economizável" nas capas de obra. Não
-comprimir mais — a foto é o produto. E acessibilidade em 94, com contraste e
-ordem de títulos ainda apontados.
+**Ainda em aberto:** 269 KiB de imagem "economizável" nas capas — não comprimir,
+a foto é o produto. Acessibilidade em 94, com contraste e ordem de títulos
+ainda apontados.
 
 ---
 
-## PRÓXIMA SESSÃO — o que fazer
+## TESTAR NO SITE NO AR
 
-### Depende do Lucas trazer
-
-1. **ID do Google Analytics** — analytics.google.com
-2. **Chave do Web3Forms** — web3forms.com, grátis
-3. **Prints do mobile** — abrir o site publicado no celular e rolar tudo
-
-### Depende de terceiro
-
-4. Revisão jurídica da política de privacidade
-5. Aval do Fábio Pereira para publicar a obra dele
-
-### Não depende de ninguém
-
-6. Instalar o GA4 quando o ID chegar
-7. Criar a `/contato` quando a chave chegar
-8. Virada de domínio — apontar para o Cloudflare, sem `www.`
+1. `/contato` abre o formulário — havia um redirect antigo mandando para a
+   âncora da home, removido em 04/09
+2. Enviar o formulário e cair na `/obrigado`
+3. GA4 registrando no tempo real
+4. `www.` redirecionando para a versão sem
+5. Os 301: `/portfolio/`, `/gallery/pista-trindade/`, `/gallery/skate-park-abraao/`
 
 ---
 
 ## DEPOIS DO AR
 
+- **Cadastrar no Google Search Console e enviar o sitemap**
 - Publicar as outras 10 obras
 - Estudo de caso da Palhoça
 - CREA do Leandro (conta em licitação pública)
 - Laguna quando tiver foto
 - Seção de obra pública com os dados de licitação
 - Conteúdo técnico sobre concreto, para SEO
-- Os seis achados da pesquisa de mercado (ver seção acima)
+- Os seis achados da pesquisa de mercado
 - Trocar os `alt` genéricos da galeria por descrição com cidade
+- Aval do Fábio Pereira para publicar a obra dele
+- Confirmar se alguém usa e-mail no domínio; se não, limpar os MX da Hostinger
+- Cancelar a hospedagem da Hostinger, se não houver mais nada lá
 - Painel de cadastro de obras (Decap ou Sveltia CMS), se o volume justificar
-- Mover `src/Cronograma e outros/` para fora do `src`
 - Limpar a regra órfã `.df-hd span:last-child` no `Diferenca.astro`
-- Apagar `Diferenca-etiquetas.astro.bak` quando não houver mais dúvida
+- Apagar `Diferenca-etiquetas.astro.bak`
 - Resolver os 5 avisos de tipo do TypeScript (não quebram o build)
-- Avaliar se sete arquivos de fonte por página compensam
+- **Escrever o `CLAUDE.md`** — à mão, menos de 150 linhas, só o específico
 
 ---
 
 ## ARMADILHAS JÁ ENCONTRADAS
 
 **Fontes**
-- `@fontsource` precisa de `latin` E `latin-ext`. Só `latin-ext` cobre apenas
-  os acentos — as letras A-Z caem no fallback e a fonte parece não funcionar.
-- `font-display: swap` faz o texto piscar. Resolve com `preload`, não trocando
-  o fallback.
-- Caminho de fonte tem hash que muda a cada build. Importar com `?url` e deixar
-  o Astro resolver. Caminho fixo quebra em silêncio.
+- `@fontsource` precisa de `latin` E `latin-ext`.
+- `font-display: swap` faz o texto piscar. Resolve com `preload`.
+- Caminho de fonte tem hash que muda a cada build. Importar com `?url`.
 
 **Astro**
-- Template literal no atributo `style` de tag Astro faz a tag não abrir e o
-  HTML vazar como texto. Usar concatenação com `+` numa const antes.
+- Template literal no atributo `style` faz a tag não abrir e o HTML vazar.
 - `.rv` deixa o elemento com opacity 0 esperando o `reveal.js`.
 - Caminho de imagem nos `.md`: `./../../assets/obras/<slug>/arquivo.jpeg`
-- Variável CSS inexistente derruba o bloco inteiro na prática. `--concrete-2`
-  não existe (é `--concrete`) e a seção ficou sem estilo nenhum.
+- Variável CSS inexistente derruba o bloco. `--concrete-2` não existe.
 
 **CSS**
-- `grid-template-columns` repetido por linha desalinha as colunas entre linhas.
-  Definir no contêiner e usar `subgrid` nas linhas.
-- `max-width` em `ch` muda conforme a fonte — trocar a fonte muda a largura da
-  coluna e a quebra do texto. Onde a medida importa, usar px.
+- `grid-template-columns` repetido por linha desalinha as colunas. Definir no
+  contêiner e usar `subgrid`.
+- `max-width` em `ch` muda conforme a fonte. Onde a medida importa, usar px.
+- **Regra genérica pega o que não devia.** `.menu a` alcançava também o botão
+  do CTA e zerava o padding dele. Usar `.menu nav a`.
+- **Em flex column os filhos esticam na horizontal.** O botão ficava com 100%
+  de largura e a seta era empurrada para fora.
 
 **SVG**
-- `<symbol>` mora no `Desenhos.astro` (plural). O `Desenho.astro` (singular) só
-  exibe.
+- `<symbol>` mora no `Desenhos.astro` (plural). O singular só exibe.
 - `font-family="var(--ff-mono)"` não funciona em atributo de apresentação.
-- Desenho com cota escrita precisa de opacidade ~0.4.
+- **Regra de `<style>` com escopo às vezes não alcança o SVG.** Quando falhar,
+  usar atributo direto na tag: `fill`, `stroke`, `stroke-width`.
+- **Não desenhar tipografia à mão em `<path>`.** O "LS" do favicon saiu
+  deformado. Exportar de editor gráfico, com o texto convertido em curvas.
 
-**Scripts**
-- O parallax do hero depende de `data-parallax` no `.hero-palco`.
+**Redirects**
+- **Regra do `_redirects` pode sequestrar página criada depois.** `/contato/`
+  apontava para `/#contato` desde o WordPress e continuou valendo quando a
+  página passou a existir.
+- Mapear uma URL para ela mesma pode gerar loop. A `/politica-de-privacidade/`
+  foi removida por isso.
 
 **Edição de arquivo**
-- Substituir bloco que termina em `</style>` já duplicou a tag várias vezes.
-- **Find/replace com blocos grandes embaralha o arquivo.** Aconteceu no
-  `[...slug].astro` em 02/09: três substituições caíram em lugares errados e o
-  CSS foi parar dentro do HTML. Quando a estrutura quebrar, substituir o
-  arquivo inteiro.
+- Substituir bloco que termina em `</style>` já duplicou a tag.
+- **Find/replace com blocos grandes embaralha o arquivo.**
+- **Acento quebra o find/replace.** O arquivo no disco está em codificação
+  diferente da que o chat produz. Usar trecho sem acento como âncora.
+- **Conferir o valor colado.** Um `font-size: 12.5px` virou `5px` numa
+  substituição e o botão sumiu.
 
 **PDF**
-- Tarja preta desenhada por cima **não apaga o texto.** Conferir sempre com
-  `Ctrl+F` procurando o dado que deveria ter sumido.
+- Tarja preta desenhada por cima **não apaga o texto.**
 - Editar PDF assinado digitalmente invalida a assinatura.
 
 **Dados**
-- O protótipo continha obras, contatos e métricas inventados que chegaram a ir
-  ao ar no site antigo. Todo dado vindo dele é suspeito até confirmação.
+- O protótipo continha obras, contatos e métricas inventados.
 - A descrição da Palhoça estava trocada com a de Indaial.
-- A metragem de Curitiba aparecia como 1500 e 1200 no mesmo arquivo.
-- Imagem "restaurada" por IA apagou uma pessoa da foto de 2011. Só originais.
+- Imagem "restaurada" por IA apagou uma pessoa da foto de 2011.
 
 ---
 
@@ -451,55 +467,49 @@ ordem de títulos ainda apontados.
 
 **30/08 — Semana 1.** Projeto Astro, deploy contínuo, GitHub, Worker.
 
-**30/08 — Itens 1 a 6.** Layout base, biblioteca de desenhos SVG, coleção de
-obras, página da obra, portfólio com blocos e filtros.
+**30/08 — Itens 1 a 6.** Layout base, desenhos SVG, coleção de obras, página da
+obra, portfólio.
 
-**31/08 — Hero e Números.** Foto em duas camadas, parallax, inclinação. Mapa do
-Natural Earth com d3-geo.
+**31/08 — Hero e Números.** Parallax, inclinação, mapa do Natural Earth.
 
-**01/09 — Home completa.** Obras em destaque, Serviços com seis desenhos
-cotados, Nossa diferença com foto aérea, Números reestruturado, Galeria,
-`/404`, Header e Footer corrigidos, container unificado, âncoras calibradas,
-redirects 301.
+**01/09 — Home completa.** Todas as seções, `/404`, container unificado,
+âncoras calibradas, redirects 301.
 
-Descoberta: a coleção de obras estava com dados inventados pelo protótipo e o
-telefone e e-mail do rodapé estavam errados — em produção havia meses.
+Descoberta: a coleção estava com dados inventados pelo protótipo e o telefone e
+e-mail do rodapé estavam errados em produção.
 
-**02/09, manhã — Conteúdo real.** Página `/a-longarfino` com a história desde
-1997, incluindo a Onlybyskate (equipe criada em 2011 por Paulo com Rodrigo
-Rosa, organizada com o jornalista Nilo Dias Cabral; 1ª etapa no Banx da
-Restinga em set/2011 com 30 competidores e ~300 pessoas; aniversário em 2012 no
-Cecores com 51 competidores, ~400 pessoas e 40 kg de alimentos doados). Equipe
-com os quatro. Menu mobile refeito. Seis obras reais publicadas. Feedbacks
-reais. Sede corrigida para Imbituba. Política de privacidade.
+**02/09, manhã — Conteúdo real.** `/a-longarfino` com a história desde 1997,
+incluindo a Onlybyskate (criada em 2011 por Paulo com Rodrigo Rosa, organizada
+com o jornalista Nilo Dias Cabral; 1ª etapa no Banx da Restinga em set/2011 com
+30 competidores e ~300 pessoas; aniversário em 2012 no Cecores com 51
+competidores, ~400 pessoas e 40 kg de alimentos doados). Seis obras publicadas.
+Feedbacks reais. Sede corrigida. Política de privacidade.
 
-Não publicados dos documentos da Onlybyskate: nomes de creches e escolas, lista
-de apoiadores, telefones pessoais.
+Não publicados: nomes de creches e escolas, apoiadores, telefones pessoais.
 
-**02/09, tarde e noite — Performance, atestado e navegação.**
+**02/09, tarde — Performance, atestado e navegação.** Fontes migradas para
+`@fontsource` com preload: 87 para 94, FCP de 2,7 s para 1,4 s. Pesquisa das
+três referências mundiais. Nossa diferença reescrita com especificação técnica.
+Atestado da CBSk incorporado. Breadcrumb nas internas, após pesquisa no NN/g.
+Botões padronizados. Contraste corrigido. Decidido o domínio sem `www.`.
 
-Fontes migradas do Google para `@fontsource`, com preload. Desempenho de 87
-para 94, FCP de 2,7 s para 1,4 s.
+Descoberto: o `PLANEJAMENTO.md` nunca esteve no repositório.
 
-Pesquisa das três referências mundiais do setor — todas em Wix ou WordPress.
-Motivou a reescrita da Nossa diferença: em vez de vocabulário (ledge, coping,
-transição), especificação técnica com número verificável.
+**04/09 — Lançamento.**
 
-Atestado da CBSk incorporado: página `/atestado`, selo na home, PDF com
-contatos removidos. Resolvida a divergência de metragem — o atestado mede
-trechos vistoriados, não obras inteiras.
+GA4 instalado e coletando. `/contato` e `/obrigado` criadas, formulário testado
+de ponta a ponta com e-mail chegando. Menu e CTA do header passaram a apontar
+para a página, não para a âncora. Header com o nav centralizado de verdade.
+Menu mobile refeito: sem numeração, botão menor, fio laranja traçado na
+abertura. Filtros do portfólio gerados dos tipos reais — "Reforma" e "Execução"
+apareciam sem nenhuma obra. Favicon trocado pela marca da empresa.
 
-Breadcrumb criado e aplicado nas cinco internas, depois de pesquisa no NN/g:
-logo clicável não basta, o site precisa de link direto para o início em toda
-página interna. O "Todas as obras" do topo da página de obra foi removido e o
-"Ver outras obras" subiu para logo depois da galeria, antes do CTA comercial.
+Política de privacidade revisada por advogado.
 
-Botões padronizados: contorno como padrão, laranja preenchido só em CTA
-principal. Contraste corrigido no rodapé e nos botões preenchidos.
+**Virada de domínio concluída.** Nameservers no Registro.br apontados para o
+Cloudflare, Worker conectado ao domínio e ao `www`, redirect 301 configurado.
+Propagação em menos de uma hora.
 
-Decidido: domínio sem `www.` (o `astro.config.mjs` estava com `www.` e foi
-corrigido); Serviços continuam falando só de concreto; o texto da Nossa
-diferença fica como está.
-
-Descoberto: o `PLANEJAMENTO.md` nunca esteve no repositório — vivia só no
-Projeto do Claude. Passou a ser versionado nesta data.
+Descoberto após a virada: o `_redirects` mandava `/contato/` para a âncora da
+home e sequestrava a página nova. Corrigido junto com a regra faltante do
+Abraão e a remoção do mapeamento circular da política de privacidade.
