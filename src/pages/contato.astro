@@ -1,0 +1,206 @@
+---
+// Página de contato. O formulário envia para o Web3Forms, que encaminha por
+// e-mail para longarfinoparks@gmail.com. Sem backend, sem banco.
+//
+// A chave é pública por natureza — fica visível no HTML de qualquer jeito.
+//
+// O campo `botcheck` é a armadilha antispam: fica escondido no CSS e humano
+// nenhum preenche. Se vier preenchido, o Web3Forms descarta sozinho.
+import Base from '../layouts/Base.astro';
+import Desenhos from '../components/ui/Desenhos.astro';
+import Trilha from '../components/layout/Trilha.astro';
+
+const CHAVE = 'c4324df9-9686-4d5e-8d39-f5c79077278a';
+const WHATSAPP = 'https://wa.me/5551986245321';
+
+// Em produção usa o domínio do astro.config. Em desenvolvimento usa o
+// endereço local, senão o Web3Forms manda para um site que ainda não existe
+// e mostra a página padrão dele, em inglês.
+const destino = new URL('/obrigado', import.meta.env.PROD ? Astro.site : Astro.url.origin).href;
+---
+
+<Base
+  titulo="Contato — Longarfino Skateparks"
+  descricao="Conte onde vai ser a pista. Orçamento para skatepark em concreto armado, projeto e execução."
+>
+  <Desenhos />
+  <Trilha itens={[{ nome: 'Contato' }]} />
+
+  <section class="sec ct">
+    <div class="ct-texto">
+      <span class="eyebrow">Contato</span>
+      <h1 class="d h-sec ct-h">Conte onde<br />vai ser a pista.</h1>
+      <p class="lead">
+        Quanto mais você souber agora, mais direta é a resposta. Se ainda não
+        tem metragem nem tipo definido, mande assim mesmo — a conversa começa
+        por aí.
+      </p>
+
+      <div class="ct-direto">
+        <p class="mono-sm ct-lb">Prefere falar direto</p>
+        <a href={WHATSAPP} target="_blank" rel="noopener" class="btn">
+          Chamar no WhatsApp <span class="arw"></span>
+        </a>
+        <p class="mono-sm ct-dado">(51) 98624-5321</p>
+        <p class="mono-sm ct-dado">longarfinoparks@gmail.com</p>
+      </div>
+    </div>
+
+    <form class="ct-form" action="https://api.web3forms.com/submit" method="POST">
+      <input type="hidden" name="access_key" value={CHAVE} />
+      <input type="hidden" name="subject" value="Pedido de orçamento pelo site" />
+      <input type="hidden" name="from_name" value="Site Longarfino" />
+      <input type="hidden" name="redirect" value={destino} />
+      <input type="checkbox" name="botcheck" class="ct-bot" tabindex="-1" autocomplete="off" />
+
+      <div class="ct-campo">
+        <label for="nome" class="mono-sm">Nome</label>
+        <input type="text" id="nome" name="nome" required autocomplete="name" />
+      </div>
+
+      <div class="ct-dupla">
+        <div class="ct-campo">
+          <label for="email" class="mono-sm">E-mail</label>
+          <input type="email" id="email" name="email" required autocomplete="email" />
+        </div>
+        <div class="ct-campo">
+          <label for="telefone" class="mono-sm">Telefone ou WhatsApp</label>
+          <input type="tel" id="telefone" name="telefone" required autocomplete="tel" />
+        </div>
+      </div>
+
+      <div class="ct-dupla">
+        <div class="ct-campo">
+          <label for="cidade" class="mono-sm">Cidade e estado</label>
+          <input type="text" id="cidade" name="cidade" required placeholder="Imbituba / SC" />
+        </div>
+        <div class="ct-campo">
+          <label for="tipo" class="mono-sm">Tipo de obra</label>
+          <select id="tipo" name="tipo" required>
+            <option value="">Selecione</option>
+            <option>Pista nova</option>
+            <option>Reforma ou recuperação</option>
+            <option>Obstáculos avulsos</option>
+            <option>Ainda não sei</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ct-campo">
+        <label for="area" class="mono-sm">Metragem aproximada <span class="ct-op">opcional</span></label>
+        <input type="text" id="area" name="area" placeholder="600 m²" />
+      </div>
+
+      <div class="ct-campo">
+        <label for="mensagem" class="mono-sm">Mensagem</label>
+        <textarea id="mensagem" name="mensagem" rows="5" required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn--fill">
+        Enviar pedido <span class="arw"></span>
+      </button>
+
+      <p class="ct-lgpd">
+        Os dados enviados são usados só para responder ao seu pedido. Veja a
+        <a href="/politica-de-privacidade">política de privacidade</a>.
+      </p>
+    </form>
+  </section>
+</Base>
+
+<style>
+  .ct {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+    padding-top: clamp(28px, 3.4vw, 48px);
+  }
+  .ct-h { color: var(--white); margin: 12px 0 20px }
+
+  /* Entrada curta: a coluna do texto e a do formulário, em sequência.
+     Página de trabalho — o formulário não pode se fazer de esperar. */
+  .ct-texto, .ct-form {
+    opacity: 0;
+    animation: ct-sobe .45s cubic-bezier(.22, .61, .36, 1) forwards;
+  }
+  .ct-texto { animation-delay: .05s }
+  .ct-form  { animation-delay: .15s }
+  @keyframes ct-sobe {
+    from { opacity: 0; transform: translateY(10px) }
+    to   { opacity: 1; transform: none }
+  }
+
+  .ct-direto {
+    margin-top: clamp(30px, 3.6vw, 48px);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    padding-top: 18px;
+  }
+  .ct-lb { color: var(--gray-500); margin: 0 0 14px }
+  .ct-dado { color: var(--gray-200); margin: 12px 0 0 }
+
+  .ct-form { display: flex; flex-direction: column; gap: 16px }
+  .ct-dupla {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .ct-campo { display: flex; flex-direction: column; gap: 7px }
+  .ct-campo label { color: var(--gray-500) }
+  .ct-op { color: var(--gray-900); letter-spacing: .1em }
+
+  .ct-campo input,
+  .ct-campo select,
+  .ct-campo textarea {
+    background: var(--concrete);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--white);
+    font-family: var(--ff-body);
+    font-size: 15px;
+    padding: 13px 14px;
+    border-radius: 0;
+    transition: border-color .25s var(--ease);
+  }
+  .ct-campo textarea { resize: vertical; min-height: 120px }
+  /* O campo em foco acende: borda laranja e fundo um tom acima. O rótulo
+     acompanha, para o olho saber onde está sem procurar. */
+  .ct-campo input:focus,
+  .ct-campo select:focus,
+  .ct-campo textarea:focus {
+    outline: none;
+    border-color: var(--orange);
+    background: var(--gray-900);
+  }
+  .ct-campo:focus-within label { color: var(--orange) }
+  .ct-campo label { transition: color .25s var(--ease) }
+  .ct-campo input::placeholder,
+  .ct-campo textarea::placeholder { color: var(--gray-900) }
+
+  /* Armadilha antispam. Escondida de gente, visível para robô. */
+  .ct-bot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ct-form .btn { align-self: flex-start; margin-top: 6px }
+
+  .ct-lgpd {
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--gray-500);
+    margin: 0;
+  }
+  .ct-lgpd a { color: var(--gray-200) }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ct-texto, .ct-form { opacity: 1; animation: none }
+  }
+
+  @media (max-width: 900px) {
+    .ct { grid-template-columns: 1fr }
+    .ct-dupla { grid-template-columns: 1fr }
+  }
+</style>

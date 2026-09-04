@@ -11,7 +11,7 @@ const links = [
   { texto: 'O que fazemos', href: '/#servicos' },
   { texto: 'Nossa diferença', href: '/#diferenca' },
   { texto: 'A Longarfino', href: '/#numeros' },
-  { texto: 'Contato', href: '/#contato' },
+  { texto: 'Contato', href: '/contato' },
 ];
 ---
 
@@ -24,7 +24,7 @@ const links = [
     {links.map((l) => <a href={l.href}>{l.texto}</a>)}
   </nav>
 
-  <a class="btn hd-cta" href="/#contato">Solicitar orçamento <i class="arw"></i></a>
+  <a class="btn hd-cta" href="/contato">Solicitar orçamento <i class="arw"></i></a>
 
   <button
     class="burger"
@@ -52,7 +52,7 @@ const links = [
   </nav>
 
   <div>
-    <a class="btn btn--fill menu-cta" href="/#contato">
+    <a class="btn btn--fill menu-cta" href="/contato">
       Solicitar orçamento <i class="arw"></i>
     </a>
     <p class="mono-sm" style="margin-top:22px">Imbituba — SC / Brasil</p>
@@ -71,6 +71,14 @@ const links = [
     justify-content: space-between;
     gap: 24px;
     padding: 22px var(--pad);
+  }
+  /* O nav sai do fluxo e se ancora no centro real da tela. Dentro do flex ele
+     nunca ficaria centrado, porque o CTA da direita é mais largo que o logo.
+     São quatro filhos no header — logo, nav, CTA e burger. */
+  .hd > .nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     border-bottom: 1px solid transparent;
     transition: background .4s var(--ease), border-color .4s var(--ease), padding .4s var(--ease);
   }
