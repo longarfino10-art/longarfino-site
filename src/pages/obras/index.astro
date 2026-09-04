@@ -18,13 +18,17 @@ for (let i = 0; i < obras.length; i += 4) {
   blocos.push(obras.slice(i, i + 4));
 }
 
+// Os filtros saem dos tipos que as obras publicadas realmente têm. Lista fixa
+// mostrava "Reforma" e "Execução" sem nenhuma obra por trás, e clicar deixava
+// a grade vazia.
+const tiposUsados = [...new Set(obras.flatMap((o) => o.data.tipo))].sort();
+
 const filtros = [
   { rotulo: 'Todas', valor: 'todas' },
-  { rotulo: 'Bowl', valor: 'bowl' },
-  { rotulo: 'Street', valor: 'street' },
-  { rotulo: 'Park', valor: 'park' },
-  { rotulo: 'Reforma', valor: 'reforma' },
-  { rotulo: 'Execução', valor: 'execucao' },
+  ...tiposUsados.map((t) => ({
+    rotulo: t,
+    valor: t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
+  })),
 ];
 
 // Números do rodapé da seção, calculados do conteúdo real
