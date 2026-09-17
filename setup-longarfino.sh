@@ -140,7 +140,7 @@ cat > public/robots.txt <<'EOF'
 User-agent: *
 Allow: /
 
-Sitemap: https://www.longarfinoskateparks.com.br/sitemap-index.xml
+Sitemap: https://longarfinoskateparks.com.br/sitemap-index.xml
 EOF
 echo "  ✓ public/robots.txt"
 fi
