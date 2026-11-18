@@ -8,14 +8,17 @@ duracao: "jan a mai/2025"
 ano: 2025
 area_m2: 1200
 descricao_curta: "Centro de treinamento com bowl integrado, executado conforme as normas da CBSk e da World Skate."
-capa: "./../../assets/obras/ct-curitiba/img-1273.jpeg"
+capa: "./../../assets/obras/ct-curitiba/ct-curitiba-capa.jpeg"
 fotos:
   - "./../../assets/obras/ct-curitiba/img_1235.jpeg"
   - "./../../assets/obras/ct-curitiba/img_2316.jpeg"
   - "./../../assets/obras/ct-curitiba/img_2743.jpeg"
-  - "./../../assets/obras/ct-curitiba/img_2836.jpeg"
   - "./../../assets/obras/ct-curitiba/img_4471.jpeg"
   - "./../../assets/obras/ct-curitiba/img-2214.jpeg"
+  - "./../../assets/obras/ct-curitiba/img_2836.jpeg"
+  - "./../../assets/obras/ct-curitiba/img-2235.jpeg"
+  - "./../../assets/obras/ct-curitiba/img-1941.jpeg"
+  - "./../../assets/obras/ct-curitiba/img-1937.jpeg"
 destaque: true
 ordem: 2
 ---
