@@ -3,7 +3,7 @@ nome: "Park Abraão"
 cidade: "Florianópolis"
 uf: "SC"
 tipo: ["Bowl", "Street"]
-status: "concluida"
+status: "em_execucao"
 cliente: "Prefeitura de Florianópolis"
 duracao: "fev/2023 a fev/2024"
 ano: 2024
