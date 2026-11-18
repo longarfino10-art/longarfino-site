@@ -11,12 +11,17 @@ area_m2: 1600
 descricao_curta: "Pista pública de 1.600 m² no bairro Abraão, com área street e bowl integrados à praça."
 capa: "./../../assets/obras/park-abraao/capa-abraao.jpeg"
 fotos:
-  - "./../../assets/obras/park-abraao/img_0776.jpeg"
+  - "./../../assets/obras/park-abraao/img_2477.jpeg"
   - "./../../assets/obras/park-abraao/img_1257.jpeg"
   - "./../../assets/obras/park-abraao/img_2065.jpeg"
   - "./../../assets/obras/park-abraao/img_2114.jpeg"
-  - "./../../assets/obras/park-abraao/img_2477.jpeg"
   - "./../../assets/obras/park-abraao/img_2478.jpeg"
+  - "./../../assets/obras/park-abraao/img_0776.jpeg"
+etapas:
+  - nome: "Início"
+    peso: 1
+    situacao: "fazendo"
+atualizado_em: 2026-11-18
 destaque: true
 ordem: 3
 ---
