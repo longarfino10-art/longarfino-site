@@ -14,6 +14,11 @@
 import { load as lerYaml } from 'js-yaml';
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import vitrine from '../../data/vitrine.json';
+import numerosBase from '../../data/numeros.json';
+import depoimentos from '../../data/depoimentos.json';
+import { numerosDoSite } from '../../lib/numeros';
+import fotoHero from '../../assets/hero.webp';
 
 import bebasWoff from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
 import '@fontsource/bebas-neue/latin-400.css';
@@ -62,6 +67,16 @@ const obras = Object.entries(crus)
 
 const hoje = new Date().toISOString().slice(0, 10);
 
+// Vitrine da capa: configuração publicada e a miniatura da foto principal
+// (a única foto da vitrine que não pertence a uma obra). Se o Lucas já
+// subiu uma capa própria, a miniatura é dela.
+const capasEnviadas = import.meta.glob<{ default: any }>('../../assets/capa/*.{jpeg,jpg,png,webp}', {
+  eager: true,
+});
+const capaAtual = vitrine.capa ? capasEnviadas['../../assets/capa/' + vitrine.capa]?.default : null;
+const principalMini = (await getImage({ src: capaAtual ?? fotoHero, width: 240, format: 'webp' })).src;
+const originalMini = (await getImage({ src: fotoHero, width: 240, format: 'webp' })).src;
+
 // Miniaturas para a edição: o caminho original da foto não abre no
 // navegador (src/assets não é público), então gero uma versão pequena de
 // cada uma e guardo pelo caminho. A coleção traz a foto já resolvida; o .md
@@ -87,6 +102,16 @@ for (const entrada of colecao) {
     miniaturas[caminho] = mini.src;
   }
 }
+
+// Números do site: o total de hoje e o que as obras concluídas somam, para
+// o painel mostrar a conta e prever o total ao entregar uma obra.
+const numerosAtuais = await numerosDoSite();
+const concluidas = colecao.filter((o) => o.data.status === 'concluida');
+const somaConcluidas = {
+  m2: concluidas.reduce((s, o) => s + o.data.area_m2, 0),
+  obras: concluidas.length,
+  ufs: [...new Set(concluidas.map((o) => o.data.uf))],
+};
 
 // Etapas sugeridas numa obra nova. O Lucas ajusta nome e peso.
 const ETAPAS_PADRAO = [
@@ -165,6 +190,21 @@ const ETAPAS_PADRAO = [
         <button class="escolha" data-modo="editar" type="button">
           <b class="d">Editar obra</b>
           <span>Corrigir dados, texto, capa ou fotos de qualquer obra que já está no site</span>
+        </button>
+
+        <button class="escolha" data-modo="capa" type="button">
+          <b class="d">Capa do site</b>
+          <span>Escolher as fotos que passam na abertura do site, a ordem e o tempo de cada uma</span>
+        </button>
+
+        <button class="escolha" data-modo="depoimentos" type="button">
+          <b class="d">Depoimentos</b>
+          <span>Acrescentar, ordenar ou tirar os comentários de quem anda e de quem contratou</span>
+        </button>
+
+        <button class="escolha" data-modo="numeros" type="button">
+          <b class="d">Números do site</b>
+          <span>Metragem, obras e estados das obras que não estão publicadas no site</span>
         </button>
       </div>
 
@@ -306,22 +346,370 @@ const ETAPAS_PADRAO = [
         </span>
       </label>
 
+      <!-- metragem final: confirmada na entrega, é o que soma ao total do site -->
+      <div class="campo metragem oculto" id="campo-metragem">
+        <label class="rot" for="metragem-final">Metragem final da obra (m²)</label>
+        <input class="entrada metragem-entrada" id="metragem-final" type="number" min="1" step="1" />
+        <p class="dica" id="metragem-previsao"></p>
+      </div>
+
       <div class="rodape">
-        <button class="btn btn--fill" type="submit" id="publicar">
-          Publicar <i class="arw"></i>
+        <button class="btn btn--fill salvar" type="submit" id="publicar">
+          Salvar alteração <i class="arw"></i>
         </button>
-        <span class="mono-sm" id="situacao"></span>
+        <span class="mono-sm" id="situacao">Fica guardada até você publicar tudo</span>
       </div>
 
       <div class="aviso oculto" id="aviso"></div>
     </form>
+
+    <!-- ── capa do site (vitrine) ───────────────────────────────────
+         Grava só o src/data/vitrine.json. A legenda de cada foto não se
+         digita aqui: sai da própria obra quando o site é gerado. -->
+    <section class="bloco oculto" id="capa-painel">
+      <div class="cabeca">
+        <span class="eyebrow">Capa do site</span>
+        <button class="btn btn--bare" type="button" id="vt-voltar">Voltar</button>
+      </div>
+
+      <label class="lembrar">
+        <input type="checkbox" id="vt-ativa" />
+        <span>Alternar as fotos na abertura do site</span>
+      </label>
+
+      <div class="campo">
+        <label class="rot" for="vt-segundos">Tempo de cada foto</label>
+        <select class="entrada vt-tempo" id="vt-segundos">
+          {[4, 5, 6, 7, 8, 10, 12, 15].map((s) => <option value={s}>{s} segundos</option>)}
+        </select>
+      </div>
+
+      <div class="campo">
+        <span class="rot">Fotos, na ordem em que passam</span>
+        <p class="dica dica-bloco">
+          Nome, cidade e data aparecem sozinhos, tirados da obra. Obra em
+          execução mostra a porcentagem do andamento.
+        </p>
+        <div id="vt-lista"></div>
+      </div>
+
+      <div class="campo">
+        <label class="rot" for="vt-obra">Acrescentar à vitrine</label>
+        <div class="vt-somar">
+          <select class="entrada" id="vt-obra"></select>
+          <button class="btn" type="button" id="vt-somar">Acrescentar <i class="arw"></i></button>
+        </div>
+      </div>
+
+      <div class="rodape">
+        <button class="btn btn--fill salvar" type="button" id="vt-publicar">
+          Salvar <i class="arw"></i>
+        </button>
+        <span class="mono-sm" id="vt-situacao">Fica guardada até você publicar tudo</span>
+        <!-- foto da capa principal, escolhida no computador ou no celular -->
+        <input id="vt-capa-arquivo" type="file" accept="image/*" hidden />
+      </div>
+
+      <div class="aviso oculto" id="vt-aviso"></div>
+    </section>
+
+    <!-- ── números do site ──────────────────────────────────────────
+         Só o histórico fora do site se digita. As obras do site somam
+         sozinhas quando concluídas. -->
+    <section class="bloco oculto" id="numeros-painel">
+      <div class="cabeca">
+        <span class="eyebrow">Números do site</span>
+        <button class="btn btn--bare" type="button" id="nm-voltar">Voltar</button>
+      </div>
+
+      <p class="dica dica-bloco">
+        O site mostra metragem, obras entregues e estados. A conta é: obras
+        que <b>não</b> estão publicadas (o que você digita aqui) + obras do
+        site já concluídas (somadas sozinhas). Obra em execução só entra
+        quando você marca "Obra entregue".
+      </p>
+
+      <div class="nm-parte">
+        <span class="rot">Obras concluídas no site — calculado</span>
+        <p class="nm-valor" id="nm-site"></p>
+      </div>
+
+      <div class="grade2">
+        <div class="campo">
+          <label class="rot" for="nm-m2">Metragem das obras fora do site (m²)</label>
+          <input class="entrada" id="nm-m2" type="number" min="0" step="1" />
+        </div>
+        <div class="campo">
+          <label class="rot" for="nm-obras">Obras entregues fora do site</label>
+          <input class="entrada" id="nm-obras" type="number" min="0" step="1" />
+        </div>
+      </div>
+
+      <div class="campo">
+        <span class="rot">Estados com obra fora do site</span>
+        <p class="dica">Os marcados com fio já contam pelas obras do site.</p>
+        <div class="pastilhas" id="nm-estados"></div>
+      </div>
+
+      <div class="nm-parte nm-parte--total">
+        <span class="rot">O que o site vai mostrar</span>
+        <p class="nm-valor" id="nm-total"></p>
+      </div>
+
+      <div class="rodape">
+        <button class="btn btn--fill salvar" type="button" id="nm-salvar">Salvar <i class="arw"></i></button>
+      </div>
+      <div class="aviso oculto" id="nm-aviso"></div>
+    </section>
+
+    <!-- ── depoimentos ──────────────────────────────────────────────── -->
+    <section class="bloco oculto" id="depo-painel">
+      <div class="cabeca">
+        <span class="eyebrow">Depoimentos</span>
+        <button class="btn btn--bare" type="button" id="dp-voltar">Voltar</button>
+      </div>
+
+      <p class="dica dica-bloco">
+        Aparecem na seção "A Longarfino", um de cada vez, na ordem da lista.
+        <b>Copie o texto exatamente como a pessoa escreveu</b> — sem corrigir
+        nada — e com o @ dela. Depoimento só vale se for fala de verdade.
+      </p>
+
+      <div id="dp-lista"></div>
+
+      <div class="dp-form">
+        <span class="rot">Depoimento</span>
+        <textarea class="entrada" id="dp-texto" rows="3" maxlength="400"
+                  placeholder="Cole aqui o comentário, do jeito que foi escrito"></textarea>
+        <div class="grade2">
+          <div class="campo">
+            <label class="rot" for="dp-autor">@ de quem escreveu</label>
+            <input class="entrada" id="dp-autor" type="text" placeholder="Ex.: @munariskatepark" />
+          </div>
+          <div class="campo">
+            <label class="rot" for="dp-complemento">Nome ou cidade (opcional)</label>
+            <input class="entrada" id="dp-complemento" type="text" placeholder="Ex.: Prefeitura de Laguna" />
+          </div>
+        </div>
+        <div class="campo">
+          <label class="rot" for="dp-link">Link do post (opcional, recomendado)</label>
+          <input class="entrada" id="dp-link" type="url" placeholder="https://www.instagram.com/p/..." />
+          <span class="dica">Com o link, quem lê pode conferir que o comentário existe.</span>
+        </div>
+        <div class="dp-botoes">
+          <button class="btn" type="button" id="dp-somar">Acrescentar à lista</button>
+          <button class="btn btn--bare oculto" type="button" id="dp-cancelar">Cancelar</button>
+        </div>
+        <p class="mono-sm dp-erro" id="dp-erro"></p>
+      </div>
+
+      <div class="rodape">
+        <button class="btn btn--fill salvar" type="button" id="dp-salvar">Salvar <i class="arw"></i></button>
+      </div>
+      <div class="aviso oculto" id="dp-aviso"></div>
+    </section>
   </main>
 
-  <script type="application/json" id="dados" set:html={JSON.stringify({ obras, hoje, ETAPAS_PADRAO, miniaturas })} />
+  <!-- ── barra do rascunho ───────────────────────────────────────────
+       Fixa embaixo: o que está salvo e o botão de publicar tudo de uma vez. -->
+  <div class="rascunho oculto" id="rascunho">
+    <ul class="rascunho-lista" id="rascunho-lista"></ul>
+    <div class="aviso oculto" id="rascunho-aviso"></div>
+    <p class="mono-sm rascunho-recado oculto" id="rascunho-recado"></p>
+    <div class="rascunho-linha">
+      <div class="rascunho-info">
+        <b id="rascunho-conta"></b><span class="mono-sm" id="rascunho-fotos"></span>
+        <button class="btn btn--bare rascunho-ver" type="button" id="rascunho-ver">Ver</button>
+      </div>
+      <button class="btn btn--fill" type="button" id="publicar-tudo">Publicar tudo <i class="arw"></i></button>
+    </div>
+  </div>
+
+  <script type="application/json" id="dados" set:html={JSON.stringify({ obras, hoje, ETAPAS_PADRAO, miniaturas, vitrine, principalMini, originalMini, numerosBase, numerosAtuais, somaConcluidas, depoimentos })} />
 
   <script>
     const dados = JSON.parse(document.getElementById('dados').textContent);
     const $ = (id) => document.getElementById(id);
+    const milhar = (n) => Math.round(n).toLocaleString('pt-BR');
+
+    // ── rascunho ───────────────────────────────────────────────────
+    // Cada tela salva aqui em vez de publicar. A barra de baixo mostra o
+    // que está salvo e publica tudo num commit só — uma espera de 2 minutos
+    // em vez de uma por alteração.
+    //
+    // Fica no IndexedDB do aparelho, não na memória: recarregar a página ou
+    // o celular fechar o navegador não perde nada. (localStorage não serve:
+    // cabe uns 5 MB, e meia dúzia de fotos já passa disso.)
+    //
+    // Item: { chave, tipo, rotulo, dados } — mesma chave substitui.
+    let rascunho = [];
+    let publicado = false; // depois de publicar, só recarregando
+    let logado = false;    // a barra do rascunho só aparece depois de entrar
+
+    function banco() {
+      return new Promise((ok, erro) => {
+        const pedido = indexedDB.open('painel-longarfino', 1);
+        pedido.onupgradeneeded = () => pedido.result.createObjectStore('rascunho');
+        pedido.onsuccess = () => ok(pedido.result);
+        pedido.onerror = () => erro(pedido.error);
+      });
+    }
+
+    async function lerRascunho() {
+      try {
+        const db = await banco();
+        return await new Promise((ok) => {
+          const p = db.transaction('rascunho').objectStore('rascunho').get('itens');
+          p.onsuccess = () => ok(p.result ?? []);
+          p.onerror = () => ok([]);
+        });
+      } catch {
+        return [];
+      }
+    }
+
+    async function gravarRascunho() {
+      const db = await banco();
+      await new Promise((ok, erro) => {
+        const tx = db.transaction('rascunho', 'readwrite');
+        tx.objectStore('rascunho').put(rascunho, 'itens');
+        tx.oncomplete = ok;
+        tx.onerror = () => erro(tx.error);
+      });
+    }
+
+    const doRascunho = (chave) => rascunho.find((r) => r.chave === chave)?.dados;
+
+    async function salvarNoRascunho(item) {
+      const i = rascunho.findIndex((r) => r.chave === item.chave);
+      if (i >= 0) rascunho[i] = item;
+      else rascunho.push(item);
+      await gravarRascunho();
+      pintarRascunho('Salvo: ' + item.rotulo + '. Publique quando terminar tudo.');
+    }
+
+    async function desfazer(chave) {
+      rascunho = rascunho.filter((r) => r.chave !== chave);
+      await gravarRascunho();
+      pintarRascunho();
+    }
+
+    // Quantas fotos novas há no rascunho — o Worker aceita até 40 por vez
+    function fotosNovas() {
+      let n = 0;
+      const contar = (v) => {
+        if (v && typeof v === 'object') {
+          if (typeof v.base64 === 'string') n++;
+          else Object.values(v).forEach(contar);
+        }
+      };
+      rascunho.forEach((r) => contar(r.dados));
+      return n;
+    }
+
+    function pintarRascunho(recado = '') {
+      const barra = $('rascunho');
+      barra.classList.toggle('oculto', !logado || (rascunho.length === 0 && !recado && !publicado));
+      const n = rascunho.length;
+      $('rascunho-conta').textContent =
+        n === 0 ? 'Nada salvo para publicar' : n === 1 ? '1 alteração salva' : n + ' alterações salvas';
+      const fotos = fotosNovas();
+      $('rascunho-fotos').textContent = fotos ? ' · ' + fotos + ' foto(s) nova(s)' : '';
+      $('publicar-tudo').disabled = n === 0 || publicado;
+
+      const lista = $('rascunho-lista');
+      lista.innerHTML = '';
+      for (const r of rascunho) {
+        const li = document.createElement('li');
+        const nome = document.createElement('span');
+        nome.textContent = r.rotulo;
+        const tirar = document.createElement('button');
+        tirar.type = 'button';
+        tirar.className = 'vt-botao vt-botao--texto';
+        tirar.textContent = 'Desfazer';
+        tirar.title = 'Tirar do rascunho — volta a valer o que está publicado';
+        tirar.onclick = () => desfazer(r.chave);
+        li.append(nome, tirar);
+        lista.append(li);
+      }
+
+      if (recado) {
+        $('rascunho-recado').textContent = recado;
+        $('rascunho-recado').classList.remove('oculto');
+      }
+    }
+
+    async function publicarTudo() {
+      const aviso = $('rascunho-aviso');
+      aviso.className = 'aviso oculto';
+      $('rascunho-recado').classList.add('oculto');
+
+      if (fotosNovas() > 40) {
+        aviso.className = 'aviso aviso--ruim';
+        aviso.textContent =
+          'São ' + fotosNovas() + ' fotos novas; o limite é 40 por publicação. ' +
+          'Use "Desfazer" em alguma alteração, publique, e salve o resto depois.';
+        return;
+      }
+
+      $('publicar-tudo').disabled = true;
+      $('rascunho-recado').textContent = 'publicando ' + rascunho.length + ' alteração(ões)...';
+      $('rascunho-recado').classList.remove('oculto');
+
+      try {
+        const r = await fetch('/api/publicar-tudo', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'X-Painel-Senha': senhaGuardada() },
+          body: JSON.stringify({ alteracoes: rascunho.map(({ tipo, dados: d }) => ({ tipo, dados: d })) }),
+        });
+        const resposta = await r.json();
+        $('rascunho-recado').classList.add('oculto');
+
+        if (r.status === 403) {
+          esquecerSenha();
+          mostrar('entrada');
+          $('erro-entrada').textContent = 'Entre de novo: ' + (resposta.erros || [''])[0];
+          return;
+        }
+
+        if (!r.ok || !resposta.ok) {
+          aviso.className = 'aviso aviso--ruim';
+          aviso.innerHTML =
+            '<b>Nada foi publicado.</b> Corrija e tente de novo — o rascunho continua salvo.<ul><li>' +
+            (resposta.erros || ['erro desconhecido']).join('</li><li>') +
+            '</li></ul>';
+          return;
+        }
+
+        // Publicado: o rascunho já está no site. A tela ainda tem os dados
+        // de antes, então trava até recarregar — salvar agora partiria de
+        // uma versão velha.
+        publicado = true;
+        rascunho = [];
+        await gravarRascunho();
+        document.querySelectorAll('.salvar').forEach((b) => (b.disabled = true));
+        aviso.className = 'aviso aviso--bom';
+        aviso.innerHTML =
+          '<b>Publicado' + (resposta.ensaio ? ' (ensaio, nada foi gravado)' : '') + '.</b> ' +
+          'O site se atualiza sozinho em 1 a 2 minutos.' +
+          '<br>Para continuar mexendo, espere esse tempo e <b>recarregue esta página</b>.';
+      } catch (e) {
+        aviso.className = 'aviso aviso--ruim';
+        aviso.textContent = 'Falhou o envio: ' + e.message + '. O rascunho continua salvo.';
+      } finally {
+        pintarRascunho();
+      }
+    }
+
+    // Mesmo slug que o montador gera — para a chave de obra nova no rascunho
+    const slugificar = (t) =>
+      String(t ?? '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60);
 
     // ── entrada ────────────────────────────────────────────────────
     // A senha fica no aparelho (ou só na aba, se desmarcar "lembrar") e
@@ -351,8 +739,10 @@ const ETAPAS_PADRAO = [
     function mostrar(qual) {
       $('entrada').classList.toggle('oculto', qual !== 'entrada');
       $('inicio').classList.toggle('oculto', qual !== 'inicio');
-      $('form').classList.add('oculto');
+      for (const id of ['form', 'capa-painel', 'numeros-painel', 'depo-painel']) $(id).classList.add('oculto');
       $('sair').classList.toggle('oculto', qual === 'entrada');
+      logado = qual !== 'entrada';
+      pintarRascunho();
     }
 
     (async () => {
@@ -394,7 +784,7 @@ const ETAPAS_PADRAO = [
     let capaNova = null;
     let galeria = [];          // fotos que ficam: texto = já publicada, objeto = nova
     let statusEdit = 'concluida';
-    let publicado = false;     // depois de publicar, só recarregando
+    let chaveAtual = null;     // chave no rascunho da obra aberta no formulário
     const tiposEscolhidos = new Set();
 
     // ── fotos ──────────────────────────────────────────────────────
@@ -666,7 +1056,14 @@ const ETAPAS_PADRAO = [
 
       capaNova = null;
       $('capa').value = '';
-      const mini = dados.miniaturas[o.capa];
+      // Capa de obra salva no rascunho ainda é foto nova (objeto), sem
+      // miniatura do build: mostra direto do arquivo enviado
+      const mini =
+        typeof o.capa === 'string'
+          ? dados.miniaturas[o.capa]
+          : o.capa?.base64
+            ? 'data:image/jpeg;base64,' + o.capa.base64
+            : null;
       $('capa-mini').classList.toggle('oculto', !mini);
       if (mini) $('capa-mini').src = mini;
       $('capa-txt').textContent = 'Trocar capa';
@@ -712,22 +1109,28 @@ const ETAPAS_PADRAO = [
       $('campo-situacao').classList.toggle('oculto', modo !== 'editar');
       $('campo-entregue').classList.toggle('oculto', modo !== 'andamento');
       $('entregue').checked = false;
+      $('campo-metragem').classList.add('oculto');
       $('rotulo').textContent =
         { nova: 'Obra nova', editar: 'Editar obra', andamento: 'Andamento' }[modo];
 
       if (modo === 'nova') {
         atual = null;
+        chaveAtual = null;
         limparFicha();
         etapas = etapasPadrao();
       } else {
-        const lista = modo === 'andamento' ? emExecucao() : dados.obras;
         const sel = $('obra');
         sel.innerHTML = '';
+        const lista = modo === 'andamento' ? emExecucao() : dados.obras;
         for (const o of lista) {
-          const op = document.createElement('option');
-          op.value = o.slug;
-          op.textContent = o.nome + ' — ' + o.cidade;
-          sel.append(op);
+          const salva = doRascunho('obra:' + o.slug);
+          sel.append(new Option(o.nome + ' — ' + o.cidade + (salva ? '  (alterada, não publicada)' : ''), 'obra:' + o.slug));
+        }
+        // Obra nova salva e ainda não publicada também aparece para editar
+        if (modo === 'editar') {
+          for (const r of rascunho.filter((x) => x.chave.startsWith('obra-nova:'))) {
+            sel.append(new Option(r.dados.nome + ' — ' + r.dados.cidade + '  (nova, não publicada)', r.chave));
+          }
         }
         carregarObra(sel.value);
         sel.onchange = () => carregarObra(sel.value);
@@ -736,8 +1139,12 @@ const ETAPAS_PADRAO = [
       pintarProgresso();
     }
 
-    function carregarObra(slug) {
-      atual = dados.obras.find((o) => o.slug === slug);
+    // Abre a obra a partir do rascunho, se houver versão salva; senão, do
+    // que está publicado. Assim dá para salvar, sair e voltar a mexer.
+    function carregarObra(chave) {
+      chaveAtual = chave;
+      const slug = chave.startsWith('obra:') ? chave.slice(5) : null;
+      atual = doRascunho(chave) ?? dados.obras.find((o) => o.slug === slug);
       etapas = (atual.etapas || []).map((e) => ({
         nome: e.nome,
         peso: e.peso ?? 10,
@@ -751,8 +1158,28 @@ const ETAPAS_PADRAO = [
       // continua sem etapas: inventar seria mudar o que não foi pedido.
       if (etapas.length === 0 && modo === 'andamento') etapas = etapasPadrao();
       if (modo === 'editar') preencherFicha(atual);
+      if (modo === 'andamento') {
+        // Entrega já salva no rascunho volta marcada, com a metragem dela
+        $('entregue').checked = atual.status === 'concluida';
+        $('metragem-final').value = atual.area_m2 ?? '';
+        $('campo-metragem').classList.toggle('oculto', !$('entregue').checked);
+        preverMetragem();
+      }
       pintarEtapas();
       pintarProgresso();
+    }
+
+    // "O total do site passa de X para Y": a obra em execução ainda não
+    // conta, então entregar soma a metragem final dela ao total de hoje
+    function preverMetragem() {
+      const m = Number($('metragem-final').value) || 0;
+      const hoje = dados.numerosAtuais.m2;
+      $('metragem-previsao').textContent =
+        m > 0
+          ? 'Ao publicar, o total de m² construídos do site passa de ' + milhar(hoje) +
+            ' para ' + milhar(hoje + m) + ', e as obras entregues de ' + dados.numerosAtuais.obras +
+            ' para ' + (dados.numerosAtuais.obras + 1) + '.'
+          : 'Informe a metragem final para a obra entrar na conta do site.';
     }
 
     // ── envio ──────────────────────────────────────────────────────
@@ -791,72 +1218,562 @@ const ETAPAS_PADRAO = [
         };
       }
 
-      // andamento
+      // andamento — "Obra entregue" conclui e grava a metragem final, que
+      // é o que soma ao total de m² do site
       const entregue = $('entregue').checked;
+      const metragem = Number($('metragem-final').value);
       return {
         ...atual,
         slug: atual.slug,
         etapas: etapasEnvio,
         atualizado_em: dados.hoje,
-        ...(entregue ? { status: 'concluida', ano: atual.ano || new Date().getFullYear() } : {}),
+        ...(entregue
+          ? {
+              status: 'concluida',
+              ano: atual.ano || new Date().getFullYear(),
+              area_m2: metragem > 0 ? metragem : atual.area_m2,
+            }
+          : {}),
       };
+    }
+
+    // Conferência antes de guardar: o mesmo que o Worker vai cobrar na hora
+    // de publicar, para o erro aparecer agora e não lá na frente
+    function problemas(d) {
+      const e = [];
+      if (!String(d.nome ?? '').trim()) e.push('Falta o nome da obra');
+      if (!String(d.cidade ?? '').trim()) e.push('Falta a cidade');
+      if (!(Number(d.area_m2) > 0)) e.push('Falta a área em m²');
+      if (!d.tipo?.length) e.push('Escolha ao menos um tipo');
+      if (!d.capa) e.push('Falta a foto de capa');
+      (d.etapas ?? []).forEach((et, i) => {
+        if (!String(et.nome ?? '').trim()) e.push('Etapa ' + (i + 1) + ' sem nome');
+      });
+      return e;
     }
 
     $('form').addEventListener('submit', async (ev) => {
       ev.preventDefault();
+      if (publicado) return;
       const aviso = $('aviso');
-      aviso.className = 'aviso oculto';
-      $('publicar').disabled = true;
-      $('situacao').textContent = 'enviando...';
+      const d = montarEnvio();
+
+      const erros = problemas(d);
+      if (erros.length) {
+        aviso.className = 'aviso aviso--ruim';
+        aviso.innerHTML = '<b>Ainda não dá para salvar.</b><ul><li>' + erros.join('</li><li>') + '</li></ul>';
+        return;
+      }
+
+      // Obra nova é guardada pelo nome; salvar de novo com o mesmo nome
+      // substitui a versão anterior em vez de duplicar
+      const chave =
+        modo === 'nova' ? 'obra-nova:' + slugificar(d.nome) : chaveAtual;
+      const acao =
+        modo === 'nova' ? 'obra nova' : modo === 'editar' ? 'edição' : d.status === 'concluida' && atual.status !== 'concluida' ? 'entrega' : 'andamento';
 
       try {
-        const r = await fetch('/api/publicar', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'X-Painel-Senha': senhaGuardada(),
-          },
-          body: JSON.stringify(montarEnvio()),
-        });
-        const resposta = await r.json();
-
-        // Senha trocada no Worker depois que este aparelho guardou a antiga
-        if (r.status === 403) {
-          esquecerSenha();
-          mostrar('entrada');
-          $('erro-entrada').textContent = 'Entre de novo: ' + (resposta.erros || [''])[0];
-          return;
-        }
-
-        if (!r.ok || !resposta.ok) {
-          aviso.className = 'aviso aviso--ruim';
-          aviso.innerHTML =
-            '<b>Não publiquei.</b><ul><li>' +
-            (resposta.erros || ['erro desconhecido']).join('</li><li>') +
-            '</li></ul>';
-          $('situacao').textContent = '';
-        } else {
-          // Trava até recarregar: esta tela ainda tem os dados de antes da
-          // publicação, e enviar de novo desfaria o que acabou de subir.
-          publicado = true;
-          aviso.className = 'aviso aviso--bom';
-          aviso.innerHTML =
-            '<b>Publicado.</b> O site se atualiza sozinho em 1 a 2 minutos.' +
-            '<br>Para fazer outra alteração, espere esse tempo e <b>recarregue esta página</b>.';
-          $('situacao').textContent = 'commit ' + resposta.commit;
-        }
+        await salvarNoRascunho({ chave, tipo: 'obra', rotulo: d.nome + ' — ' + acao, dados: d });
+        aviso.className = 'aviso oculto';
+        $('form').classList.add('oculto');
+        $('inicio').classList.remove('oculto');
+        window.scrollTo(0, 0);
       } catch (e) {
         aviso.className = 'aviso aviso--ruim';
-        aviso.textContent = 'Falhou o envio: ' + e.message;
-        $('situacao').textContent = '';
-      } finally {
-        $('publicar').disabled = publicado;
+        aviso.textContent = 'Não consegui guardar no aparelho: ' + e.message;
       }
     });
 
+    // ── capa do site ───────────────────────────────────────────────
+    // Cópia da configuração publicada. Publicar sem mexer regrava o
+    // vitrine.json igual: o montador normaliza do mesmo jeito que gerou.
+    let vt = JSON.parse(JSON.stringify(dados.vitrine));
+    let escolhendoFoto = -1; // qual linha está com o seletor de foto aberto
+    let posicionando = -1;   // qual linha está com o ajuste do marcador aberto
+    // Igual ao padrão do Hero.astro: sem ajuste, o marcador fica aqui
+    const MARCADOR_PADRAO = { x: 55, y: 34 };
+
+    const obraPorSlug = (slug) => dados.obras.find((o) => o.slug === slug);
+    const fotosDaObra = (o) =>
+      [...new Set([o.capa, ...(o.fotos ?? []), ...(o.etapas ?? []).flatMap((e) => e.fotos ?? [])])]
+        .filter(Boolean);
+
+    function pintarOpcoesCapa() {
+      const sel = $('vt-obra');
+      sel.innerHTML = '';
+      if (!vt.slides.some((s) => s.tipo === 'principal')) {
+        sel.append(new Option('Capa principal', '__principal'));
+      }
+      for (const o of dados.obras) sel.append(new Option(o.nome + ' — ' + o.cidade, o.slug));
+    }
+
+    function pintarVitrine() {
+      const caixa = $('vt-lista');
+      caixa.innerHTML = '';
+
+      vt.slides.forEach((s, i) => {
+        const linha = document.createElement('div');
+        linha.className = 'vt-linha';
+
+        const obra = s.tipo === 'principal' ? null : obraPorSlug(s.obra);
+        const foto = obra ? (s.foto ?? obra.capa) : null;
+        const src = s.tipo === 'principal' ? miniPrincipal() : dados.miniaturas[foto];
+
+        const mini = document.createElement('div');
+        mini.className = 'vt-mini';
+        if (src) {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          mini.append(img);
+        }
+
+        const texto = document.createElement('div');
+        texto.className = 'vt-texto';
+        const titulo = document.createElement('b');
+        const sub = document.createElement('span');
+        sub.className = 'mono-sm';
+        if (s.tipo === 'principal') {
+          titulo.textContent = 'Capa principal';
+          sub.textContent =
+            'sem legenda · ' + (vt.capaNova ? 'foto nova, do computador' : vt.capa ? 'foto enviada' : 'foto original');
+        } else if (!obra) {
+          titulo.textContent = 'Obra que não existe mais';
+          sub.textContent = 'não aparece no site — pode tirar';
+        } else {
+          titulo.textContent = obra.nome;
+          const status = obra.status === 'em_execucao' ? 'em execução' : 'entregue';
+          sub.textContent =
+            status + ' · ' + (foto === obra.capa ? 'foto da capa' : 'outra foto') +
+            (s.marcador ? ' · marcador ajustado' : '');
+        }
+        const pos = document.createElement('span');
+        pos.className = 'vt-pos';
+        pos.textContent = String(i + 1);
+        texto.append(pos, titulo, sub);
+
+        const acoes = document.createElement('div');
+        acoes.className = 'vt-acoes';
+        const botao = (rotulo, titulo, acao, extra = '') => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'vt-botao ' + extra;
+          b.textContent = rotulo;
+          b.title = titulo;
+          b.setAttribute('aria-label', titulo);
+          b.onclick = acao;
+          return b;
+        };
+        const trocar = (a, b) => {
+          [vt.slides[a], vt.slides[b]] = [vt.slides[b], vt.slides[a]];
+          escolhendoFoto = -1;
+          posicionando = -1;
+          pintarVitrine();
+        };
+        if (obra) {
+          acoes.append(botao('Trocar foto', 'Escolher outra foto desta obra', () => {
+            escolhendoFoto = escolhendoFoto === i ? -1 : i;
+            posicionando = -1;
+            pintarVitrine();
+          }, 'vt-botao--texto'));
+          acoes.append(botao('Marcador', 'Escolher onde o marcador de mapa aparece nesta foto', () => {
+            posicionando = posicionando === i ? -1 : i;
+            escolhendoFoto = -1;
+            pintarVitrine();
+          }, 'vt-botao--texto'));
+        }
+        // A capa principal não é de obra: a foto vem do computador
+        if (s.tipo === 'principal') {
+          acoes.append(botao('Trocar foto', 'Escolher uma foto do computador ou do celular', () => {
+            $('vt-capa-arquivo').click();
+          }, 'vt-botao--texto'));
+          if (vt.capa || vt.capaNova) {
+            acoes.append(botao('Original', 'Voltar à foto original da capa', () => {
+              vt.capa = null;
+              delete vt.capaNova;
+              pintarVitrine();
+            }, 'vt-botao--texto'));
+          }
+        }
+        if (i > 0) acoes.append(botao('▲', 'Passar antes', () => trocar(i, i - 1)));
+        if (i < vt.slides.length - 1) acoes.append(botao('▼', 'Passar depois', () => trocar(i, i + 1)));
+        acoes.append(botao('✕', 'Tirar da vitrine', () => {
+          vt.slides.splice(i, 1);
+          escolhendoFoto = -1;
+          posicionando = -1;
+          pintarOpcoesCapa();
+          pintarVitrine();
+        }));
+
+        linha.append(mini, texto, acoes);
+
+        // Seletor: todas as fotos da obra — capa, galeria e etapas
+        if (obra && escolhendoFoto === i) {
+          const grade = document.createElement('div');
+          grade.className = 'miniaturas vt-escolha';
+          for (const p of fotosDaObra(obra)) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'mini vt-opcao' + (p === foto ? ' vt-opcao--sel' : '');
+            item.setAttribute('aria-label', 'Usar esta foto');
+            const img = document.createElement('img');
+            img.src = dados.miniaturas[p] ?? '';
+            img.alt = '';
+            item.append(img);
+            item.onclick = () => {
+              // A capa da obra fica implícita: assim, se a capa mudar um
+              // dia, a vitrine acompanha sem ninguém precisar voltar aqui
+              if (p === obra.capa) delete s.foto;
+              else s.foto = p;
+              escolhendoFoto = -1;
+              pintarVitrine();
+            };
+            grade.append(item);
+          }
+          linha.append(grade);
+        }
+
+        // Onde o marcador de mapa aparece: a foto na proporção da tela do
+        // site, com a área do título sombreada. Um toque marca o ponto.
+        if (obra && posicionando === i) {
+          const pos = s.marcador ?? MARCADOR_PADRAO;
+          const quadro = document.createElement('div');
+          quadro.className = 'vt-posicao';
+          const fundo = document.createElement('img');
+          fundo.src = src ?? '';
+          fundo.alt = '';
+          const titulo = document.createElement('span');
+          titulo.className = 'vt-posicao-titulo';
+          titulo.textContent = 'título do site';
+          const ponto = document.createElement('span');
+          ponto.className = 'vt-posicao-ponto';
+          ponto.style.left = pos.x + '%';
+          ponto.style.top = pos.y + '%';
+          quadro.append(fundo, titulo, ponto);
+          quadro.onclick = (ev) => {
+            const r = quadro.getBoundingClientRect();
+            const limita = (n) => Math.max(2, Math.min(98, Math.round(n)));
+            s.marcador = {
+              x: limita(((ev.clientX - r.left) / r.width) * 100),
+              y: limita(((ev.clientY - r.top) / r.height) * 100),
+            };
+            pintarVitrine();
+          };
+
+          const ajuda = document.createElement('div');
+          ajuda.className = 'vt-posicao-ajuda';
+          const txt = document.createElement('span');
+          txt.className = 'dica';
+          txt.textContent =
+            'Toque na foto onde o marcador deve ficar — de preferência numa área limpa, fora do título. ' +
+            'No celular ele sobe um pouco, para não cobrir o título.';
+          ajuda.append(txt);
+          if (s.marcador) {
+            ajuda.append(botao('Posição padrão', 'Voltar o marcador para a posição padrão', () => {
+              delete s.marcador;
+              pintarVitrine();
+            }, 'vt-botao--texto'));
+          }
+
+          const bloco = document.createElement('div');
+          bloco.className = 'vt-posicao-bloco';
+          bloco.append(quadro, ajuda);
+          linha.append(bloco);
+        }
+
+        caixa.append(linha);
+      });
+    }
+
+    // Miniatura da capa principal: foto nova (ainda no aparelho), a enviada
+    // que está publicada, ou a original
+    function miniPrincipal() {
+      if (vt.capaNova) return 'data:image/jpeg;base64,' + vt.capaNova.base64;
+      if (vt.capa) return vt.capa === dados.vitrine.capa ? dados.principalMini : null;
+      return dados.originalMini;
+    }
+
+    function abrirCapa() {
+      // Versão salva no rascunho, se houver; senão a publicada
+      vt = JSON.parse(JSON.stringify(doRascunho('vitrine') ?? dados.vitrine));
+      $('inicio').classList.add('oculto');
+      $('form').classList.add('oculto');
+      $('capa-painel').classList.remove('oculto');
+      $('vt-aviso').className = 'aviso oculto';
+      $('vt-ativa').checked = vt.ativa;
+      $('vt-segundos').value = String(vt.segundos);
+      escolhendoFoto = -1;
+      pintarOpcoesCapa();
+      pintarVitrine();
+    }
+
+    $('vt-ativa').onchange = () => { vt.ativa = $('vt-ativa').checked; };
+    $('vt-segundos').onchange = () => { vt.segundos = Number($('vt-segundos').value); };
+
+    $('vt-somar').onclick = () => {
+      const v = $('vt-obra').value;
+      if (vt.slides.length >= 12) {
+        $('vt-aviso').className = 'aviso aviso--ruim';
+        $('vt-aviso').textContent = 'A vitrine aceita no máximo 12 fotos.';
+        return;
+      }
+      vt.slides.push(v === '__principal' ? { tipo: 'principal' } : { obra: v });
+      pintarOpcoesCapa();
+      pintarVitrine();
+    };
+
+    $('vt-voltar').onclick = () => {
+      $('capa-painel').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+    };
+
+    $('vt-capa-arquivo').onchange = async () => {
+      const f = $('vt-capa-arquivo').files[0];
+      if (!f) return;
+      vt.capaNova = await reduzir(f);
+      $('vt-capa-arquivo').value = '';
+      pintarVitrine();
+    };
+
+    $('vt-publicar').onclick = async () => {
+      if (publicado) return;
+      if (vt.slides.length === 0) {
+        $('vt-aviso').className = 'aviso aviso--ruim';
+        $('vt-aviso').textContent = 'A vitrine precisa de pelo menos uma foto.';
+        return;
+      }
+      try {
+        await salvarNoRascunho({ chave: 'vitrine', tipo: 'vitrine', rotulo: 'Capa do site', dados: vt });
+        $('capa-painel').classList.add('oculto');
+        $('inicio').classList.remove('oculto');
+        window.scrollTo(0, 0);
+      } catch (e) {
+        $('vt-aviso').className = 'aviso aviso--ruim';
+        $('vt-aviso').textContent = 'Não consegui guardar no aparelho: ' + e.message;
+      }
+    };
+
+    // ── números do site ────────────────────────────────────────────
+    // Só o histórico fora do site é editável. As obras do site entram
+    // sozinhas na conta quando concluídas — a tela mostra as duas partes
+    // e o total, para ninguém precisar fazer conta de cabeça.
+    const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+      'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+    let nums = null;
+
+    function pintarNumeros() {
+      const c = dados.somaConcluidas;
+      const f = nums.fora_do_site;
+      $('nm-site').textContent =
+        c.obras + ' obras · ' + milhar(c.m2) + ' m² · ' + (c.ufs.join(', ') || 'nenhum estado');
+
+      const caixa = $('nm-estados');
+      caixa.innerHTML = '';
+      for (const uf of UFS) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const doSite = c.ufs.includes(uf);
+        b.className = 'pastilha pastilha--uf' + (f.estados.includes(uf) ? ' pastilha--on' : '') + (doSite ? ' pastilha--site' : '');
+        b.textContent = uf;
+        b.title = doSite ? 'Já conta pelas obras do site' : 'Estado com obra fora do site';
+        // Nome lido pelo leitor de tela é a sigla, não a dica
+        b.setAttribute('aria-label', uf + (doSite ? ', já conta pelas obras do site' : ''));
+        b.setAttribute('aria-pressed', String(f.estados.includes(uf)));
+        b.onclick = () => {
+          f.estados = f.estados.includes(uf) ? f.estados.filter((x) => x !== uf) : [...f.estados, uf];
+          pintarNumeros();
+        };
+        caixa.append(b);
+      }
+
+      const m2 = (Number(f.m2) || 0) + c.m2;
+      const obras = (Number(f.obras) || 0) + c.obras;
+      const estados = new Set([...f.estados, ...c.ufs]).size;
+      $('nm-total').textContent = milhar(m2) + ' m² · ' + obras + ' obras entregues · ' + estados + ' estados';
+    }
+
+    function abrirNumeros() {
+      nums = JSON.parse(JSON.stringify(doRascunho('numeros') ?? dados.numerosBase));
+      $('inicio').classList.add('oculto');
+      $('numeros-painel').classList.remove('oculto');
+      $('nm-aviso').className = 'aviso oculto';
+      $('nm-m2').value = nums.fora_do_site.m2;
+      $('nm-obras').value = nums.fora_do_site.obras;
+      pintarNumeros();
+    }
+
+    $('nm-m2').oninput = () => { nums.fora_do_site.m2 = Number($('nm-m2').value); pintarNumeros(); };
+    $('nm-obras').oninput = () => { nums.fora_do_site.obras = Number($('nm-obras').value); pintarNumeros(); };
+    $('nm-voltar').onclick = () => {
+      $('numeros-painel').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+    };
+    $('nm-salvar').onclick = async () => {
+      if (publicado) return;
+      const f = nums.fora_do_site;
+      if (!Number.isInteger(Number(f.m2)) || f.m2 < 0 || !Number.isInteger(Number(f.obras)) || f.obras < 0) {
+        $('nm-aviso').className = 'aviso aviso--ruim';
+        $('nm-aviso').textContent = 'Metragem e número de obras têm de ser números inteiros, sem vírgula.';
+        return;
+      }
+      await salvarNoRascunho({ chave: 'numeros', tipo: 'numeros', rotulo: 'Números do site', dados: nums });
+      $('numeros-painel').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+      window.scrollTo(0, 0);
+    };
+
+    // ── depoimentos ────────────────────────────────────────────────
+    // Regra do projeto: texto copiado literalmente do post, com o @ de quem
+    // escreveu. A tela não oferece "corrigir", e o aviso fica à vista.
+    let deps = null;
+    let editandoDep = -1;
+
+    function pintarDepoimentos() {
+      const caixa = $('dp-lista');
+      caixa.innerHTML = '';
+      if (deps.itens.length === 0) {
+        const vazio = document.createElement('p');
+        vazio.className = 'dica';
+        vazio.textContent = 'Nenhum depoimento. Sem nenhum, a faixa de depoimentos some do site.';
+        caixa.append(vazio);
+      }
+
+      deps.itens.forEach((d, i) => {
+        const linha = document.createElement('div');
+        linha.className = 'dp-linha' + (i === editandoDep ? ' dp-linha--editando' : '');
+
+        const texto = document.createElement('div');
+        texto.className = 'dp-texto';
+        const fala = document.createElement('q');
+        fala.textContent = d.texto;
+        const quem = document.createElement('span');
+        quem.className = 'mono-sm';
+        quem.textContent = d.autor + (d.complemento ? ' · ' + d.complemento : '') + (d.link ? ' · com link' : '');
+        texto.append(fala, quem);
+
+        const acoes = document.createElement('div');
+        acoes.className = 'vt-acoes';
+        const botao = (rot, tit, fn, extra = '') => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'vt-botao ' + extra;
+          b.textContent = rot;
+          b.title = tit;
+          b.setAttribute('aria-label', tit);
+          b.onclick = fn;
+          return b;
+        };
+        const trocar = (a, b) => { [deps.itens[a], deps.itens[b]] = [deps.itens[b], deps.itens[a]]; editandoDep = -1; limparFormDep(); pintarDepoimentos(); };
+        acoes.append(botao('Editar', 'Editar este depoimento', () => {
+          editandoDep = i;
+          $('dp-texto').value = d.texto;
+          $('dp-autor').value = d.autor;
+          $('dp-complemento').value = d.complemento ?? '';
+          $('dp-link').value = d.link ?? '';
+          $('dp-somar').textContent = 'Atualizar depoimento';
+          $('dp-cancelar').classList.remove('oculto');
+          pintarDepoimentos();
+          $('dp-texto').focus();
+        }, 'vt-botao--texto'));
+        if (i > 0) acoes.append(botao('▲', 'Passar antes', () => trocar(i, i - 1)));
+        if (i < deps.itens.length - 1) acoes.append(botao('▼', 'Passar depois', () => trocar(i, i + 1)));
+        acoes.append(botao('✕', 'Tirar este depoimento', () => {
+          deps.itens.splice(i, 1);
+          editandoDep = -1;
+          limparFormDep();
+          pintarDepoimentos();
+        }));
+
+        linha.append(texto, acoes);
+        caixa.append(linha);
+      });
+    }
+
+    function limparFormDep() {
+      for (const id of ['dp-texto', 'dp-autor', 'dp-complemento', 'dp-link']) $(id).value = '';
+      $('dp-somar').textContent = 'Acrescentar à lista';
+      $('dp-cancelar').classList.add('oculto');
+      $('dp-erro').textContent = '';
+    }
+
+    function abrirDepoimentos() {
+      deps = JSON.parse(JSON.stringify(doRascunho('depoimentos') ?? dados.depoimentos));
+      editandoDep = -1;
+      $('inicio').classList.add('oculto');
+      $('depo-painel').classList.remove('oculto');
+      $('dp-aviso').className = 'aviso oculto';
+      limparFormDep();
+      pintarDepoimentos();
+    }
+
+    $('dp-somar').onclick = () => {
+      let autor = $('dp-autor').value.trim();
+      if (autor && !autor.startsWith('@')) autor = '@' + autor;
+      const item = {
+        texto: $('dp-texto').value.trim(),
+        autor,
+        complemento: $('dp-complemento').value.trim(),
+        link: $('dp-link').value.trim(),
+      };
+      const erros = [];
+      if (!item.texto) erros.push('falta o texto');
+      if (!/^@[A-Za-z0-9._]{1,30}$/.test(item.autor)) erros.push('o autor tem de ser o @ de quem escreveu');
+      if (item.link && !item.link.startsWith('https://')) erros.push('o link tem de começar com https://');
+      if (erros.length) {
+        $('dp-erro').textContent = 'Não deu: ' + erros.join('; ') + '.';
+        return;
+      }
+      if (!item.complemento) delete item.complemento;
+      if (!item.link) delete item.link;
+
+      if (editandoDep >= 0) deps.itens[editandoDep] = item;
+      else deps.itens.push(item);
+      editandoDep = -1;
+      limparFormDep();
+      pintarDepoimentos();
+    };
+
+    $('dp-cancelar').onclick = () => { editandoDep = -1; limparFormDep(); pintarDepoimentos(); };
+    $('dp-voltar').onclick = () => {
+      $('depo-painel').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+    };
+    $('dp-salvar').onclick = async () => {
+      if (publicado) return;
+      // Depoimento digitado e não acrescentado: avisa em vez de perder
+      if ($('dp-texto').value.trim()) {
+        $('dp-erro').textContent = 'Tem um depoimento digitado que não entrou na lista — use "Acrescentar" ou apague o texto.';
+        return;
+      }
+      await salvarNoRascunho({ chave: 'depoimentos', tipo: 'depoimentos', rotulo: 'Depoimentos', dados: deps });
+      $('depo-painel').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+      window.scrollTo(0, 0);
+    };
+
     // ── ligações ───────────────────────────────────────────────────
+    const ABRIR = { capa: abrirCapa, numeros: abrirNumeros, depoimentos: abrirDepoimentos };
     document.querySelectorAll('[data-modo]').forEach((b) => {
-      b.onclick = () => abrir(b.dataset.modo);
+      b.onclick = () => (ABRIR[b.dataset.modo] ? ABRIR[b.dataset.modo]() : abrir(b.dataset.modo));
+    });
+
+    $('entregue').onchange = () => {
+      $('campo-metragem').classList.toggle('oculto', !$('entregue').checked);
+      if ($('entregue').checked && !$('metragem-final').value) $('metragem-final').value = atual?.area_m2 ?? '';
+      preverMetragem();
+    };
+    $('metragem-final').oninput = preverMetragem;
+
+    $('publicar-tudo').onclick = publicarTudo;
+    $('rascunho-ver').onclick = () => {
+      const aberto = $('rascunho').classList.toggle('rascunho--aberto');
+      $('rascunho-ver').textContent = aberto ? 'Esconder' : 'Ver';
+    };
+
+    // Rascunho guardado de antes (página recarregada, celular reiniciado)
+    lerRascunho().then((r) => {
+      rascunho = r;
+      pintarRascunho(r.length ? 'Você tem alterações salvas de antes, ainda não publicadas.' : '');
     });
 
     $('voltar').onclick = () => {
@@ -947,15 +1864,16 @@ const ETAPAS_PADRAO = [
     .lembrar input { accent-color: var(--orange); width: 16px; height: 16px }
     .erro-entrada { display: block; margin-top: 14px; color: var(--orange) }
 
-    .area { max-width: 880px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--pad) 90px }
+    /* folga embaixo para a barra fixa do rascunho não cobrir o fim da tela */
+    .area { max-width: 880px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--pad) 170px }
     .bloco { display: block }
 
-    /* escolha inicial: as três lado a lado no computador, empilhadas no
-       celular. Com auto-fit cabiam só duas por linha e a terceira deixava
-       um quadrado vazio ao lado. */
+    /* escolha inicial: quatro opções em 2 × 2 no computador, empilhadas no
+       celular. Número par de colunas para nunca sobrar quadrado vazio —
+       com três opções em duas colunas sobrava, e o Lucas notou. */
     .escolhas {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1px;
       margin-top: 20px;
       background: var(--line);
@@ -1132,6 +2050,182 @@ const ETAPAS_PADRAO = [
     .entregue input { accent-color: var(--orange); width: 18px; height: 18px; margin-top: 2px; flex: none }
     .entregue span { font-size: 13px; color: var(--gray-500); line-height: 1.5 }
     .entregue b { display: block; color: var(--white); font-weight: 600; font-size: 14px; margin-bottom: 2px }
+
+    /* capa do site: uma linha por foto, na ordem em que passam */
+    .vt-tempo { width: auto; min-width: 180px }
+
+    .vt-linha {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .vt-mini {
+      aspect-ratio: 4 / 3;
+      background: var(--concrete);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .vt-mini img { width: 100%; height: 100%; object-fit: cover; display: block }
+
+    .vt-texto { display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+    .vt-texto b { color: var(--white); font-weight: 600; font-size: 15px }
+    .vt-texto .mono-sm { color: var(--gray-500) }
+    .vt-pos {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .2em;
+      color: var(--orange);
+    }
+
+    .vt-acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end }
+    .vt-botao {
+      min-width: 38px;
+      height: 38px;
+      padding: 0 10px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--gray-200);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color .25s var(--ease), color .25s var(--ease);
+    }
+    .vt-botao:hover { border-color: var(--orange); color: var(--orange) }
+    .vt-botao--texto {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    /* seletor de foto, aberto embaixo da linha, ocupando a largura toda */
+    .vt-escolha { grid-column: 1 / -1; margin: 6px 0 2px }
+    .vt-opcao { padding: 0; cursor: pointer }
+    .vt-opcao--sel { border-color: var(--orange); outline: 2px solid var(--orange); outline-offset: -2px }
+
+    /* ajuste do marcador: a foto na proporção da tela do site (16:10),
+       cortada como no Hero (object-position 50% 58%) */
+    .vt-posicao-bloco { grid-column: 1 / -1; margin: 6px 0 2px }
+    .vt-posicao {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border: 1px solid var(--line-2);
+      cursor: crosshair;
+    }
+    .vt-posicao img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 58%; display: block }
+    /* onde fica o título do site: escurecido, igual ao véu do Hero */
+    .vt-posicao-titulo {
+      position: absolute;
+      inset: 0 58% 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(90deg, rgba(10, 10, 10, .85), rgba(10, 10, 10, .4));
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gray-500);
+      pointer-events: none;
+    }
+    .vt-posicao-ponto {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      margin: -6px 0 0 -6px;
+      background: var(--orange);
+      box-shadow: 0 0 0 4px rgba(232, 90, 36, .35);
+      pointer-events: none;
+    }
+    .vt-posicao-ajuda { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 8px; flex-wrap: wrap }
+
+    .vt-somar { display: flex; gap: 10px }
+    .vt-somar .entrada { flex: 1; min-width: 0 }
+
+    @media (max-width: 600px) {
+      .vt-linha { grid-template-columns: 88px minmax(0, 1fr) }
+      .vt-acoes { grid-column: 1 / -1; justify-content: flex-start }
+    }
+
+    /* metragem final, embaixo do "Obra entregue" */
+    .metragem { margin-top: 14px; padding: 16px; border: 1px solid var(--orange); border-top: 0 }
+    .metragem-entrada { max-width: 200px }
+    .metragem .dica { color: var(--gray-200) }
+
+    /* números do site */
+    .nm-parte { margin-bottom: 24px; padding: 14px 16px; border: 1px solid var(--line) }
+    .nm-parte--total { border-color: var(--orange) }
+    .nm-valor { margin-top: 6px; color: var(--white); font-size: 15px }
+    .pastilha--uf { padding: 7px 10px; min-width: 46px }
+    /* estado que já conta pelas obras do site: fio embaixo, como lembrete */
+    .pastilha--site { box-shadow: inset 0 -2px 0 var(--gray-500) }
+
+    /* depoimentos */
+    .dp-linha {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .dp-linha--editando { border-left: 2px solid var(--orange); padding-left: 12px }
+    .dp-texto { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+    .dp-texto q { color: var(--white); font-size: 15px; line-height: 1.45 }
+    .dp-texto .mono-sm { color: var(--gray-500) }
+    .dp-form { margin: 26px 0 0; padding: 18px; border: 1px solid var(--line) }
+    .dp-form textarea { margin: 8px 0 18px }
+    .dp-botoes { display: flex; gap: 18px; align-items: center }
+    .dp-erro { margin-top: 10px; color: var(--orange) }
+    @media (max-width: 600px) {
+      .dp-linha { grid-template-columns: 1fr }
+      .dp-linha .vt-acoes { justify-content: flex-start }
+    }
+
+    /* barra do rascunho, fixa embaixo */
+    .rascunho {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      padding: 14px var(--pad);
+      background: rgba(10, 10, 10, .96);
+      border-top: 1px solid var(--orange);
+    }
+    .rascunho-linha {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .rascunho-info { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap }
+    .rascunho-info b { color: var(--white); font-weight: 600; font-size: 14px }
+    .rascunho-info .mono-sm { color: var(--gray-500) }
+    .rascunho-ver { font-size: 11px }
+    .rascunho-lista,
+    .rascunho .aviso,
+    .rascunho-recado { max-width: 880px; margin: 0 auto 12px }
+    .rascunho-lista { display: none; list-style: none; padding: 0 }
+    .rascunho--aberto .rascunho-lista { display: block }
+    .rascunho-lista li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--gray-200);
+      font-size: 14px;
+    }
+    .rascunho-recado { color: var(--orange) }
+    .rascunho #publicar-tudo:disabled { opacity: .4; cursor: default }
+    .salvar:disabled { opacity: .4; cursor: default }
 
     /* etapas */
     .cabeca-etapas { display: flex; align-items: baseline; justify-content: space-between }

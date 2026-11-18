@@ -91,6 +91,246 @@ export function validar(d) {
   return e;
 }
 
+// ── vitrine da capa ─────────────────────────────────────────────────
+//
+// src/data/vitrine.json: quais fotos passam no Hero, em que ordem e por
+// quanto tempo. A legenda de cada uma (nome, cidade, data) não fica aqui:
+// sai da própria obra no build, para nunca ficar desatualizada.
+
+export const CAMINHO_VITRINE = 'src/data/vitrine.json';
+export const PASTA_CAPA = 'src/assets/capa/';
+const SLUG = /^[a-z0-9-]+$/;
+// Só nome de arquivo dentro de src/assets/capa — nada de caminho
+const NOME_CAPA = /^capa-[a-z0-9-]+\.(jpeg|jpg|png|webp)$/;
+
+export function validarVitrine(v) {
+  const e = [];
+  if (v?.capa != null && !NOME_CAPA.test(String(v.capa))) e.push('Nome da foto de capa inválido');
+  if (v?.capaNova != null && !v.capaNova.base64) e.push('A foto nova de capa chegou vazia');
+  if (typeof v?.ativa !== 'boolean') e.push('Faltou dizer se a vitrine fica ligada');
+  const s = Number(v?.segundos);
+  if (!Number.isInteger(s) || s < 4 || s > 15) e.push('O tempo de cada foto vai de 4 a 15 segundos');
+
+  const slides = v?.slides;
+  if (!Array.isArray(slides) || slides.length === 0) {
+    e.push('A vitrine precisa de pelo menos uma foto');
+    return e;
+  }
+  if (slides.length > 12) e.push('No máximo 12 fotos na vitrine');
+  if (slides.filter((x) => x?.tipo === 'principal').length > 1) {
+    e.push('A capa principal só pode aparecer uma vez');
+  }
+
+  slides.forEach((x, i) => {
+    if (x?.tipo === 'principal') return;
+    if (!SLUG.test(String(x?.obra ?? ''))) {
+      e.push('Foto ' + (i + 1) + ' sem obra válida');
+      return;
+    }
+    // A foto tem de ser da própria obra: impede apontar para arquivo solto
+    const pasta = './../../assets/obras/' + x.obra + '/';
+    if (x.foto != null && !String(x.foto).startsWith(pasta)) {
+      e.push('Foto ' + (i + 1) + ' não pertence à obra ' + x.obra);
+    }
+    // Marcador de mapa: posição em % da tela, de 0 a 100
+    if (x.marcador != null) {
+      const ok = (n) => Number.isFinite(Number(n)) && Number(n) >= 0 && Number(n) <= 100;
+      if (!ok(x.marcador.x) || !ok(x.marcador.y)) e.push('Foto ' + (i + 1) + ': posição do marcador inválida');
+    }
+  });
+  return e;
+}
+
+/**
+ * Gera o vitrine.json — e, se veio foto nova para a capa principal, o
+ * arquivo dela em src/assets/capa/. Sem foto nova: mesma entrada, mesmo
+ * arquivo, byte por byte.
+ *
+ * `capa` ausente = a foto original (src/assets/hero.webp).
+ */
+export function montarVitrine(v) {
+  const erros = validarVitrine(v);
+  if (erros.length) {
+    const erro = new Error('dados inválidos');
+    erro.erros = erros;
+    throw erro;
+  }
+
+  const arquivos = [];
+  let capa = v.capa ?? null;
+
+  if (v.capaNova) {
+    // Nome derivado do arquivo original. Repetir o nome substitui a foto
+    // anterior de mesmo nome — o que é o desejado, e o Astro gera outro
+    // endereço para a versão nova, então nenhum navegador fica com a velha.
+    const base = nomeArquivo(v.capaNova.arquivo, new Set()).replace(/\.[a-z0-9]+$/, '');
+    capa = 'capa-' + base.slice(0, 40) + '.jpeg';
+    arquivos.push({ caminho: PASTA_CAPA + capa, base64: v.capaNova.base64 });
+  }
+
+  const limpo = {
+    ...(capa ? { capa } : {}),
+    ativa: v.ativa,
+    segundos: Number(v.segundos),
+    slides: v.slides.map((x) => {
+      if (x.tipo === 'principal') return { tipo: 'principal' };
+      const item = { obra: x.obra };
+      if (x.foto != null) item.foto = x.foto;
+      if (x.marcador != null) {
+        item.marcador = { x: Math.round(Number(x.marcador.x)), y: Math.round(Number(x.marcador.y)) };
+      }
+      return item;
+    }),
+  };
+
+  arquivos.push({ caminho: CAMINHO_VITRINE, conteudo: JSON.stringify(limpo, null, 2) });
+  return { arquivos };
+}
+
+// ── números do site ─────────────────────────────────────────────────
+//
+// src/data/numeros.json guarda só o que NÃO dá para calcular: o histórico
+// das obras entregues que não estão publicadas no site. O total mostrado
+// (m², obras, estados) é esse histórico + as obras concluídas do site,
+// somadas no build. Concluir uma obra no painel já sobe os números.
+
+export const CAMINHO_NUMEROS = 'src/data/numeros.json';
+const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+  'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+export function validarNumeros(n) {
+  const e = [];
+  const f = n?.fora_do_site;
+  if (!f) return ['Faltou o histórico de obras fora do site'];
+  if (!Number.isInteger(Number(f.m2)) || Number(f.m2) < 0) e.push('Metragem fora do site tem de ser um número inteiro');
+  if (!Number.isInteger(Number(f.obras)) || Number(f.obras) < 0) e.push('Número de obras fora do site tem de ser inteiro');
+  if (!Array.isArray(f.estados) || f.estados.some((u) => !UFS.includes(u))) e.push('Estado inválido');
+  return e;
+}
+
+export function montarNumeros(n) {
+  const erros = validarNumeros(n);
+  if (erros.length) {
+    const erro = new Error('dados inválidos');
+    erro.erros = erros;
+    throw erro;
+  }
+  // Estados em ordem alfabética: a mesma escolha sempre gera o mesmo arquivo
+  const limpo = {
+    fora_do_site: {
+      m2: Number(n.fora_do_site.m2),
+      obras: Number(n.fora_do_site.obras),
+      estados: [...new Set(n.fora_do_site.estados)].sort(),
+    },
+  };
+  return { arquivos: [{ caminho: CAMINHO_NUMEROS, conteudo: JSON.stringify(limpo, null, 2) }] };
+}
+
+// ── depoimentos ─────────────────────────────────────────────────────
+//
+// Regra do projeto: depoimento só entra copiado literalmente do post, com o
+// @ do autor. O painel não corrige, não encurta, não "melhora" o texto.
+
+export const CAMINHO_DEPOIMENTOS = 'src/data/depoimentos.json';
+
+export function validarDepoimentos(d) {
+  const e = [];
+  const itens = d?.itens;
+  if (!Array.isArray(itens)) return ['Lista de depoimentos ausente'];
+  if (itens.length > 30) e.push('No máximo 30 depoimentos');
+  itens.forEach((x, i) => {
+    const n = 'Depoimento ' + (i + 1);
+    if (!String(x?.texto ?? '').trim()) e.push(n + ' sem texto');
+    if (String(x?.texto ?? '').length > 400) e.push(n + ' passou de 400 caracteres');
+    if (!/^@[A-Za-z0-9._]{1,30}$/.test(String(x?.autor ?? ''))) {
+      e.push(n + ': o autor tem de ser o @ de quem escreveu (ex.: @munariskatepark)');
+    }
+    if (x?.link && !/^https:\/\//.test(String(x.link))) e.push(n + ': o link tem de começar com https://');
+  });
+  return e;
+}
+
+export function montarDepoimentos(d) {
+  const erros = validarDepoimentos(d);
+  if (erros.length) {
+    const erro = new Error('dados inválidos');
+    erro.erros = erros;
+    throw erro;
+  }
+  // Texto vai como veio — só sem espaço sobrando nas pontas
+  const limpo = {
+    itens: d.itens.map((x) => {
+      const item = { texto: String(x.texto).trim(), autor: String(x.autor).trim() };
+      if (String(x.complemento ?? '').trim()) item.complemento = String(x.complemento).trim();
+      if (String(x.link ?? '').trim()) item.link = String(x.link).trim();
+      return item;
+    }),
+  };
+  return { arquivos: [{ caminho: CAMINHO_DEPOIMENTOS, conteudo: JSON.stringify(limpo, null, 2) }] };
+}
+
+// ── publicar tudo ───────────────────────────────────────────────────
+//
+// O painel guarda as alterações num rascunho e manda todas juntas: um
+// commit, um build, uma espera. Cada alteração passa pelo seu montador;
+// erro em qualquer uma barra o pacote inteiro (meio publicado é pior que
+// nada publicado), e a mensagem diz qual alteração tem o problema.
+
+const MONTADORES = {
+  obra: (d) => montarArquivos(d),
+  vitrine: (d) => montarVitrine(d),
+  numeros: (d) => montarNumeros(d),
+  depoimentos: (d) => montarDepoimentos(d),
+};
+
+function rotulo(a) {
+  if (a.tipo === 'obra') return 'Obra ' + (a.dados?.nome || a.dados?.slug || '?');
+  return { vitrine: 'Capa do site', numeros: 'Números do site', depoimentos: 'Depoimentos' }[a.tipo] ?? a.tipo;
+}
+
+export function montarTudo(pacote) {
+  const alteracoes = pacote?.alteracoes;
+  if (!Array.isArray(alteracoes) || alteracoes.length === 0) {
+    const erro = new Error('dados inválidos');
+    erro.erros = ['Nenhuma alteração para publicar'];
+    throw erro;
+  }
+
+  const erros = [];
+  const porCaminho = new Map();
+  const resumo = [];
+
+  for (const a of alteracoes) {
+    const montar = MONTADORES[a?.tipo];
+    if (!montar) {
+      erros.push('Tipo de alteração desconhecido: ' + a?.tipo);
+      continue;
+    }
+    try {
+      const { arquivos, slug } = montar(a.dados);
+      for (const arq of arquivos) {
+        // Duas alterações gravando o mesmo arquivo: uma apagaria a outra
+        if (porCaminho.has(arq.caminho)) {
+          erros.push(rotulo(a) + ' e ' + porCaminho.get(arq.caminho).dono + ' mexem no mesmo arquivo');
+        }
+        porCaminho.set(arq.caminho, { ...arq, dono: rotulo(a) });
+      }
+      resumo.push(a.tipo === 'obra' ? 'obra: ' + (a.dados.slug ? 'atualiza ' : 'publica ') + slug : rotulo(a));
+    } catch (e) {
+      for (const m of e.erros ?? [e.message]) erros.push(rotulo(a) + ': ' + m);
+    }
+  }
+
+  if (erros.length) {
+    const erro = new Error('dados inválidos');
+    erro.erros = erros;
+    throw erro;
+  }
+
+  const arquivos = [...porCaminho.values()].map(({ dono, ...arq }) => arq);
+  return { arquivos, resumo };
+}
+
 /**
  * Transforma o que o painel mandou nos arquivos do commit.
  *

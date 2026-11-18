@@ -392,13 +392,20 @@ duas, e o esforço vai para o cadastro pelo próprio site.
 
 1. **Publicar Laguna** (360 m², em execução) — depende de foto
 2. **Publicar Cocal** (em execução) — depende de foto e ficha
-3. **Painel de cadastro de obras pelo site** — ✅ código feito e testado em
-   17/11. Tela própria em `/admin` + Worker em `/api/publicar`, protegido por
-   senha. **Falta o Lucas:** gerar o token do GitHub e gravar `GITHUB_TOKEN` e
-   `PAINEL_SENHA` como segredos do Worker; depois commit e push.
+3. **Painel de cadastro de obras pelo site** — ✅ no ar e em uso desde 17/11.
+   Tela própria em `/admin` + Worker em `/api/publicar`, protegido por senha.
+   `GITHUB_TOKEN` e `PAINEL_SENHA` gravados como segredos do Worker. Primeiro
+   uso real em 17/11: o Lucas trocou a capa e somou fotos no CT Curitiba.
    ⚠ **O token vence em 17/11/2027.** Nome no GitHub: "longarfino-site
    painel" — fine-grained, só o repositório longarfino-site, Contents com
    leitura e escrita. Quando vencer, o painel avisa em português o que fazer
+4. **Vitrine da capa** — ✅ feita em 18/11. O fundo do Hero alterna a foto
+   principal, a obra em execução e capas de outras obras, com legenda
+   discreta tirada da própria obra. Configurável no painel ("Capa do site"):
+   ligar/desligar, tempo, ordem, e qual foto de cada obra
+5. **Vídeo de drone na capa** — em espera, sem material editado. O Astro não
+   trata vídeo; o clipe tem de chegar pronto e comprimido (ver resposta de
+   18/11 na sessão)
 6. **Trocar a senha pelo Zero Trust** — a assinatura "Teams Free Base" está
    ativa e o cartão cadastrado, mas a criação do time falha no servidor da
    Cloudflare (`POST access/organizations` → 500). Tentar de novo depois;
@@ -407,6 +414,20 @@ duas, e o esforço vai para o cadastro pelo próprio site.
 4. **Acompanhamento de obra em execução** — ✅ feito em 17/11. Cartão no
    Hero (desenho do Lucas), barra animada, linha do tempo por etapa
 5. **Escrever o `CLAUDE.md`** — ✅ feito em 17/11
+
+### Feito em 18/11 — "programar cada vez menos"
+
+| Assunto | Decisão |
+|---|---|
+| Números do site | m², obras entregues e estados **calculados**: histórico fora do site (`src/data/numeros.json`) + obras do site concluídas. Eram escritos à mão em 5 lugares. Valores iniciais reproduzem o site de antes (12.360 / 15 / 5) com as 6 obras publicadas concluídas |
+| Metragem final | "Obra entregue" pede a metragem final; ao publicar, ela entra no total do site |
+| Obra em execução nos números | Não conta. Com o Park Abraão marcado em execução (teste do Lucas em 17/11), o total cairia para 10.760 m² |
+| Depoimentos | Saíram do código para `src/data/depoimentos.json`, editáveis no painel. Regra mantida: texto literal, com @; link do post opcional |
+| Capa principal | Trocável pelo painel por foto do computador/celular (`src/assets/capa/`); "Original" volta ao `hero.webp` |
+| Publicação | Rascunho no aparelho (IndexedDB) + "Publicar tudo": um commit, um build. Erro em uma alteração barra o pacote. Até 40 fotos por publicação (limite de chamadas do Workers grátis) |
+| Legenda da vitrine | Marcador de mapa no meio da foto (quadrado laranja pulsando + raio + texto), posição ajustável por foto no painel. Substituiu a linha na base, que ficava colada nos números |
+| Comentários na navegação | Cartão discreto no canto inferior esquerdo, entrando pela esquerda, em loop. Só depois da primeira tela e nunca junto da seção de depoimentos ou do rodapé |
+| Park Abraão | Marcado "em execução" foi teste do Lucas (17/11). Voltou a concluída, sem a etapa de teste; a nova ordem da galeria que ele escolheu foi mantida |
 
 ### Decisões fechadas em 17/11
 

@@ -7,11 +7,99 @@
 // inclinação não descolarem a máscara.
 
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import type { ImageMetadata } from 'astro';
 import CardExecucao from './CardExecucao.astro';
+import vitrine from '../../data/vitrine.json';
+import { mapaDeFotos } from '../../lib/fotos';
+import { calcularProgresso } from '../../lib/progresso';
+import { numerosDoSite } from '../../lib/numeros';
 // PROVISÓRIA — imagem gerada por IA, só para validar a composição.
 // Substituir por fotografia real da Longarfino antes do lançamento.
 // A foto real de reserva está em assets/hero-real-bowl.jpg (vertical).
 import fotoHero from '../../assets/hero.webp';
+
+// ── vitrine ─────────────────────────────────────────────────────────
+// As fotos que passam na capa vêm de src/data/vitrine.json, que o painel
+// grava. A legenda sai da própria obra, no build: nome, cidade, data e
+// andamento nunca ficam desatualizados nem são digitados duas vezes.
+const obras = await getCollection('obras');
+const fotosPorCaminho = await mapaDeFotos();
+
+// Capa principal: a foto que o Lucas sobe pelo painel fica em
+// src/assets/capa/ e o nome vai em vitrine.capa. Sem nome (ou arquivo que
+// sumiu), vale a foto original.
+const capasEnviadas = import.meta.glob<{ default: ImageMetadata }>(
+  '../../assets/capa/*.{jpeg,jpg,png,webp}',
+  { eager: true },
+);
+const capaEnviada = vitrine.capa ? capasEnviadas['../../assets/capa/' + vitrine.capa]?.default : null;
+const fotoPrincipal = capaEnviada ?? fotoHero;
+const altPrincipal = capaEnviada
+  ? 'Skatepark em concreto executado pela Longarfino'
+  : 'Bowl em concreto durante a execução, com coping instalado';
+
+type Slide = { foto: any; alt: string; legenda: null | Record<string, any> };
+
+const configurados = vitrine.ativa ? vitrine.slides : [{ tipo: 'principal' }];
+
+const slides: Slide[] = configurados
+  .map((s: any): Slide | null => {
+    if (s.tipo === 'principal') {
+      return { foto: fotoPrincipal, alt: altPrincipal, legenda: null };
+    }
+
+    // Obra apagada ou foto que saiu da obra: a foto é pulada. Mexer numa
+    // obra nunca pode derrubar a home.
+    const obra = obras.find((o) => o.id === s.obra);
+    if (!obra) return null;
+    const foto = s.foto ? fotosPorCaminho.get(s.foto) : obra.data.capa;
+    if (!foto) return null;
+
+    const d = obra.data;
+    const emExec = d.status === 'em_execucao';
+    const pct = emExec ? calcularProgresso(d.etapas) : null;
+    const chapeu = emExec
+      ? 'Em execução' + (pct !== null ? ' · ' + pct + '%' : '')
+      : d.duracao
+        ? 'Executada ' + d.duracao
+        : d.ano
+          ? 'Entregue em ' + d.ano
+          : 'Obra entregue';
+
+    // Marcador de mapa: posição em % da tela, ajustável por foto no painel.
+    // Sem ajuste, fica na área mais livre da capa: à direita do título e
+    // acima do cartão de obra. Perto da borda direita, o rótulo vira para
+    // a esquerda para não sair da tela.
+    const x = s.marcador?.x ?? 55;
+    const y = s.marcador?.y ?? 34;
+
+    return {
+      foto,
+      alt: 'Skatepark ' + d.nome + ', em ' + d.cidade,
+      legenda: {
+        chapeu,
+        emExec,
+        nome: d.nome,
+        local: d.cidade + ' / ' + d.uf,
+        href: '/obras/' + obra.id,
+        // --xn sem unidade: o CSS usa para calcular quanto espaço sobra até
+        // a borda e quebrar a legenda em duas linhas se precisar
+        posicao: '--x:' + x + '%;--y:' + y + '%;--xn:' + x,
+        lado: x > 62 ? 'esq' : 'dir',
+      },
+    };
+  })
+  .filter((s): s is Slide => s !== null);
+
+// Tudo quebrado? Volta para a foto principal, nunca para uma capa vazia.
+if (slides.length === 0) {
+  slides.push({ foto: fotoPrincipal, alt: altPrincipal, legenda: null });
+}
+
+const passa = slides.length > 1;
+// Concatenado: template literal em atributo style quebra a tag no Astro
+const tempo = '--ms:' + (vitrine.segundos ?? 6) * 1000 + 'ms';
 
 // Mesma fonte da seção A Longarfino: o ano se calcula sozinho.
 const ANO_INICIO = 2007;
@@ -19,7 +107,8 @@ const anos = new Date().getFullYear() - ANO_INICIO;
 
 const numeros = [
   { valor: anos + '+', rotulo: 'Anos de experiência' },
-  { valor: '12.360', rotulo: 'M² construídos' },
+  // Calculado: histórico fora do site + obras concluídas (src/lib/numeros.ts)
+  { valor: (await numerosDoSite()).m2Texto, rotulo: 'M² construídos' },
   { valor: 'Brasil', rotulo: 'Atuação nacional' },
 ];
 ---
@@ -27,24 +116,38 @@ const numeros = [
 <section class="hero">
   <div class="hero-fundo">
     <div class="hero-palco" data-inclinar data-parallax>
-    <Image
-      src={fotoHero}
-      alt="Bowl em concreto durante a execução, com coping instalado"
-      widths={[900, 1600, 2400]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-      class="hero-foto hero-foto--cor"
-    />
-    <Image
-      src={fotoHero}
-      alt=""
-      widths={[900, 1600, 2400]}
-      sizes="100vw"
-      loading="eager"
-      class="hero-foto hero-foto--pb"
-      aria-hidden="true"
-    />
+      <!-- Cada foto da vitrine leva as duas camadas (cor + preto e branco
+           com máscara), então a identidade da capa vale para todas. Só a
+           primeira carrega de imediato; as outras depois que a página
+           assenta, pelo script lá embaixo. -->
+      <div class="vitrine" data-vitrine data-ms={(vitrine.segundos ?? 6) * 1000}>
+        {slides.map((s, i) => (
+          <div
+            class={'slide' + (i === 0 ? ' slide--ativo' : '')}
+            data-slide={i}
+            aria-hidden={i === 0 ? undefined : 'true'}
+          >
+            <Image
+              src={s.foto}
+              alt={s.alt}
+              widths={[900, 1600, 2400]}
+              sizes="100vw"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : undefined}
+              class="hero-foto hero-foto--cor"
+            />
+            <Image
+              src={s.foto}
+              alt=""
+              widths={[900, 1600, 2400]}
+              sizes="100vw"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              class="hero-foto hero-foto--pb"
+              aria-hidden="true"
+            />
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 
@@ -80,8 +183,210 @@ const numeros = [
         <span>{n.rotulo}</span>
       </div>
     ))}
+
+    <!-- Fios de tempo da vitrine, centrados logo acima do fio dos números.
+         A legenda foi para o marcador de mapa no meio da foto; aqui ficam
+         só os fios. Vem por ÚLTIMO dentro de .hero-numeros: os números usam
+         :first-child e nth-child, e um elemento antes deles quebrava o
+         recuo e o tempo dos fios. -->
+    {passa && (
+      <div class="vitrine-info" style={tempo}>
+        <!-- Celular: no lugar do marcador sobre a foto (que caía em cima do
+             título — no celular não há área livre), uma etiqueta de mapa
+             compacta aqui, acima dos fios. Mesmo quadrado laranja. -->
+        <div class="vt-etiquetas" aria-hidden="true">
+          {slides.map((s, i) =>
+            s.legenda && (
+              <span class="vt-etiqueta" data-etiqueta={i}>
+                <i class="vt-etiqueta-ponto"></i>
+                <b>{s.legenda.nome}</b>
+                <span>{s.legenda.local}</span>
+              </span>
+            ),
+          )}
+        </div>
+
+        <div class="vt-marcas">
+          {slides.map((s, i) => (
+            <button
+              class={'vt-marca' + (i === 0 ? ' vt-marca--ativa' : '')}
+              type="button"
+              data-ir={i}
+              aria-label={s.legenda ? 'Ver ' + s.legenda.nome : 'Ver a capa principal'}
+              aria-current={i === 0 ? 'true' : undefined}
+            >
+              <i></i>
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
+
+  <!-- Marcador de mapa: em cada troca de foto, um quadrado laranja (o
+       mesmo do ponto final do título) surge pulsando, um raio fino se
+       desenha em diagonal e a legenda aparece na ponta. Uma camada à parte,
+       acima da foto, que não segura o clique em nada além do próprio
+       marcador. -->
+  {passa && (
+    <div class="vt-pinos">
+      {slides.map((s, i) =>
+        s.legenda && (
+          <a
+            class={'vt-pino vt-pino--' + s.legenda.lado}
+            data-pino={i}
+            href={s.legenda.href}
+            style={s.legenda.posicao}
+            aria-hidden={i === 0 ? undefined : 'true'}
+            tabindex={i === 0 ? undefined : '-1'}
+          >
+            <span class="vt-ponto"></span>
+            <span class="vt-raio"></span>
+            <span class="vt-rotulo">
+              <b class="d">{s.legenda.nome}</b>
+              <span class={'vt-dado' + (s.legenda.emExec ? ' vt-dado--exec' : '')}>
+                {s.legenda.local} · {s.legenda.chapeu}
+              </span>
+            </span>
+          </a>
+        ),
+      )}
+    </div>
+  )}
 </section>
+
+<script>
+  // Vitrine: cada foto fica o tempo configurado e a próxima entra pela
+  // direita, empurrando a atual. Para quando a aba fica escondida, e não
+  // anda sozinha para quem pediu menos movimento no sistema.
+  const caixa = document.querySelector<HTMLElement>('[data-vitrine]');
+  const slides = caixa ? [...caixa.querySelectorAll<HTMLElement>('[data-slide]')] : [];
+
+  if (caixa && slides.length > 1) {
+    const ms = Number(caixa.dataset.ms) || 6000;
+    const marcas = [...document.querySelectorAll<HTMLElement>('[data-ir]')];
+    const pinos = [...document.querySelectorAll<HTMLElement>('[data-pino]')];
+    const etiquetas = [...document.querySelectorAll<HTMLElement>('[data-etiqueta]')];
+    let pinoRelogio: number | undefined;
+
+    // O marcador da foto da vez só aparece depois que a foto terminou de
+    // chegar — surgir no meio da passagem ficaria correndo junto. No PC é o
+    // marcador sobre a foto; no celular, a etiqueta acima dos fios (o CSS
+    // mostra um ou outro).
+    function mostrarPino(n: number, espera: number) {
+      clearTimeout(pinoRelogio);
+      pinos.forEach((p) => {
+        p.classList.remove('vt-pino--ativo');
+        p.setAttribute('aria-hidden', 'true');
+        p.tabIndex = -1;
+      });
+      etiquetas.forEach((e) => e.classList.remove('vt-etiqueta--ativa'));
+      const alvo = pinos.find((p) => Number(p.dataset.pino) === n);
+      const etiqueta = etiquetas.find((e) => Number(e.dataset.etiqueta) === n);
+      if (!alvo) return;
+      pinoRelogio = window.setTimeout(() => {
+        alvo.classList.add('vt-pino--ativo');
+        alvo.removeAttribute('aria-hidden');
+        alvo.removeAttribute('tabindex');
+        etiqueta?.classList.add('vt-etiqueta--ativa');
+      }, espera);
+    }
+    const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TRANSICAO = 1100; // igual ao CSS
+
+    let atual = 0;
+    let ocupado = false;
+    let relogio: number | undefined;
+
+    // As outras fotos baixam depois que a página assentou: a primeira tela
+    // continua leve, e quando a vez delas chega já estão prontas.
+    const carregarResto = () =>
+      slides.forEach((s) => s.querySelectorAll('img').forEach((img) => (img.loading = 'eager')));
+    if ('requestIdleCallback' in window) requestIdleCallback(carregarResto, { timeout: 3000 });
+    else setTimeout(carregarResto, 2000);
+
+    function marcar(n: number) {
+      marcas.forEach((m, i) => {
+        m.classList.remove('vt-marca--ativa');
+        m.toggleAttribute('aria-current', i === n);
+      });
+      // Reinicia o preenchimento do fio: tira, força o navegador a notar,
+      // põe de novo
+      void marcas[n]?.offsetWidth;
+      marcas[n]?.classList.add('vt-marca--ativa');
+      mostrarPino(n, calmo ? 0 : TRANSICAO + 150);
+    }
+
+    function ir(n: number) {
+      if (n === atual || ocupado) return;
+      ocupado = true;
+      const de = slides[atual];
+      const para = slides[n];
+
+      de.classList.add('slide--saindo');
+      de.classList.remove('slide--ativo');
+      de.setAttribute('aria-hidden', 'true');
+      para.classList.add('slide--ativo');
+      para.removeAttribute('aria-hidden');
+
+      marcar(n);
+      atual = n;
+
+      // Terminada a passagem, a que saiu volta para a direita sem animar,
+      // pronta para entrar de novo na próxima volta.
+      setTimeout(
+        () => {
+          de.classList.add('slide--sem-anim');
+          de.classList.remove('slide--saindo');
+          void de.offsetWidth;
+          de.classList.remove('slide--sem-anim');
+          ocupado = false;
+        },
+        calmo ? 0 : TRANSICAO,
+      );
+
+      agendar();
+    }
+
+    // A foto só entra quando estiver baixada e decodificada — senão a
+    // passagem mostra fundo preto. Se demorar mais de 2,5s (internet
+    // ruim), entra mesmo assim para a vitrine não travar.
+    function pronta(slide: HTMLElement) {
+      const imgs = [...slide.querySelectorAll('img')];
+      imgs.forEach((img) => (img.loading = 'eager'));
+      return Promise.race([
+        Promise.all(imgs.map((img) => img.decode().catch(() => {}))),
+        new Promise((r) => setTimeout(r, 2500)),
+      ]);
+    }
+
+    async function avancarPara(n: number) {
+      await pronta(slides[n]);
+      ir(n);
+    }
+
+    function agendar() {
+      clearTimeout(relogio);
+      if (calmo || document.hidden) return;
+      relogio = window.setTimeout(() => avancarPara((atual + 1) % slides.length), ms);
+    }
+
+    marcas.forEach((m) => {
+      m.addEventListener('click', () => avancarPara(Number(m.dataset.ir)));
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) clearTimeout(relogio);
+      else agendar();
+    });
+
+    if (calmo) caixa.classList.add('vitrine--calma');
+    // Se a primeira foto for de obra (sem a capa principal na frente), o
+    // marcador dela aparece logo que a página assenta
+    mostrarPino(0, calmo ? 0 : 700);
+    agendar();
+  }
+</script>
 
 <style>
   .hero {
@@ -91,7 +396,12 @@ const numeros = [
     flex-direction: column;
     justify-content: flex-end;
     padding: 150px var(--pad) clamp(24px, 3vw, 48px);
+    /* clip, não só hidden: hidden ainda deixa o navegador rolar o Hero de
+       lado quando algo recebe foco (Tab no teclado, por exemplo) — a foto
+       ampliada pelo parallax fica para fora e a página "escorrega".
+       O hidden fica como reserva para navegador antigo. */
     overflow: hidden;
+    overflow: clip;
     isolation: isolate;
   }
 
@@ -140,6 +450,179 @@ const numeros = [
     filter: grayscale(1) contrast(1.15) brightness(.78);
     -webkit-mask-image: linear-gradient(100deg, #000 0%, #000 42%, transparent 82%);
     mask-image: linear-gradient(100deg, #000 0%, #000 42%, transparent 82%);
+  }
+
+  /* ── vitrine ──────────────────────────────────────────────────────
+     A foto da vez fica em 0; as outras esperam fora, à direita. Na troca,
+     a atual sai pela esquerda enquanto a próxima entra — as duas andam
+     juntas, como um painel correndo. */
+  .vitrine { position: absolute; inset: 0; overflow: hidden; overflow: clip }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    transform: translateX(100%);
+    transition: transform 1.1s cubic-bezier(.65, 0, .35, 1);
+  }
+  .slide--ativo { transform: translateX(0) }
+  .slide--saindo { transform: translateX(-100%) }
+  .slide--sem-anim,
+  .vitrine--calma .slide { transition: none }
+
+  /* Fios de tempo, centrados acima do fio dos números. Ancorados nos
+     números para não depender da altura de nada. */
+  .vitrine-info {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + clamp(12px, 1.6vw, 20px));
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+
+  /* ── marcador de mapa ─────────────────────────────────────────────
+     Camada acima da foto. O ponto fica em (--x, --y); o raio sai dele em
+     diagonal e a legenda pousa na ponta. Sequência ao entrar: ponto (0s),
+     raio se desenha (.25s), legenda surge (.6s). Ao sair, some de uma vez
+     — sem atraso, para não ficar para trás quando a foto anda. */
+  .vt-pinos { position: absolute; inset: 0; z-index: 1; pointer-events: none }
+
+  .vt-pino {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s var(--ease);
+  }
+  .vt-pino--ativo { opacity: 1; pointer-events: auto }
+
+  /* O quadrado laranja do ponto final do título, agora como alfinete */
+  .vt-ponto {
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    background: var(--orange);
+    transform: scale(0);
+    transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
+  }
+  /* Pulso: um contorno que cresce e some, como alvo no mapa */
+  .vt-ponto::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border: 1px solid var(--orange);
+    opacity: 0;
+  }
+  .vt-pino--ativo .vt-ponto { transform: scale(1) }
+  .vt-pino--ativo .vt-ponto::after { animation: vt-pulso 2.2s var(--ease) .4s infinite }
+  @keyframes vt-pulso {
+    0% { transform: scale(1); opacity: .9 }
+    100% { transform: scale(3.4); opacity: 0 }
+  }
+
+  /* O raio: fio de 1px que se desenha a partir do ponto */
+  .vt-raio {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 62px;
+    height: 1px;
+    background: var(--orange);
+    transform-origin: 0 50%;
+    transform: rotate(-40deg) scaleX(0);
+    transition: transform .45s var(--ease);
+  }
+  .vt-pino--esq .vt-raio { transform: rotate(-140deg) scaleX(0) }
+  .vt-pino--ativo .vt-raio { transform: rotate(-40deg) scaleX(1); transition-delay: .25s }
+  .vt-pino--esq.vt-pino--ativo .vt-raio { transform: rotate(-140deg) scaleX(1) }
+
+  /* A legenda pousa na ponta do raio (62px a -40°: 47px → e 40px ↑) */
+  .vt-rotulo {
+    position: absolute;
+    left: 52px;
+    bottom: 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px 9px;
+    /* Cabe no espaço até a borda; faltando, a linha de dados quebra */
+    width: max-content;
+    max-width: max(190px, calc((100 - var(--xn)) * 1vw - 96px));
+    /* Véu: legível sobre concreto claro, sem virar caixa */
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(10, 10, 10, .7), rgba(10, 10, 10, .35) 70%, transparent);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .vt-pino--esq .vt-rotulo {
+    left: auto;
+    right: 52px;
+    text-align: right;
+    align-items: flex-end;
+    max-width: max(190px, calc(var(--xn) * 1vw - 96px));
+  }
+  .vt-pino--ativo .vt-rotulo {
+    opacity: 1;
+    transform: none;
+    transition: opacity .5s var(--ease) .6s, transform .5s var(--ease) .6s;
+  }
+
+  .vt-rotulo b {
+    font-size: clamp(1.15rem, 1.6vw, 1.6rem);
+    line-height: 1;
+    color: var(--white);
+    transition: color .3s var(--ease);
+  }
+  .vt-pino:hover .vt-rotulo b { color: var(--orange) }
+  .vt-dado {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gray-200);
+  }
+  .vt-dado--exec { color: var(--orange) }
+
+  /* Etiqueta compacta do celular: no PC fica escondida (vale o marcador) */
+  .vt-etiquetas { display: none }
+
+  /* Fios de tempo: curtos e finos, só para dizer "tem mais fotos" */
+  .vt-marcas { display: flex; gap: 5px }
+  .vt-marca {
+    width: 22px;
+    padding: 6px 0;   /* área de toque maior que o fio */
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .vt-marca i {
+    position: relative;
+    display: block;
+    height: 1px;
+    background: var(--line-2);
+    overflow: hidden;
+  }
+  .vt-marca i::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 0;
+    background: var(--gray-200);
+  }
+  .vt-marca--ativa i::after { animation: vt-encher var(--ms) linear forwards }
+  @keyframes vt-encher { to { width: 100% } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: none }
+    .vt-marca--ativa i::after { animation: none; width: 100% }
+    /* Marcador aparece pronto: sem pulso, sem raio se desenhando */
+    .vt-ponto, .vt-raio, .vt-rotulo, .vt-etiqueta { transition: none !important }
+    .vt-pino--ativo .vt-ponto::after,
+    .vt-etiqueta--ativa .vt-etiqueta-ponto::after { animation: none }
   }
 
   /* Escurece a esquerda para o texto ter contraste, e o rodapé para os números */
@@ -274,6 +757,55 @@ const numeros = [
 
   @media (max-width: 860px) {
     .hero { padding-top: 120px }
+
+    /* Celular: o título ocupa quase a tela toda e o marcador caía em cima
+       dele. Some o marcador sobre a foto e entra a etiqueta compacta acima
+       dos fios — mesmo quadrado laranja, nome e cidade numa linha. */
+    .vt-pinos { display: none }
+    .hero-conteudo { padding-bottom: 66px } /* espaço para etiqueta + fios */
+    .vitrine-info { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100% }
+
+    .vt-etiquetas { display: grid; justify-items: center; width: 100% }
+    .vt-etiqueta {
+      grid-area: 1 / 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity .35s var(--ease), transform .35s var(--ease);
+    }
+    .vt-etiqueta--ativa {
+      opacity: 1;
+      transform: none;
+      transition: opacity .5s var(--ease) .1s, transform .5s var(--ease) .1s;
+    }
+    .vt-etiqueta b { font-weight: 500; color: var(--white) }
+    .vt-etiqueta span { overflow: hidden; text-overflow: ellipsis }
+    .vt-etiqueta span::before { content: "·"; margin-right: 8px; color: var(--gray-500) }
+
+    .vt-etiqueta-ponto {
+      position: relative;
+      flex: none;
+      width: 8px;
+      height: 8px;
+      background: var(--orange);
+    }
+    .vt-etiqueta-ponto::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border: 1px solid var(--orange);
+      opacity: 0;
+    }
+    .vt-etiqueta--ativa .vt-etiqueta-ponto::after { animation: vt-pulso 2.2s var(--ease) .3s infinite }
 
     .hero-numeros { grid-template-columns: 1fr; border-top: 0 }
     .numero {

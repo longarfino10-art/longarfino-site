@@ -1,0 +1,21 @@
+{
+  "ativa": true,
+  "segundos": 6,
+  "slides": [
+    {
+      "tipo": "principal"
+    },
+    {
+      "obra": "park-abraao"
+    },
+    {
+      "obra": "pista-trindade"
+    },
+    {
+      "obra": "ct-curitiba"
+    },
+    {
+      "obra": "pista-morrinhos"
+    }
+  ]
+}

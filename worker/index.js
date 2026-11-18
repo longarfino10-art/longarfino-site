@@ -22,7 +22,20 @@
 // Quando o Zero Trust for ligado, basta preencher as duas variáveis: a
 // senha deixa de ser aceita sem mudar uma linha de código.
 
-import { montarArquivos } from './montar.js';
+import { montarArquivos, montarVitrine, montarNumeros, montarDepoimentos, montarTudo } from './montar.js';
+
+// O plano gratuito do Workers permite 50 chamadas de rede por requisição.
+// O commit gasta 5 fixas e 1 por foto (texto vai junto na árvore, sem
+// chamada própria). 40 fotos por publicação deixa folga.
+const MAX_FOTOS_POR_PUBLICACAO = 40;
+
+// Dados do site que o painel grava além das obras. Cada um tem o seu
+// montador (testável no node) e a mensagem do commit.
+const DADOS = {
+  '/api/vitrine': { montar: montarVitrine, mensagem: 'vitrine: atualiza as fotos da capa' },
+  '/api/numeros': { montar: montarNumeros, mensagem: 'numeros: atualiza o histórico fora do site' },
+  '/api/depoimentos': { montar: montarDepoimentos, mensagem: 'depoimentos: atualiza a lista' },
+};
 
 export default {
   async fetch(request, env) {
@@ -34,6 +47,14 @@ export default {
 
     if (url.pathname === '/api/entrar') {
       return comErro(() => entrar(request, env));
+    }
+
+    if (DADOS[url.pathname]) {
+      return comErro(() => gravarDados(request, env, DADOS[url.pathname]));
+    }
+
+    if (url.pathname === '/api/publicar-tudo') {
+      return comErro(() => publicarTudo(request, env));
     }
 
     // Qualquer outra coisa é o site estático
@@ -104,6 +125,65 @@ async function publicar(request, env) {
     commit: commit.sha.slice(0, 7),
     arquivos: arquivos.length,
   });
+}
+
+// Todas as alterações salvas no rascunho do painel, num commit só
+async function publicarTudo(request, env) {
+  if (request.method !== 'POST') return json({ ok: false, erros: ['método'] }, 405);
+
+  const negado = await autorizar(request, env);
+  if (negado) return json({ ok: false, erros: [negado] }, 403);
+
+  const { arquivos, resumo } = montarTudo(await request.json());
+
+  const fotos = arquivos.filter((a) => a.base64).length;
+  if (fotos > MAX_FOTOS_POR_PUBLICACAO) {
+    return json({
+      ok: false,
+      erros: [
+        'São ' + fotos + ' fotos novas nesta publicação; o limite é ' + MAX_FOTOS_POR_PUBLICACAO +
+          '. Publique uma parte, espere 2 minutos e publique o resto.',
+      ],
+    }, 400);
+  }
+
+  if (env.PAINEL_ENSAIO === '1') {
+    return json({
+      ok: true,
+      ensaio: true,
+      resumo,
+      arquivos: arquivos.map((a) => (a.base64 ? { caminho: a.caminho, bytes: a.base64.length } : a)),
+    });
+  }
+
+  const quemEnviou = request.headers.get('Cf-Access-Authenticated-User-Email') || 'painel';
+  const titulo = resumo.length === 1 ? resumo[0] : 'painel: ' + resumo.length + ' alterações';
+  const corpo = resumo.length === 1 ? '' : resumo.map((r) => '- ' + r).join('\n') + '\n\n';
+  const commit = await commitar(env, arquivos, titulo + '\n\n' + corpo + 'Pelo painel, por ' + quemEnviou);
+
+  return json({ ok: true, commit: commit.sha.slice(0, 7), arquivos: arquivos.length, resumo });
+}
+
+// Vitrine, números e depoimentos: mesma porta, montador diferente
+async function gravarDados(request, env, { montar, mensagem }) {
+  if (request.method !== 'POST') return json({ ok: false, erros: ['método'] }, 405);
+
+  const negado = await autorizar(request, env);
+  if (negado) return json({ ok: false, erros: [negado] }, 403);
+
+  const { arquivos } = montar(await request.json());
+
+  if (env.PAINEL_ENSAIO === '1') {
+    return json({
+      ok: true,
+      ensaio: true,
+      arquivos: arquivos.map((a) => (a.base64 ? { caminho: a.caminho, bytes: a.base64.length } : a)),
+    });
+  }
+
+  const quemEnviou = request.headers.get('Cf-Access-Authenticated-User-Email') || 'painel';
+  const commit = await commitar(env, arquivos, mensagem + '\n\nPelo painel, por ' + quemEnviou);
+  return json({ ok: true, commit: commit.sha.slice(0, 7), arquivos: arquivos.length });
 }
 
 // ── autorização ─────────────────────────────────────────────────────
@@ -249,16 +329,18 @@ async function commitar(env, arquivos, mensagem) {
   const shaBase = ref.object.sha;
   const commitBase = await gh(api + '/git/commits/' + shaBase, { headers: cab });
 
+  // Texto vai direto na árvore (sem chamada própria); só foto precisa de
+  // blob — é o que mantém a publicação dentro do limite de chamadas.
   const arvore = [];
   for (const a of arquivos) {
+    if (!a.base64) {
+      arvore.push({ path: a.caminho, mode: '100644', type: 'blob', content: a.conteudo });
+      continue;
+    }
     const blob = await gh(api + '/git/blobs', {
       method: 'POST',
       headers: cab,
-      body: JSON.stringify(
-        a.base64
-          ? { content: a.base64, encoding: 'base64' }
-          : { content: a.conteudo, encoding: 'utf-8' },
-      ),
+      body: JSON.stringify({ content: a.base64, encoding: 'base64' }),
     });
     arvore.push({ path: a.caminho, mode: '100644', type: 'blob', sha: blob.sha });
   }

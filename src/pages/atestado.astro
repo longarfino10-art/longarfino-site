@@ -11,6 +11,9 @@
 import Base from '../layouts/Base.astro';
 import Desenhos from '../components/ui/Desenhos.astro';
 import Trilha from '../components/layout/Trilha.astro';
+import { numerosDoSite } from '../lib/numeros';
+
+const { m2Texto } = await numerosDoSite();
 
 const PDF = '/documentos/atestado-cbsk-004-2026.pdf';
 
@@ -95,7 +98,7 @@ const vistoriados = [
     </div>
 
     <div class="at-soma">
-      <span class="mono-sm">Soma dos trechos vistoriados · de 12.360 m² construídos</span>
+      <span class="mono-sm">Soma dos trechos vistoriados · de {m2Texto} m² construídos</span>
       <span class="at-total">4.343,66 m²</span>
     </div>
 

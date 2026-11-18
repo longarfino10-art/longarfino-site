@@ -33,6 +33,7 @@ const etapa = emExec ? etapaAtual(d.etapas) : null;
 <Base
   titulo={`${d.nome} — Longarfino Skateparks`}
   descricao={d.descricao_curta ?? `Skatepark em ${d.cidade}/${d.uf}, ${d.area_m2} m².`}
+  comentarios
 >
   <Trilha itens={[{ nome: 'Obras', href: '/obras' }, { nome: d.nome }]} />
 

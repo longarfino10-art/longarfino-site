@@ -1,4 +1,5 @@
 ---
+import { numerosDoSite } from '../../lib/numeros';
 // Seção "A Longarfino": números da empresa e feedbacks de clientes.
 // A tira de fotos (Galeria.astro) vem logo em seguida e fecha o bloco.
 //
@@ -11,7 +12,7 @@ const anos = new Date().getFullYear() - ANO_INICIO;
 
 const dados = [
   { valor: anos + '+', titulo: 'Anos', complemento: 'de experiência' },
-  { valor: '12.360', titulo: 'M² de pistas', complemento: 'construídas' },
+  { valor: (await numerosDoSite()).m2Texto, titulo: 'M² de pistas', complemento: 'construídas' },
   { valor: '15+', titulo: 'Obras', complemento: 'entregues' },
   { valor: '5', titulo: 'Estados', complemento: 'atendidos' },
 ];

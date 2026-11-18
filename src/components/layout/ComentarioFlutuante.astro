@@ -1,0 +1,233 @@
+---
+// Comentários surgindo durante a navegação — prova social discreta.
+//
+// Um cartão pequeno entra pela esquerda no canto de baixo, fica uns
+// segundos e sai; o próximo vem bem depois. Regras para não atrapalhar:
+//   - só começa depois que a pessoa rolou para além da primeira tela
+//     (a capa já tem a vitrine; dois movimentos ao mesmo tempo é demais)
+//   - não aparece quando a seção de depoimentos ou o rodapé estão na tela
+//     — seria repetir o que a pessoa já está vendo
+//   - para enquanto o mouse está em cima; o ✕ desliga até fechar o site
+//   - quem pediu menos movimento no sistema vê só um esmaecer, sem deslizar
+//
+// Os comentários são os mesmos de src/data/depoimentos.json — entram pelo
+// painel ("Depoimentos"), nada a programar.
+
+import depoimentos from '../../data/depoimentos.json';
+
+const itens = depoimentos.itens;
+---
+
+{itens.length > 0 && (
+  <aside class="flutua" data-flutua aria-label="Comentários de quem anda nas pistas">
+    {itens.map((d) => (
+      <figure class="flutua-item">
+        <blockquote>{d.texto}</blockquote>
+        <figcaption>{d.autor}{d.complemento && ' · ' + d.complemento}</figcaption>
+      </figure>
+    ))}
+    <button class="flutua-fechar" type="button" aria-label="Não mostrar mais os comentários">✕</button>
+  </aside>
+)}
+
+<script>
+  const caixa = document.querySelector<HTMLElement>('[data-flutua]');
+  const CHAVE = 'comentarios-fechados';
+
+  if (caixa && !sessionStorage.getItem(CHAVE)) {
+    const itens = [...caixa.querySelectorAll<HTMLElement>('.flutua-item')];
+    // Pouco e espaçado: prova social é lembrete, não propaganda piscando.
+    // (Primeira versão: 7s na tela, 20s de intervalo, sem limite — o Lucas
+    // achou demais e por cima do conteúdo no celular.)
+    const VISIVEL = 6000;        // tempo na tela
+    const INTERVALO = 40000;     // espera até o próximo
+    const MAX_POR_PAGINA = 3;    // depois disso, não volta nesta página
+    const ESPERA_INICIAL = 3000;
+    const PARADO_MS = 1200;      // celular: só aparece com a rolagem parada
+    const celular = matchMedia('(max-width: 860px)');
+
+    let vez = 0;
+    let mostrados = 0;
+    let rolou = false;      // passou da primeira tela?
+    let atrapalha = false;  // depoimentos ou rodapé na tela
+    let parado = true;      // a pessoa parou de rolar?
+    let mouse = false;
+    let relogio: number | undefined;
+    let paradoRelogio: number | undefined;
+    let mostrando = false;
+
+    const podeMostrar = () =>
+      rolou && !atrapalha && !document.hidden && (!celular.matches || parado);
+
+    function esconder() {
+      mostrando = false;
+      caixa!.classList.remove('flutua--aberto');
+    }
+
+    function mostrar() {
+      if (mostrados >= MAX_POR_PAGINA) return;
+      if (!podeMostrar()) return agendar(3000); // tenta de novo daqui a pouco
+      itens.forEach((it, i) => it.classList.toggle('flutua-item--vez', i === vez));
+      mostrando = true;
+      mostrados++;
+      caixa!.classList.add('flutua--aberto');
+      relogio = window.setTimeout(sair, VISIVEL);
+    }
+
+    function sair() {
+      // Mouse em cima: espera a pessoa terminar de ler
+      if (mouse) {
+        relogio = window.setTimeout(sair, 1500);
+        return;
+      }
+      esconder();
+      vez = (vez + 1) % itens.length;
+      if (mostrados < MAX_POR_PAGINA) agendar(INTERVALO);
+    }
+
+    // Celular: rolou, some na hora — o cartão nunca fica por cima do que a
+    // pessoa está lendo enquanto desce a página. Volta a valer quando ela
+    // para; o comentário cortado conta como visto.
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!celular.matches) return;
+        parado = false;
+        if (mostrando) {
+          clearTimeout(relogio);
+          esconder();
+          vez = (vez + 1) % itens.length;
+          if (mostrados < MAX_POR_PAGINA) agendar(INTERVALO);
+        }
+        clearTimeout(paradoRelogio);
+        paradoRelogio = window.setTimeout(() => (parado = true), PARADO_MS);
+      },
+      { passive: true },
+    );
+
+    function agendar(ms: number) {
+      clearTimeout(relogio);
+      relogio = window.setTimeout(mostrar, ms);
+    }
+
+    // Começa quando a pessoa sai da primeira tela
+    const conferirRolagem = () => {
+      if (!rolou && window.scrollY > window.innerHeight * 0.8) {
+        rolou = true;
+        window.removeEventListener('scroll', conferirRolagem);
+        agendar(ESPERA_INICIAL);
+      }
+    };
+    window.addEventListener('scroll', conferirRolagem, { passive: true });
+    conferirRolagem();
+
+    // Não disputa com a seção de depoimentos nem com o rodapé
+    const vigiados = document.querySelectorAll('.dep, footer');
+    const vistos = new Set<Element>();
+    if (vigiados.length && 'IntersectionObserver' in window) {
+      const obs = new IntersectionObserver((entradas) => {
+        for (const e of entradas) e.isIntersecting ? vistos.add(e.target) : vistos.delete(e.target);
+        atrapalha = vistos.size > 0;
+        if (atrapalha && mostrando) esconder();
+      });
+      vigiados.forEach((v) => obs.observe(v));
+    }
+
+    caixa.addEventListener('mouseenter', () => (mouse = true));
+    caixa.addEventListener('mouseleave', () => (mouse = false));
+
+    caixa.querySelector('.flutua-fechar')?.addEventListener('click', () => {
+      clearTimeout(relogio);
+      esconder();
+      sessionStorage.setItem(CHAVE, '1');
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && mostrando) esconder();
+    });
+  }
+</script>
+
+<style>
+  /* Cartão discreto: mesmo painel do resto do site — fundo escuro, fio de
+     1px, canto reto — com um fio laranja à esquerda como única cor. */
+  .flutua {
+    position: fixed;
+    left: clamp(12px, 2vw, 28px);
+    bottom: clamp(12px, 2vw, 28px);
+    z-index: 15;
+    width: min(290px, calc(100vw - 24px));
+    padding: 12px 34px 12px 14px;
+    background: rgba(10, 10, 10, .92);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--orange);
+    transform: translateX(calc(-100% - 40px));
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform .7s var(--ease),
+      opacity .5s var(--ease),
+      visibility 0s linear .7s;
+  }
+  .flutua--aberto {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    transition: transform .7s var(--ease), opacity .5s var(--ease), visibility 0s;
+  }
+
+  .flutua-item { display: none; margin: 0 }
+  .flutua-item--vez { display: block }
+
+  /* No máximo duas linhas: comentário longo vira reticências em vez de
+     crescer para cima e cobrir a página */
+  .flutua blockquote {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--gray-200);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .flutua blockquote::before { content: "“"; color: var(--orange); margin-right: 2px }
+  .flutua blockquote::after { content: "”"; color: var(--orange); margin-left: 1px }
+
+  .flutua figcaption {
+    margin-top: 8px;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+
+  .flutua-fechar {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    background: none;
+    border: 0;
+    color: var(--gray-500);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color .25s var(--ease);
+  }
+  .flutua-fechar:hover { color: var(--orange) }
+
+  /* Celular: mais baixo e mais estreito, colado no canto */
+  @media (max-width: 600px) {
+    .flutua { left: 10px; bottom: 10px; width: min(260px, calc(100vw - 20px)); padding: 10px 30px 10px 12px }
+    .flutua blockquote { font-size: 12px }
+    .flutua figcaption { margin-top: 5px; font-size: 9px }
+  }
+
+  /* Menos movimento: só esmaece, sem deslizar */
+  @media (prefers-reduced-motion: reduce) {
+    .flutua { transform: none; transition: opacity .4s, visibility 0s linear .4s }
+    .flutua--aberto { transition: opacity .4s, visibility 0s }
+  }
+</style>

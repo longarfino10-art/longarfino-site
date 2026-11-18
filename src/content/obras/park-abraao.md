@@ -3,7 +3,7 @@ nome: "Park Abraão"
 cidade: "Florianópolis"
 uf: "SC"
 tipo: ["Bowl", "Street"]
-status: "em_execucao"
+status: "concluida"
 cliente: "Prefeitura de Florianópolis"
 duracao: "fev/2023 a fev/2024"
 ano: 2024
@@ -17,11 +17,6 @@ fotos:
   - "./../../assets/obras/park-abraao/img_2114.jpeg"
   - "./../../assets/obras/park-abraao/img_2478.jpeg"
   - "./../../assets/obras/park-abraao/img_0776.jpeg"
-etapas:
-  - nome: "Início"
-    peso: 1
-    situacao: "fazendo"
-atualizado_em: 2026-11-18
 destaque: true
 ordem: 3
 ---

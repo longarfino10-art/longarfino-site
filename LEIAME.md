@@ -4,23 +4,39 @@
     npm run build     # gera ./dist
     npm run preview   # confere o build
 
-## Publicar uma obra pelo painel (jeito normal)
+## Usar o painel (jeito normal)
 
 1. Abrir **longarfinoskateparks.com.br/admin** — pelo celular funciona
 2. Entrar com a senha do painel — o aparelho lembra, é uma vez só
-3. Preencher a ficha, subir as fotos, marcar as etapas
-4. **Publicar.** O site atualiza sozinho em 1 a 2 minutos
+3. Fazer as alterações e apertar **Salvar** em cada tela
+4. Quando terminar tudo, **Publicar tudo** na barra de baixo. Um envio só;
+   o site atualiza sozinho em 1 a 2 minutos
 
-A porcentagem da barra não é digitada: ela sai das etapas marcadas.
+O que foi salvo fica guardado no aparelho até publicar — pode fechar o
+navegador e voltar depois. "Desfazer" na barra tira uma alteração.
 
-**Quando a obra terminar:** em "Atualizar andamento", marque **Obra entregue**
-antes de publicar. O cartão sai da home e as etapas viram "Como foi feita".
+**Obra em andamento:** "Atualizar andamento" — a porcentagem sai das etapas
+marcadas, não se digita.
 
-**Para corrigir qualquer obra** (nome, texto, capa, fotos, situação): use
-**Editar obra**. O que você não mexer continua exatamente igual.
+**Quando a obra terminar:** marque **Obra entregue** e confira a **metragem
+final**. Ao publicar, a metragem entra no total de m² do site e a obra conta
+como entregue. O cartão sai da home e as etapas viram "Como foi feita".
 
-Depois de publicar, espere 2 minutos e recarregue a página antes de fazer
-outra alteração.
+**Para corrigir qualquer obra:** **Editar obra**. O que você não mexer continua
+exatamente igual.
+
+**Fotos da abertura do site:** **Capa do site** — liga/desliga a troca, tempo,
+ordem, qual foto de cada obra, e **trocar a capa principal** por uma foto do
+computador ou do celular. Em cada obra, **Marcador** escolhe onde o marcador de mapa aparece na foto.
+
+**Depoimentos:** copie o comentário **exatamente como foi escrito**, com o @ de
+quem escreveu. Com o link do post, quem lê pode conferir. Eles aparecem na seção "A Longarfino" e também surgem, discretos, no canto da tela enquanto a pessoa navega.
+
+**Números do site:** só para obras que **não estão** publicadas no site. As do
+site somam sozinhas quando concluídas.
+
+Depois de publicar, espere 2 minutos e recarregue a página antes de mexer de
+novo.
 
 ## Publicar uma obra pela pasta (quando precisar mexer no código)
 

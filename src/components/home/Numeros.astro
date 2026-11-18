@@ -10,15 +10,21 @@ import fPaulo from '../../assets/equipe/paulo.jpg';
 import fLucas from '../../assets/equipe/lucas.jpg';
 import fGrazi from '../../assets/equipe/grazi.png';
 import fLeandro from '../../assets/equipe/leandro.png';
+import { numerosDoSite } from '../../lib/numeros';
+import depoimentos from '../../data/depoimentos.json';
 
 const ANO_INICIO = 2007;
 const anos = new Date().getFullYear() - ANO_INICIO;
 
+// m², obras e estados são calculados: histórico fora do site + obras
+// concluídas. Concluir uma obra no painel sobe os três sozinho.
+const n = await numerosDoSite();
+
 const dados = [
   { valor: anos + '+', titulo: 'Anos', complemento: 'de experiência' },
-  { valor: '12.360', titulo: 'M² de pistas', complemento: 'construídas' },
-  { valor: '15', titulo: 'Obras', complemento: 'entregues' },
-  { valor: '5', titulo: 'Estados', complemento: 'atendidos' },
+  { valor: n.m2Texto, titulo: 'M² de pistas', complemento: 'construídas' },
+  { valor: String(n.obras), titulo: 'Obras', complemento: 'entregues' },
+  { valor: String(n.estados), titulo: 'Estados', complemento: 'atendidos' },
 ];
 
 const equipe = [
@@ -28,25 +34,10 @@ const equipe = [
   { nome: 'Leandro', funcao: 'Engenheiro civil', foto: fLeandro },
 ];
 
-// Comentários reais, copiados dos posts do Instagram como foram escritos.
+// Comentários reais, copiados dos posts como foram escritos. Ficam em
+// src/data/depoimentos.json e entram pelo painel ("Depoimentos").
 // Não editar o texto: a graça é justamente ser fala de quem anda.
-const feedbacks = [
-  {
-    texto: 'Munariskatepark padrão Longarfino de qualidade.',
-    autor: '@munariskatepark',
-    local: 'Imbituba / SC',
-  },
-  {
-    texto: 'Galera vai ter uma pista de primeira!!',
-    autor: '@kelvin_simoess',
-    local: 'Kelvin Simões',
-  },
-  {
-    texto: 'Obrigado pela excelência no trabalho realizado',
-    autor: '@viniciusbilly',
-    local: 'Vinícius Billy',
-  },
-];
+const feedbacks = depoimentos.itens;
 
 
 ---
@@ -97,15 +88,21 @@ const feedbacks = [
     </div>
   </div>
 
+  <!-- Sem depoimento cadastrado, a faixa some em vez de mostrar aspas vazias -->
+  {feedbacks.length > 0 && (
   <figure class="dep rv" data-rodizio>
     <span class="aspas" aria-hidden="true">"</span>
     {feedbacks.map((f, i) => (
       <div class={'item' + (i === 0 ? ' ativo' : '')}>
         <blockquote class="fala">{f.texto}</blockquote>
-        <figcaption class="autor mono-sm">{f.autor} · {f.local}</figcaption>
+        <figcaption class="autor mono-sm">
+          {f.link ? <a href={f.link} target="_blank" rel="noopener">{f.autor}</a> : f.autor}
+          {f.complemento && ' · ' + f.complemento}
+        </figcaption>
       </div>
     ))}
   </figure>
+  )}
 </section>
 
 <script>

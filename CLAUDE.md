@@ -38,8 +38,64 @@ otimizar a foto (WebP + srcset) no build. Foto em `public/` não é otimizada.
 `_MODELO.md` é ignorado pelo loader (padrão `[^_]*.md`).
 
 `status: em_execucao` muda cinco lugares sozinho: a obra vai para o slot grande
-da home, ganha a etiqueta "Em execução" no card e na ficha técnica, aparece na
+da home, ganha a etiqueta "Em execução" no card e na ficha técnica, aparece no
 cartão dentro do Hero e exibe a barra de andamento.
+
+## Vitrine da capa
+
+O fundo do Hero alterna fotos. A configuração fica em `src/data/vitrine.json`
+(ligada ou não, segundos por foto, lista de fotos) e o painel grava esse
+arquivo. Cada item é `{ "tipo": "principal" }` ou `{ "obra": "<slug>" }`, com
+`"foto"` opcional para usar outra foto da obra que não a capa.
+
+**Capa principal:** `vitrine.capa` com o nome de um arquivo em
+`src/assets/capa/` (subido pelo painel). Sem esse campo, ou com arquivo que
+não existe, vale a original `src/assets/hero.webp`.
+
+- A legenda **não fica no JSON**: sai da obra no build (nome, cidade, período
+  ou porcentagem). Nunca desatualiza nem é digitada duas vezes.
+- Obra apagada ou foto que saiu da obra: o item é pulado. A home nunca quebra
+  por causa da vitrine — testado com uma obra inexistente na lista.
+- `src/lib/fotos.ts` liga o caminho escrito no `.md` à foto resolvida pelo
+  `image()`. A coleção perde o caminho original; o `.md` cru tem os dois.
+- Legenda num **marcador de mapa** sobre a foto: o quadrado laranja do ponto
+  final do título pulsando, um raio de 1px em diagonal e o texto na ponta.
+  Entra depois que a foto termina de chegar. Posição por foto em
+  `slides[].marcador` (`{x, y}` em % da tela), ajustável no painel; sem ajuste,
+  55% × 34%. Com x > 62 o rótulo vira para a esquerda.
+- **No celular não há marcador sobre a foto** — o título ocupa quase a tela e
+  ele caía em cima. Lá entra uma etiqueta compacta acima dos fios (quadrado
+  laranja + nome + cidade numa linha), `.vt-etiqueta`; o CSS mostra um ou outro.
+  Histórico: a legenda já foi painel no canto (competia com o cartão de obra)
+  e depois linha na base (ficava colada nos números) — o Lucas pediu o mapa.
+- Os fios de tempo ficam centrados acima do fio dos números, por último dentro
+  de `.hero-numeros`: os números usam `:first-child`/`nth-child`.
+- A troca espera a próxima foto estar decodificada (`img.decode()`, até 2,5s);
+  sem isso a passagem mostrava fundo preto.
+- `.hero` usa `overflow: clip`, não só `hidden`: com `hidden`, foco por teclado
+  rolava o Hero de lado e a página escorregava.
+
+## Números e depoimentos
+
+**Nada de número escrito à mão.** `src/lib/numeros.ts` calcula m² construídos,
+obras entregues e estados atendidos: histórico das obras **fora** do site
+(`src/data/numeros.json`, editável no painel) + obras do site com
+`status: concluida`. Obra em execução não conta. Usado na capa, na seção
+"Em números", na descrição do Google (`index.astro`), no atestado e no mapa.
+Os valores de 18/11 reproduzem o site de antes: 12.360 m², 15 obras, 5
+estados — com as 6 obras publicadas como concluídas.
+
+Depoimentos em `src/data/depoimentos.json` (`texto`, `autor` com @,
+`complemento` e `link` opcionais). Lista vazia → a faixa some do site.
+
+Os mesmos depoimentos surgem num cartão discreto no canto inferior esquerdo
+durante a navegação (`ComentarioFlutuante.astro`, ligado por `comentarios` no
+`<Base>` só na home, obras e A Longarfino). Regras para não atrapalhar: só
+depois da primeira tela, nunca com a seção de depoimentos ou o rodapé à vista,
+para com o mouse em cima, ✕ desliga na sessão. 6s na tela, 40s de intervalo,
+no máximo 3 por página, duas linhas de texto. No celular só aparece com a
+rolagem parada e some assim que a pessoa volta a rolar — a primeira versão
+ficava por cima do conteúdo.
 
 ## Andamento de obra
 
@@ -62,14 +118,21 @@ Tela própria, com a identidade do site. Três peças:
 | Arquivo | Papel |
 |---|---|
 | `src/pages/admin/index.astro` | A tela. Lê os `.md` crus no build (com `js-yaml`) porque o `image()` troca o caminho da foto por objeto |
-| `worker/index.js` | `POST /api/publicar`: confere o Cloudflare Access e faz **um** commit com tudo pela Git Data API |
-| `worker/montar.js` | Transforma o formulário no `.md` + fotos. Sem dependência de runtime — é a parte testável |
+| `worker/index.js` | `POST /api/publicar-tudo`: confere a senha/Access e faz **um** commit com todas as alterações pela Git Data API |
+| `worker/montar.js` | Transforma cada alteração nos arquivos (`montarArquivos`, `montarVitrine`, `montarNumeros`, `montarDepoimentos`, e `montarTudo` que junta). Sem dependência de runtime — é a parte testável |
 
 As fotos são reduzidas no celular (2000px, JPEG 0.82) antes de subir.
 
-Três modos: **andamento** (só obras em execução; tem o "Obra entregue", que
-vira `status: concluida`), **obra nova** e **editar** (qualquer obra; a
-galeria mostra miniaturas geradas no build com `getImage`).
+Seis telas: **andamento** (só obras em execução; "Obra entregue" conclui e
+pede a metragem final), **obra nova**, **editar** (qualquer obra; galeria com
+miniaturas do build), **capa do site**, **depoimentos**, **números do site**.
+
+**Rascunho:** nenhuma tela publica sozinha. "Salvar" guarda no IndexedDB do
+aparelho (sobrevive a recarregar; localStorage não aguentaria as fotos), e a
+barra fixa embaixo publica tudo de uma vez: um commit, um build. Erro em uma
+alteração barra o pacote inteiro e diz qual é. Texto vai direto na árvore do
+commit; só foto gasta chamada de rede — o plano gratuito do Workers permite
+50 por requisição, então o limite é 40 fotos por publicação.
 
 **Mexeu no schema, mexa no `worker/montar.js`.** É ele que escreve o
 frontmatter; se sair de sincronia, o painel grava algo que o build recusa.
@@ -97,14 +160,14 @@ Cloudflare, nunca no repositório.
 
 **Testar o Worker local:** `npx wrangler@4 dev` depois do build, com a senha
 de teste em `.dev.vars` (está no `.gitignore`). Com `PAINEL_ENSAIO="1"` no
-`.dev.vars`, o `/api/publicar` devolve os arquivos que gravaria em vez de
-commitar — é como se testa o painel sem tocar no repositório. Essa variável
+`.dev.vars`, a API devolve os arquivos que gravaria em vez de commitar — é
+como se testa o painel sem tocar no repositório. Essa variável
 nunca vai para produção. No Windows, parar o wrangler deixa processos
 `workerd` órfãos segurando a porta — se a porta estiver ocupada, use outra
 (`--port 8788`) em vez de sair matando processo.
 
-Depois de publicar, o painel trava o botão até recarregar: a tela ainda tem
-os dados de antes, e enviar de novo desfaria o que acabou de subir.
+Depois de publicar, o painel trava até recarregar: a tela ainda tem os dados
+de antes, e salvar de novo partiria de uma versão velha.
 
 ## Regras de conteúdo — as mais importantes do projeto
 
