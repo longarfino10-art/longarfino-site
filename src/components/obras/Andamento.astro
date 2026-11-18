@@ -1,0 +1,137 @@
+---
+// Linha do tempo das etapas da obra.
+//
+// Enquanto a obra está na rua, é o andamento. Quando termina, o mesmo
+// registro vira "Como foi feita" — nada do que foi fotografado se perde.
+
+import { Image } from 'astro:assets';
+import { mesAno } from '../../lib/progresso';
+
+interface Props {
+  etapas: any[];
+  emExecucao: boolean;
+  nome: string;
+}
+
+const { etapas, emExecucao, nome } = Astro.props;
+
+const titulo = emExecucao ? 'Andamento da obra' : 'Como foi feita';
+const chapeu = emExecucao ? 'Acompanhamento' : 'Registro';
+---
+
+{etapas.length > 0 && (
+  <section class="sec andamento">
+    <span class="eyebrow">{chapeu}</span>
+    <h2 class="d h-sec andamento-titulo">{titulo}</h2>
+
+    <ol class="linha">
+      {etapas.map((e) => (
+        <li class={'etapa etapa--' + e.situacao}>
+          <div class="etapa-marca" aria-hidden="true"></div>
+
+          <div class="etapa-corpo">
+            <div class="etapa-topo">
+              <h3 class="etapa-nome">{e.nome}</h3>
+              <span class="mono-sm etapa-data">
+                {e.situacao === 'feita' && (mesAno(e.data) ?? 'Concluída')}
+                {e.situacao === 'fazendo' && 'Em andamento'}
+                {e.situacao === 'a_fazer' && 'A fazer'}
+              </span>
+            </div>
+
+            {e.fotos.length > 0 && (
+              <div class="etapa-fotos">
+                {e.fotos.map((foto: any, i: number) => (
+                  <figure class="ph">
+                    <Image
+                      src={foto}
+                      alt={`${nome} — ${e.nome}, foto ${i + 1}`}
+                      widths={[400, 800]}
+                      sizes="(max-width: 860px) 50vw, 25vw"
+                      loading="lazy"
+                    />
+                  </figure>
+                ))}
+              </div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
+
+<style>
+  .andamento { padding-top: 0 }
+  .andamento-titulo { margin-top: 10px }
+
+  .linha {
+    list-style: none;
+    margin-top: clamp(28px, 3.4vw, 48px);
+    padding: 0;
+  }
+
+  .etapa {
+    position: relative;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: clamp(14px, 1.6vw, 26px);
+    padding-bottom: clamp(26px, 3vw, 44px);
+  }
+
+  /* Fio vertical ligando as etapas. O último não precisa continuar. */
+  .etapa::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 14px;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .etapa:last-child::before { display: none }
+
+  /* Quadrado, não bolinha: o projeto não usa canto arredondado */
+  .etapa-marca {
+    width: 9px;
+    height: 9px;
+    margin-top: 6px;
+    border: 1px solid var(--line-2);
+  }
+  .etapa--feita .etapa-marca { background: var(--orange); border-color: var(--orange) }
+  .etapa--fazendo .etapa-marca { border-color: var(--orange) }
+
+  .etapa-topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .etapa-nome {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(1.15rem, 1.6vw, 1.6rem);
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .etapa--a_fazer .etapa-nome { color: var(--gray-500) }
+
+  .etapa-data { flex: none; color: var(--gray-500) }
+  .etapa--fazendo .etapa-data { color: var(--orange) }
+
+  .etapa-fotos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(10px, 1.2vw, 18px);
+    margin-top: clamp(14px, 1.6vw, 22px);
+  }
+  .etapa-fotos .ph { aspect-ratio: 4 / 3 }
+
+  @media (max-width: 860px) {
+    .etapa-fotos { grid-template-columns: repeat(2, 1fr) }
+  }
+</style>

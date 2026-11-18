@@ -20,6 +20,28 @@ const obras = defineCollection({
       fotos: z.array(image()).default([]),
       destaque: z.boolean().default(false),
       ordem: z.number().default(99),
+
+      // ── Acompanhamento de obra ────────────────────────────────────────
+      // Só é usado quando status = em_execucao. A barra de progresso soma
+      // o peso das etapas marcadas — ver src/lib/progresso.ts.
+      // Quando a obra termina, as etapas viram a seção "Como foi feita".
+      etapas: z
+        .array(
+          z.object({
+            nome: z.string(),
+            // Quanto a etapa representa da obra. Não precisa somar 100:
+            // o cálculo é proporcional ao total.
+            peso: z.number().default(10),
+            situacao: z.enum(['a_fazer', 'fazendo', 'feita']).default('a_fazer'),
+            data: z.coerce.date().optional(),
+            fotos: z.array(image()).default([]),
+          }),
+        )
+        .default([]),
+
+      // Data da última atualização do andamento. Aparece junto da barra, e
+      // é o que faz a faixa da home sumir quando a obra fica parada.
+      atualizado_em: z.coerce.date().optional(),
     }),
 });
 

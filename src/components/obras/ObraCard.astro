@@ -4,6 +4,7 @@
 
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
+import { calcularProgresso } from '../../lib/progresso';
 
 interface Props {
   obra: CollectionEntry<'obras'>;
@@ -26,9 +27,21 @@ const marcadores = [
 
 // Variáveis CSS que controlam largura e proporção deste card
 const estilo = '--colunas:' + colunas + ';--proporcao:' + proporcao;
+
+// Obra em execução com etapas cadastradas ganha a barra de andamento no
+// lugar do fio que cresce no hover. O fio já existe na base do card — aqui
+// ele passa a carregar informação em vez de ser só efeito.
+const emExec = d.status === 'em_execucao';
+const pct = emExec ? calcularProgresso(d.etapas) : null;
+const temBarra = pct !== null;
+
+// Template literal em atributo `style` quebra a tag no Astro — concatenar.
+// Vai como variável, não como width: quem anima até ela é o CSS.
+const largura = '--alvo:' + pct + '%';
+const classes = 'obra-card rv' + (temBarra ? ' obra-card--exec' : '');
 ---
 
-<a class="obra-card rv" href={"/obras/" + obra.id} data-tipo={marcadores} style={estilo}>
+<a class={classes} href={"/obras/" + obra.id} data-tipo={marcadores} style={estilo}>
   <div class="ph">
     <Image
       src={d.capa}
@@ -38,7 +51,10 @@ const estilo = '--colunas:' + colunas + ';--proporcao:' + proporcao;
       loading={prioridade ? 'eager' : 'lazy'}
       decoding="async"
     />
-    {d.status === 'em_execucao' && <span class="marca">Em execução</span>}
+    {emExec && (
+      <span class="marca">Em execução{temBarra && ' · ' + pct + '%'}</span>
+    )}
+    {temBarra && <span class="prog-barra" style={largura}></span>}
 
     <div class="dados">
       <div>
@@ -124,6 +140,30 @@ const estilo = '--colunas:' + colunas + ';--proporcao:' + proporcao;
     transition: width .5s var(--ease);
   }
   .obra-card:hover .dados::before { width: 100% }
+
+  /* Na obra em execução esse mesmo fio vira a barra de andamento: largura
+     fixa, vinda do cálculo das etapas. O efeito de hover sai de cena para
+     os dois não disputarem a base do card. */
+  .obra-card--exec .dados::before { display: none }
+
+  .prog-barra {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: var(--orange);
+    z-index: 3;
+    animation: encher 1.6s var(--ease) .35s forwards;
+  }
+
+  @keyframes encher {
+    to { width: var(--alvo) }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prog-barra { width: var(--alvo); animation: none }
+  }
 
   .nome {
     font-size: clamp(1.15rem, 1.5vw, 1.6rem);

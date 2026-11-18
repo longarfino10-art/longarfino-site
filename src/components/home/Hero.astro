@@ -7,6 +7,7 @@
 // inclinação não descolarem a máscara.
 
 import { Image } from 'astro:assets';
+import CardExecucao from './CardExecucao.astro';
 // PROVISÓRIA — imagem gerada por IA, só para validar a composição.
 // Substituir por fotografia real da Longarfino antes do lançamento.
 // A foto real de reserva está em assets/hero-real-bowl.jpg (vertical).
@@ -59,9 +60,15 @@ const numeros = [
       diferentes escalas, unindo técnica construtiva e experiência real de pista.
     </p>
 
-    <div class="hero-acoes">
-      <a class="btn btn--fill" href="#obras">Ver nossas obras <i class="arw"></i></a>
-      <a class="btn" href="#contato">Falar com a equipe <i class="arw"></i></a>
+    <!-- Botões à esquerda, obra em execução à direita. O cartão some
+         sozinho quando não há obra na rua, e aí sobram só os botões. -->
+    <div class="hero-rodape">
+      <div class="hero-acoes">
+        <a class="btn btn--fill" href="#obras">Ver nossas obras <i class="arw"></i></a>
+        <a class="btn" href="#contato">Falar com a equipe <i class="arw"></i></a>
+      </div>
+
+      <CardExecucao />
     </div>
   </div>
 
@@ -184,11 +191,19 @@ const numeros = [
     vertical-align: baseline;
   }
 
+  .hero-rodape {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(22px, 3vw, 56px);
+    margin-top: 34px;
+  }
+
   .hero-acoes {
     display: flex;
     flex-wrap: wrap;
     gap: 14px 34px;
-    margin-top: 34px;
   }
 
   /* Os fios são desenhados por ::before, para poderem crescer na entrada.

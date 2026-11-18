@@ -1,9 +1,23 @@
 {
-  // Cloudflare Workers servindo o site estático (substitui o Pages)
+  // Cloudflare Workers servindo o site estático (substitui o Pages).
+  //
+  // O Worker só existe por causa de /api/publicar, usado pelo painel.
+  // Todo o resto cai nos arquivos do dist sem passar por código.
   "name": "longarfino-site",
   "compatibility_date": "2026-08-30",
+  "main": "worker/index.js",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "GITHUB_REPO": "longarfino10-art/longarfino-site",
+    "GITHUB_BRANCH": "main",
+    // Preencher depois de criar a aplicação no Zero Trust.
+    // Enquanto estiverem vazios, a API recusa tudo — é o que se quer.
+    "ACCESS_TEAM": "",
+    "ACCESS_AUD": ""
   }
+  // Segredo (painel da Cloudflare, não aqui): GITHUB_TOKEN
 }

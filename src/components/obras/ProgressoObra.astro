@@ -1,0 +1,93 @@
+---
+// Barra de progresso de obra em execução.
+//
+// Fio de 2px preenchido em laranja, número em IBM Plex Mono — a mesma
+// linguagem das fichas técnicas. Canto reto, sem sombra, sem gradiente.
+// A barra é o único laranja do bloco, o que mantém o teto dos 15%.
+
+interface Props {
+  /** 0 a 100, calculado em src/lib/progresso.ts */
+  pct: number;
+  /** Etapa em andamento, mostrada à esquerda */
+  rotulo?: string | null;
+  /** Data já formatada. Sem ela, não aparece a linha de atualização */
+  atualizado?: string | null;
+}
+
+const { pct, rotulo = null, atualizado = null } = Astro.props;
+
+// Template literal em atributo `style` quebra a tag no Astro — concatenar.
+// Vai como variável, não como width: quem anima até ela é o CSS.
+const largura = '--alvo:' + pct + '%';
+---
+
+<div class="prog">
+  <div class="prog-linha">
+    {rotulo && <span class="mono-sm prog-etapa">{rotulo}</span>}
+    <b class="prog-pct">{pct}%</b>
+  </div>
+
+  <div
+    class="prog-trilho"
+    role="progressbar"
+    aria-valuenow={pct}
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-label={rotulo ? 'Andamento da obra: ' + rotulo : 'Andamento da obra'}
+  >
+    <span class="prog-fill" style={largura}></span>
+  </div>
+
+  {atualizado && <span class="mono-sm prog-data">Atualizado em {atualizado}</span>}
+</div>
+
+<style>
+  .prog-linha {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 9px;
+  }
+
+  .prog-etapa { color: var(--gray-200) }
+
+  .prog-pct {
+    flex: none;
+    font-family: var(--ff-mono);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: .08em;
+    color: var(--white);
+  }
+
+  .prog-trilho {
+    position: relative;
+    height: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+
+  /* Cresce de zero até a marca, mesma curva dos fios do Hero */
+  .prog-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--orange);
+    animation: encher 1.6s var(--ease) .35s forwards;
+  }
+
+  @keyframes encher {
+    to { width: var(--alvo) }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prog-fill { width: var(--alvo); animation: none }
+  }
+
+  .prog-data {
+    display: block;
+    margin-top: 9px;
+    color: var(--gray-500);
+  }
+</style>

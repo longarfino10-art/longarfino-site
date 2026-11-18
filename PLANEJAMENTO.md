@@ -36,7 +36,7 @@ O Worker recusa o domínio enquanto houver registro externo no raiz.
 ninguém usa — o contato oficial é o Gmail.
 
 **O site antigo em WordPress saiu do ar** pelo domínio. A hospedagem na
-Hostinger continua existindo até alguém cancelar.
+Hostinger **foi cancelada** (17/11/2026).
 
 ---
 
@@ -385,25 +385,84 @@ ainda apontados.
 
 ---
 
-## DEPOIS DO AR
+## ESCOPO ATUAL (17/11/2026)
 
-- **Cadastrar no Google Search Console e enviar o sitemap**
-- Publicar as outras 10 obras
+Decidido pelo Lucas: o site não vai receber as 10 obras do Drive. Entram só
+duas, e o esforço vai para o cadastro pelo próprio site.
+
+1. **Publicar Laguna** (360 m², em execução) — depende de foto
+2. **Publicar Cocal** (em execução) — depende de foto e ficha
+3. **Painel de cadastro de obras pelo site** — ✅ código feito e testado em
+   17/11. Tela própria em `/admin` + Worker em `/api/publicar`, protegido por
+   senha. **Falta o Lucas:** gerar o token do GitHub e gravar `GITHUB_TOKEN` e
+   `PAINEL_SENHA` como segredos do Worker; depois commit e push.
+   ⚠ **O token vence em 17/11/2027.** Nome no GitHub: "longarfino-site
+   painel" — fine-grained, só o repositório longarfino-site, Contents com
+   leitura e escrita. Quando vencer, o painel avisa em português o que fazer
+6. **Trocar a senha pelo Zero Trust** — a assinatura "Teams Free Base" está
+   ativa e o cartão cadastrado, mas a criação do time falha no servidor da
+   Cloudflare (`POST access/organizations` → 500). Tentar de novo depois;
+   quando passar, criar a aplicação do Access e preencher `ACCESS_TEAM` e
+   `ACCESS_AUD` no `wrangler.jsonc`
+4. **Acompanhamento de obra em execução** — ✅ feito em 17/11. Cartão no
+   Hero (desenho do Lucas), barra animada, linha do tempo por etapa
+5. **Escrever o `CLAUDE.md`** — ✅ feito em 17/11
+
+### Decisões fechadas em 17/11
+
+| Assunto | Decisão |
+|---|---|
+| Painel | Tela própria com a cara do site. O Sveltia foi descartado porque o Lucas quer a identidade da Longarfino na tela de cadastro |
+| Backend | Worker na frente do site estático, só para `/api/publicar`. O resto continua arquivo puro |
+| Login do painel | **Provisório: senha** (segredo do Worker, comparação em tempo constante, 1,5s por tentativa errada). **Definitivo: Cloudflare Access** com código por e-mail, assim que a Cloudflare liberar. O Worker já escolhe sozinho: com Access configurado, a senha deixa de valer |
+| Escrita no repositório | Token do GitHub como segredo do Worker. O Lucas nunca vê nem digita token |
+| Commit | Um só por publicação, pela Git Data API. Arquivo por arquivo geraria um build por foto |
+| Fotos | Reduzidas no celular antes de subir: 2000px, JPEG 0.82 |
+| Porcentagem | Calculada pelo peso das etapas, nunca digitada. Etapa em andamento conta metade |
+| Obra em execução na home | Cartão dentro do Hero, ao lado dos botões, a partir de referência feita pelo Lucas. Canto reto em vez do arredondado da referência |
+| Barra | Cresce de zero em 1,6s na curva dos fios do Hero; no cartão, brilho lento percorre o trecho executado. Some após 45 dias sem atualização |
+
+**Verificado:** o formato que o `montar.js` grava foi testado contra o build
+real — gerou a página com a porcentagem certa (33%).
+
+**Verificado com o Worker rodando local (wrangler dev), 13 testes:** o site
+estático continua igual (home, obra, painel, redirects, 404); sem senha e com
+senha errada recusa, errada com atraso de 1,6s; senha certa entra; formulário
+incompleto volta com erro em português; envio válido chega até o commit.
+Tela de entrada, "lembrar neste aparelho" e "sair" conferidos no navegador.
+
+**Não verificado ainda:** o commit de verdade no GitHub. Só com o token real,
+depois de publicado.
+
+### Fechado desde a última sessão
+
+- Hostinger cancelada (17/11)
+- `Diferenca-etiquetas.astro.bak` já não existe no repositório
+- Os `alt` da galeria **não** são genéricos: descrevem a etapa da obra.
+  Trocar por cidade ficou como ganho marginal, saiu da lista
+- Os "5 avisos de TypeScript" não são reproduzíveis: `astro check` exige
+  instalar `@astrojs/check` e `typescript`, que não estão no projeto. Os
+  avisos vinham do editor e não afetam o build nem o site
+
+---
+
+## QUARENTENA
+
+Fora de escopo por decisão do Lucas em 17/11. Não trabalhar nestes itens sem
+ele reabrir. Ficam registrados para não se perderem.
+
+- Publicar as outras 10 obras do Drive
 - Estudo de caso da Palhoça
 - CREA do Leandro (conta em licitação pública)
-- Laguna quando tiver foto
 - Seção de obra pública com os dados de licitação
 - Conteúdo técnico sobre concreto, para SEO
-- Os seis achados da pesquisa de mercado
-- Trocar os `alt` genéricos da galeria por descrição com cidade
 - Aval do Fábio Pereira para publicar a obra dele
-- Confirmar se alguém usa e-mail no domínio; se não, limpar os MX da Hostinger
-- Cancelar a hospedagem da Hostinger, se não houver mais nada lá
-- Painel de cadastro de obras (Decap ou Sveltia CMS), se o volume justificar
+- Cadastrar no Google Search Console e enviar o sitemap
 - Limpar a regra órfã `.df-hd span:last-child` no `Diferenca.astro`
-- Apagar `Diferenca-etiquetas.astro.bak`
-- Resolver os 5 avisos de tipo do TypeScript (não quebram o build)
-- **Escrever o `CLAUDE.md`** — à mão, menos de 150 linhas, só o específico
+
+**Em espera, para ver depois:** mapa de obras (o `Mapa.astro` já existe pronto
+e sem uso) e depoimento de gestor público. O Lucas quer decidir mais tarde se
+entram.
 
 ---
 

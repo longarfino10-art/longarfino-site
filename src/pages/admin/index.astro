@@ -1,0 +1,839 @@
+---
+// Painel de cadastro — /admin
+//
+// Tela do próprio site: mesmas cores, mesmas fontes, canto reto. Não usa o
+// Base.astro porque não deve ter menu, rodapé nem Analytics.
+//
+// Os dados das obras saem do repositório no momento do build. Leio o .md
+// cru em vez de usar a coleção porque o image() do schema troca o caminho
+// da foto por um objeto, e aqui preciso do caminho original para devolver
+// ao Worker sem estragar nada.
+//
+// O envio vai para /api/publicar, no worker/index.js.
+
+import { load as lerYaml } from 'js-yaml';
+
+import bebasWoff from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
+import '@fontsource/bebas-neue/latin-400.css';
+import '@fontsource/bebas-neue/latin-ext-400.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-ext-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '@fontsource/ibm-plex-mono/latin-ext-500.css';
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-ext-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-ext-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-ext-600.css';
+import '../../styles/tokens.css';
+import '../../styles/base.css';
+
+const crus = import.meta.glob('../../content/obras/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+const obras = Object.entries(crus)
+  .filter(([caminho]) => !caminho.includes('/_'))
+  .map(([caminho, texto]) => {
+    const bruto = String(texto);
+    const corte = bruto.indexOf('---', 3);
+    const frente = lerYaml(bruto.slice(3, corte)) ?? {};
+    return {
+      slug: caminho.split('/').pop().replace(/\.md$/, ''),
+      corpo: bruto.slice(corte + 3).trim(),
+      ...frente,
+      // o que o montador espera: data como texto, não como Date
+      etapas: (frente.etapas ?? []).map((e) => ({
+        ...e,
+        data: e.data instanceof Date ? e.data.toISOString().slice(0, 10) : (e.data ?? null),
+      })),
+      atualizado_em:
+        frente.atualizado_em instanceof Date
+          ? frente.atualizado_em.toISOString().slice(0, 10)
+          : (frente.atualizado_em ?? null),
+    };
+  })
+  .sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+
+const hoje = new Date().toISOString().slice(0, 10);
+
+// Etapas sugeridas numa obra nova. O Lucas ajusta nome e peso.
+const ETAPAS_PADRAO = [
+  { nome: 'Terraplenagem', peso: 10 },
+  { nome: 'Drenagem', peso: 15 },
+  { nome: 'Armação', peso: 20 },
+  { nome: 'Concretagem', peso: 30 },
+  { nome: 'Acabamento', peso: 15 },
+  { nome: 'Coping e entrega', peso: 10 },
+];
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preload" as="font" type="font/woff2" href={bebasWoff} crossorigin />
+  <title>Painel — Longarfino Skateparks</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <link rel="icon" href="/favicon.png" />
+</head>
+
+<body class="painel">
+  <header class="topo">
+    <div class="marca">
+      <b class="d">LS</b>
+      <span class="mono-sm">painel</span>
+    </div>
+    <div class="topo-links">
+      <button class="mono-sm sair oculto" type="button" id="sair">Sair</button>
+      <a class="mono-sm sair" href="/">Ver o site</a>
+    </div>
+  </header>
+
+  <main class="area">
+    <!-- ── entrada ──────────────────────────────────────────────────
+         Com o Zero Trust ligado, esta tela não aparece: o Access já
+         conferiu quem é antes de a página carregar. -->
+    <section class="bloco oculto" id="entrada">
+      <span class="eyebrow">Acesso restrito</span>
+      <h1 class="d h-sub entrada-titulo">Painel da Longarfino</h1>
+
+      <form id="form-entrada" class="entrada-form">
+        <label class="rot" for="senha">Senha do painel</label>
+        <input class="entrada" id="senha" type="password" autocomplete="current-password" required />
+
+        <label class="lembrar">
+          <input type="checkbox" id="lembrar" checked />
+          <span>Lembrar neste aparelho</span>
+        </label>
+
+        <button class="btn btn--fill" type="submit" id="btn-entrar">
+          Entrar <i class="arw"></i>
+        </button>
+        <span class="mono-sm erro-entrada" id="erro-entrada"></span>
+      </form>
+    </section>
+
+    <!-- ── escolha do que fazer ─────────────────────────────────── -->
+    <section class="bloco oculto" id="inicio">
+      <span class="eyebrow">O que você vai fazer</span>
+
+      <div class="escolhas">
+        <button class="escolha" data-modo="andamento" type="button">
+          <b class="d">Atualizar andamento</b>
+          <span>Marcar etapa concluída e subir fotos de uma obra que está na rua</span>
+        </button>
+
+        <button class="escolha" data-modo="nova" type="button">
+          <b class="d">Cadastrar obra nova</b>
+          <span>Ficha completa de uma obra que ainda não está no site</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── formulário ───────────────────────────────────────────── -->
+    <form class="bloco oculto" id="form">
+      <div class="cabeca">
+        <span class="eyebrow" id="rotulo">Andamento</span>
+        <button class="btn btn--bare" type="button" id="voltar">Voltar</button>
+      </div>
+
+      <!-- obra existente -->
+      <div class="campo" id="campo-obra">
+        <label class="rot" for="obra">Obra</label>
+        <select id="obra" class="entrada"></select>
+      </div>
+
+      <!-- ficha, só na obra nova -->
+      <div id="ficha" class="oculto">
+        <div class="grade2">
+          <div class="campo">
+            <label class="rot" for="nome">Nome da obra</label>
+            <input class="entrada" id="nome" type="text" placeholder="Pista Laguna" />
+          </div>
+          <div class="campo">
+            <label class="rot" for="cidade">Cidade</label>
+            <input class="entrada" id="cidade" type="text" placeholder="Laguna" />
+          </div>
+          <div class="campo">
+            <label class="rot" for="uf">Estado</label>
+            <select class="entrada" id="uf">
+              {['SC', 'PR', 'RS', 'SP', 'BA', 'MG', 'GO', 'MS', 'PE', 'CE'].map((u) => (
+                <option value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          <div class="campo">
+            <label class="rot" for="area">Área em m²</label>
+            <input class="entrada" id="area" type="number" min="1" placeholder="360" />
+          </div>
+          <div class="campo">
+            <label class="rot" for="cliente">Cliente</label>
+            <input class="entrada" id="cliente" type="text" placeholder="Prefeitura de Laguna" />
+          </div>
+          <div class="campo">
+            <label class="rot" for="duracao">Período</label>
+            <input class="entrada" id="duracao" type="text" placeholder="out/2026 a mar/2027" />
+          </div>
+        </div>
+
+        <div class="campo">
+          <span class="rot">Tipo</span>
+          <div class="pastilhas" id="tipos">
+            {['Bowl', 'Street', 'Park', 'Reforma'].map((t) => (
+              <button class="pastilha" type="button" data-tipo={t}>{t}</button>
+            ))}
+          </div>
+        </div>
+
+        <div class="campo">
+          <label class="rot" for="descricao">Descrição curta</label>
+          <input class="entrada" id="descricao" type="text" maxlength="160"
+                 placeholder="Aparece na busca do Google e no topo da página" />
+          <span class="dica"><i id="conta">0</i>/160</span>
+        </div>
+
+        <div class="campo">
+          <span class="rot">Foto de capa</span>
+          <label class="solta" for="capa">
+            <input id="capa" type="file" accept="image/*" hidden />
+            <span id="capa-txt">Escolher foto</span>
+          </label>
+        </div>
+
+        <div class="campo">
+          <label class="rot" for="texto">Texto da obra</label>
+          <textarea class="entrada" id="texto" rows="5"
+                    placeholder="Como foi a execução, o que tem na pista..."></textarea>
+        </div>
+      </div>
+
+      <!-- etapas -->
+      <div class="campo">
+        <div class="cabeca-etapas">
+          <span class="rot">Etapas</span>
+          <b class="pct-atual mono-sm" id="pct">0%</b>
+        </div>
+        <div class="trilho-geral"><span class="fill-geral" id="fill"></span></div>
+        <p class="dica dica-bloco">
+          A porcentagem sai daqui. Não existe campo de porcentagem — marcar a
+          etapa é o que move a barra do site.
+        </p>
+
+        <div id="etapas"></div>
+
+        <button class="btn btn--bare" type="button" id="add-etapa">
+          Acrescentar etapa <i class="arw"></i>
+        </button>
+      </div>
+
+      <div class="rodape">
+        <button class="btn btn--fill" type="submit" id="publicar">
+          Publicar <i class="arw"></i>
+        </button>
+        <span class="mono-sm" id="situacao"></span>
+      </div>
+
+      <div class="aviso oculto" id="aviso"></div>
+    </form>
+  </main>
+
+  <script type="application/json" id="dados" set:html={JSON.stringify({ obras, hoje, ETAPAS_PADRAO })} />
+
+  <script>
+    const dados = JSON.parse(document.getElementById('dados').textContent);
+    const $ = (id) => document.getElementById(id);
+
+    // ── entrada ────────────────────────────────────────────────────
+    // A senha fica no aparelho (ou só na aba, se desmarcar "lembrar") e
+    // vai em cada envio. Com o Zero Trust ligado o Worker ignora a senha
+    // e esta tela some sozinha.
+    const CHAVE = 'painel-senha';
+    const senhaGuardada = () =>
+      localStorage.getItem(CHAVE) || sessionStorage.getItem(CHAVE) || '';
+
+    function esquecerSenha() {
+      localStorage.removeItem(CHAVE);
+      sessionStorage.removeItem(CHAVE);
+    }
+
+    async function conferirEntrada(senha) {
+      try {
+        const r = await fetch('/api/entrar', {
+          method: 'POST',
+          headers: { 'X-Painel-Senha': senha },
+        });
+        return await r.json();
+      } catch {
+        return { ok: false, erros: ['O painel não respondeu. Confira a internet.'] };
+      }
+    }
+
+    function mostrar(qual) {
+      $('entrada').classList.toggle('oculto', qual !== 'entrada');
+      $('inicio').classList.toggle('oculto', qual !== 'inicio');
+      $('form').classList.add('oculto');
+      $('sair').classList.toggle('oculto', qual === 'entrada');
+    }
+
+    (async () => {
+      const r = await conferirEntrada(senhaGuardada());
+      if (!r.ok) esquecerSenha();
+      mostrar(r.ok ? 'inicio' : 'entrada');
+      // Com Access não há senha para esquecer: o "Sair" não faz sentido
+      if (r.ok && r.modo === 'access') $('sair').classList.add('oculto');
+    })();
+
+    $('form-entrada').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const senha = $('senha').value;
+      $('btn-entrar').disabled = true;
+      $('erro-entrada').textContent = 'conferindo...';
+
+      const r = await conferirEntrada(senha);
+      $('btn-entrar').disabled = false;
+
+      if (!r.ok) {
+        $('erro-entrada').textContent = (r.erros || ['Não foi possível entrar'])[0];
+        return;
+      }
+
+      ($('lembrar').checked ? localStorage : sessionStorage).setItem(CHAVE, senha);
+      $('senha').value = '';
+      $('erro-entrada').textContent = '';
+      mostrar('inicio');
+    });
+
+    $('sair').onclick = () => {
+      esquecerSenha();
+      mostrar('entrada');
+    };
+
+    let modo = 'andamento';
+    let atual = null;          // obra sendo editada
+    let etapas = [];           // [{nome, peso, situacao, data, fotos:[], novas:[]}]
+    let capaNova = null;
+    const tiposEscolhidos = new Set();
+
+    // ── fotos ──────────────────────────────────────────────────────
+    // Reduz no próprio celular antes de subir: a original de 5 MB iria
+    // inteira para o git, e git não esquece.
+    const LARGURA_MAX = 2000;
+
+    function reduzir(arquivo) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(arquivo);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const escala = Math.min(1, LARGURA_MAX / Math.max(img.width, img.height));
+          const tela = document.createElement('canvas');
+          tela.width = Math.round(img.width * escala);
+          tela.height = Math.round(img.height * escala);
+          tela.getContext('2d').drawImage(img, 0, 0, tela.width, tela.height);
+          tela.toBlob(
+            (blob) => {
+              const leitor = new FileReader();
+              leitor.onload = () =>
+                resolve({
+                  arquivo: arquivo.name,
+                  base64: String(leitor.result).split(',')[1],
+                });
+              leitor.onerror = reject;
+              leitor.readAsDataURL(blob);
+            },
+            'image/jpeg',
+            0.82,
+          );
+        };
+        img.onerror = () => reject(new Error('não consegui ler ' + arquivo.name));
+        img.src = url;
+      });
+    }
+
+    // ── progresso ──────────────────────────────────────────────────
+    function calcular() {
+      const total = etapas.reduce((s, e) => s + Number(e.peso || 0), 0);
+      if (!total) return 0;
+      const feito = etapas.reduce((s, e) => {
+        if (e.situacao === 'feita') return s + Number(e.peso);
+        if (e.situacao === 'fazendo') return s + Number(e.peso) / 2;
+        return s;
+      }, 0);
+      return Math.round((feito / total) * 100);
+    }
+
+    function pintarProgresso() {
+      const p = calcular();
+      $('pct').textContent = p + '%';
+      $('fill').style.width = p + '%';
+    }
+
+    // ── etapas ─────────────────────────────────────────────────────
+    const SITUACOES = [
+      ['a_fazer', 'A fazer'],
+      ['fazendo', 'Em andamento'],
+      ['feita', 'Concluída'],
+    ];
+
+    function pintarEtapas() {
+      const caixa = $('etapas');
+      caixa.innerHTML = '';
+
+      etapas.forEach((e, i) => {
+        const linha = document.createElement('div');
+        linha.className = 'etapa etapa--' + e.situacao;
+
+        const topo = document.createElement('div');
+        topo.className = 'etapa-topo';
+
+        const nome = document.createElement('input');
+        nome.className = 'entrada entrada--nua';
+        nome.value = e.nome;
+        nome.placeholder = 'Nome da etapa';
+        nome.oninput = () => { etapas[i].nome = nome.value; };
+
+        const peso = document.createElement('input');
+        peso.className = 'entrada entrada--peso';
+        peso.type = 'number';
+        peso.min = '1';
+        peso.value = e.peso;
+        peso.title = 'Peso da etapa';
+        peso.oninput = () => { etapas[i].peso = Number(peso.value); pintarProgresso(); };
+
+        const lixo = document.createElement('button');
+        lixo.type = 'button';
+        lixo.className = 'tirar';
+        lixo.textContent = '✕';
+        lixo.title = 'Tirar esta etapa';
+        lixo.onclick = () => { etapas.splice(i, 1); pintarEtapas(); pintarProgresso(); };
+
+        topo.append(nome, peso, lixo);
+
+        const estados = document.createElement('div');
+        estados.className = 'estados';
+        for (const [valor, rotulo] of SITUACOES) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'estado' + (e.situacao === valor ? ' estado--on' : '');
+          b.textContent = rotulo;
+          b.onclick = () => {
+            etapas[i].situacao = valor;
+            if (valor === 'feita' && !etapas[i].data) etapas[i].data = dados.hoje;
+            pintarEtapas();
+            pintarProgresso();
+          };
+          estados.append(b);
+        }
+
+        const extra = document.createElement('div');
+        extra.className = 'etapa-extra';
+
+        if (e.situacao === 'feita') {
+          const data = document.createElement('input');
+          data.className = 'entrada entrada--data';
+          data.type = 'date';
+          data.value = e.data || dados.hoje;
+          data.oninput = () => { etapas[i].data = data.value; };
+          extra.append(data);
+        }
+
+        const fotos = document.createElement('label');
+        fotos.className = 'solta solta--peq';
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = 'image/*';
+        inp.multiple = true;
+        inp.hidden = true;
+        const txt = document.createElement('span');
+        const jaTem = (e.fotos || []).length;
+        const novas = (e.novas || []).length;
+        txt.textContent =
+          novas > 0 ? novas + ' foto(s) para subir' : jaTem > 0 ? jaTem + ' foto(s) já no site' : 'Fotos desta etapa';
+        inp.onchange = async () => {
+          txt.textContent = 'preparando...';
+          etapas[i].novas = [];
+          for (const f of inp.files) etapas[i].novas.push(await reduzir(f));
+          pintarEtapas();
+        };
+        fotos.append(inp, txt);
+        extra.append(fotos);
+
+        linha.append(topo, estados, extra);
+        caixa.append(linha);
+      });
+    }
+
+    // ── modos ──────────────────────────────────────────────────────
+    function abrir(novoModo) {
+      modo = novoModo;
+      $('inicio').classList.add('oculto');
+      $('form').classList.remove('oculto');
+      $('ficha').classList.toggle('oculto', modo !== 'nova');
+      $('campo-obra').classList.toggle('oculto', modo !== 'andamento');
+      $('rotulo').textContent = modo === 'nova' ? 'Obra nova' : 'Andamento';
+
+      if (modo === 'nova') {
+        atual = null;
+        etapas = dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
+      } else {
+        const sel = $('obra');
+        sel.innerHTML = '';
+        for (const o of dados.obras) {
+          const op = document.createElement('option');
+          op.value = o.slug;
+          op.textContent = o.nome + ' — ' + o.cidade;
+          sel.append(op);
+        }
+        carregarObra(sel.value);
+        sel.onchange = () => carregarObra(sel.value);
+      }
+      pintarEtapas();
+      pintarProgresso();
+    }
+
+    function carregarObra(slug) {
+      atual = dados.obras.find((o) => o.slug === slug);
+      etapas = (atual.etapas || []).map((e) => ({
+        nome: e.nome,
+        peso: e.peso ?? 10,
+        situacao: e.situacao ?? 'a_fazer',
+        data: e.data ?? null,
+        fotos: e.fotos ?? [],
+        novas: [],
+      }));
+      if (etapas.length === 0) {
+        etapas = dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
+      }
+      pintarEtapas();
+      pintarProgresso();
+    }
+
+    // ── envio ──────────────────────────────────────────────────────
+    function montarEnvio() {
+      const etapasEnvio = etapas.map((e) => ({
+        nome: e.nome,
+        peso: e.peso,
+        situacao: e.situacao,
+        data: e.situacao === 'feita' ? e.data : null,
+        fotos: [...(e.fotos || []), ...(e.novas || [])],
+      }));
+
+      if (modo === 'nova') {
+        return {
+          nome: $('nome').value,
+          cidade: $('cidade').value,
+          uf: $('uf').value,
+          tipo: [...tiposEscolhidos],
+          status: 'em_execucao',
+          cliente: $('cliente').value,
+          duracao: $('duracao').value,
+          area_m2: Number($('area').value),
+          descricao_curta: $('descricao').value,
+          capa: capaNova,
+          fotos: [],
+          etapas: etapasEnvio,
+          atualizado_em: dados.hoje,
+          corpo: $('texto').value,
+          destaque: false,
+          ordem: 1,
+        };
+      }
+
+      return {
+        ...atual,
+        slug: atual.slug,
+        etapas: etapasEnvio,
+        atualizado_em: dados.hoje,
+      };
+    }
+
+    $('form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const aviso = $('aviso');
+      aviso.className = 'aviso oculto';
+      $('publicar').disabled = true;
+      $('situacao').textContent = 'enviando...';
+
+      try {
+        const r = await fetch('/api/publicar', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-Painel-Senha': senhaGuardada(),
+          },
+          body: JSON.stringify(montarEnvio()),
+        });
+        const resposta = await r.json();
+
+        // Senha trocada no Worker depois que este aparelho guardou a antiga
+        if (r.status === 403) {
+          esquecerSenha();
+          mostrar('entrada');
+          $('erro-entrada').textContent = 'Entre de novo: ' + (resposta.erros || [''])[0];
+          return;
+        }
+
+        if (!r.ok || !resposta.ok) {
+          aviso.className = 'aviso aviso--ruim';
+          aviso.innerHTML =
+            '<b>Não publiquei.</b><ul><li>' +
+            (resposta.erros || ['erro desconhecido']).join('</li><li>') +
+            '</li></ul>';
+          $('situacao').textContent = '';
+        } else {
+          aviso.className = 'aviso aviso--bom';
+          aviso.innerHTML =
+            '<b>Publicado.</b> Commit ' + resposta.commit +
+            '. O site se atualiza sozinho em 1 a 2 minutos.';
+          $('situacao').textContent = '';
+        }
+      } catch (e) {
+        aviso.className = 'aviso aviso--ruim';
+        aviso.textContent = 'Falhou o envio: ' + e.message;
+        $('situacao').textContent = '';
+      } finally {
+        $('publicar').disabled = false;
+      }
+    });
+
+    // ── ligações ───────────────────────────────────────────────────
+    document.querySelectorAll('[data-modo]').forEach((b) => {
+      b.onclick = () => abrir(b.dataset.modo);
+    });
+
+    $('voltar').onclick = () => {
+      $('form').classList.add('oculto');
+      $('inicio').classList.remove('oculto');
+      $('aviso').className = 'aviso oculto';
+    };
+
+    $('add-etapa').onclick = () => {
+      etapas.push({ nome: '', peso: 10, situacao: 'a_fazer', data: null, fotos: [], novas: [] });
+      pintarEtapas();
+      pintarProgresso();
+    };
+
+    document.querySelectorAll('[data-tipo]').forEach((b) => {
+      b.onclick = () => {
+        const t = b.dataset.tipo;
+        if (tiposEscolhidos.has(t)) tiposEscolhidos.delete(t);
+        else tiposEscolhidos.add(t);
+        b.classList.toggle('pastilha--on', tiposEscolhidos.has(t));
+      };
+    });
+
+    $('descricao').oninput = () => { $('conta').textContent = $('descricao').value.length; };
+
+    $('capa').onchange = async () => {
+      const f = $('capa').files[0];
+      if (!f) return;
+      $('capa-txt').textContent = 'preparando...';
+      capaNova = await reduzir(f);
+      $('capa-txt').textContent = f.name;
+    };
+  </script>
+
+  <style is:global>
+    .painel { background: var(--black); min-height: 100svh }
+    .oculto { display: none !important }
+
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px var(--pad);
+      border-bottom: 1px solid var(--line);
+    }
+    .marca { display: flex; align-items: baseline; gap: 10px }
+    .marca b { font-size: 1.7rem; color: var(--white); line-height: 1 }
+    .topo-links { display: flex; gap: 22px; align-items: center }
+    .sair {
+      color: var(--gray-500);
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: color .3s var(--ease);
+    }
+    .sair:hover { color: var(--orange) }
+
+    /* entrada */
+    .entrada-titulo { margin-top: 10px; color: var(--white) }
+    .entrada-form { max-width: 380px; margin-top: 28px }
+    .lembrar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 24px;
+      font-size: 13px;
+      color: var(--gray-200);
+      cursor: pointer;
+    }
+    .lembrar input { accent-color: var(--orange); width: 16px; height: 16px }
+    .erro-entrada { display: block; margin-top: 14px; color: var(--orange) }
+
+    .area { max-width: 880px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--pad) 90px }
+    .bloco { display: block }
+
+    /* escolha inicial */
+    .escolhas {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      margin-top: 20px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .escolha {
+      display: block;
+      text-align: left;
+      padding: clamp(22px, 3vw, 34px);
+      background: var(--concrete);
+      border: 0;
+      cursor: pointer;
+      transition: background .3s var(--ease);
+    }
+    .escolha:hover { background: var(--gray-900) }
+    .escolha b { display: block; font-size: 1.5rem; color: var(--white); line-height: 1 }
+    .escolha span { display: block; margin-top: 10px; font-size: 13px; color: var(--gray-500) }
+
+    /* formulário */
+    .cabeca {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 26px;
+    }
+
+    .campo { margin-bottom: 24px }
+    .grade2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 20px }
+
+    .rot {
+      display: block;
+      margin-bottom: 8px;
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--gray-500);
+    }
+
+    .entrada {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--concrete);
+      border: 1px solid var(--line);
+      color: var(--white);
+      font-family: var(--ff-body);
+      font-size: 15px;
+    }
+    .entrada:focus { outline: 0; border-color: var(--orange) }
+    .entrada--nua { flex: 1; min-width: 0 }
+    .entrada--peso { width: 72px; flex: none; text-align: center }
+    .entrada--data { width: auto }
+
+    .dica { display: block; margin-top: 7px; font-size: 12px; color: var(--gray-500) }
+    .dica-bloco { margin: 10px 0 18px; max-width: 54ch }
+
+    /* tipos */
+    .pastilhas { display: flex; flex-wrap: wrap; gap: 8px }
+    .pastilha {
+      padding: 9px 16px;
+      background: transparent;
+      border: 1px solid var(--line-2);
+      color: var(--gray-200);
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s var(--ease);
+    }
+    .pastilha--on { background: var(--orange); border-color: var(--orange); color: var(--black) }
+
+    /* arquivo */
+    .solta {
+      display: block;
+      padding: 16px;
+      border: 1px dashed var(--line-2);
+      color: var(--gray-200);
+      font-size: 13px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .25s var(--ease), color .25s var(--ease);
+    }
+    .solta:hover { border-color: var(--orange); color: var(--white) }
+    .solta--peq { padding: 10px; font-size: 12px; text-align: left }
+
+    /* etapas */
+    .cabeca-etapas { display: flex; align-items: baseline; justify-content: space-between }
+    .pct-atual { font-size: 15px; color: var(--white) }
+
+    .trilho-geral { height: 4px; margin-top: 10px; background: var(--gray-900) }
+    .fill-geral {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--orange);
+      transition: width .5s var(--ease);
+    }
+
+    .etapa { padding: 16px 0; border-bottom: 1px solid var(--line) }
+    .etapa-topo { display: flex; gap: 10px; align-items: center }
+
+    .tirar {
+      flex: none;
+      width: 38px;
+      height: 38px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--gray-500);
+      cursor: pointer;
+    }
+    .tirar:hover { color: var(--orange); border-color: var(--orange) }
+
+    .estados { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap }
+    .estado {
+      padding: 7px 13px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--gray-500);
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s var(--ease);
+    }
+    .estado--on { border-color: var(--orange); color: var(--orange) }
+    .etapa--feita .estado--on { background: var(--orange); color: var(--black) }
+
+    .etapa-extra { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap }
+    .etapa-extra .solta--peq { flex: 1; min-width: 180px }
+
+    /* rodapé */
+    .rodape {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 34px;
+      padding-top: 26px;
+      border-top: 1px solid var(--line);
+    }
+    .rodape .mono-sm { color: var(--gray-500) }
+
+    .aviso { margin-top: 20px; padding: 16px; border: 1px solid var(--line); font-size: 14px }
+    .aviso--bom { border-color: var(--orange); color: var(--white) }
+    .aviso--ruim { border-color: #a33; color: var(--gray-200) }
+    .aviso ul { margin: 8px 0 0; padding-left: 18px }
+  </style>
+</body>
+</html>

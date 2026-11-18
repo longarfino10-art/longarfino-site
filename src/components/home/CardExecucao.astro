@@ -1,0 +1,211 @@
+---
+// Cartão de obra em execução, dentro do Hero, ao lado dos botões.
+//
+// Desenho pedido pelo Lucas (referência feita por ele). Traduzido para a
+// linguagem do site: canto reto, fio de 1px, sem sombra, laranja contido.
+// O capacete vem com linha de cota embaixo, como os desenhos dos Serviços.
+//
+// Some sozinho quando não há obra em execução com etapas cadastradas.
+
+import { getCollection } from 'astro:content';
+import { calcularProgresso } from '../../lib/progresso';
+
+const todas = await getCollection('obras');
+
+// Havendo mais de uma obra na rua, vence a de atualização mais recente.
+const obra =
+  todas
+    .filter((o) => o.data.status === 'em_execucao' && o.data.etapas.length > 0)
+    .sort(
+      (a, b) =>
+        (b.data.atualizado_em?.getTime() ?? 0) - (a.data.atualizado_em?.getTime() ?? 0),
+    )[0] ?? null;
+
+const pct = obra ? calcularProgresso(obra.data.etapas) : null;
+const quando = obra?.data.atualizado_em;
+
+// Template literal em atributo `style` quebra a tag no Astro — concatenar.
+// Vai como variável, não como width: quem anima até ela é o CSS.
+const largura = '--alvo:' + pct + '%';
+---
+
+{obra && pct !== null && (
+  <a
+    class="card-exec"
+    href={'/obras/' + obra.id}
+    data-atualizado={quando ? quando.toISOString() : ''}
+  >
+    <span class="card-icone" aria-hidden="true">
+      <!-- Capacete de obra. A aba é mais larga e mais grossa que o domo:
+           é ela que dá a leitura do objeto. A nervura central e a crista
+           interna completam o desenho. Sem linha de cota: na primeira
+           versão ela fazia o conjunto parecer uma ponte. -->
+      <svg
+        viewBox="0 0 48 42"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <!-- aba: retângulo largo na base, o que dá a leitura do objeto -->
+        <path d="M4 38v-4a2 2 0 0 1 2-2h36a2 2 0 0 1 2 2v4z" />
+        <!-- laterais do casco, subindo da aba até a crista -->
+        <path d="M8 32v-8a12 12 0 0 1 12-12" />
+        <path d="M28 12a12 12 0 0 1 12 12v8" />
+        <!-- crista do capacete, entre as duas laterais -->
+        <path d="M20 20V10a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10" />
+      </svg>
+    </span>
+
+    <span class="card-corpo">
+      <span class="card-titulo">
+        Obra <b>em execução</b>
+      </span>
+      <span class="card-obra">{obra.data.nome} — {obra.data.cidade}/{obra.data.uf}</span>
+
+      <span
+        class="card-trilho"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label={'Andamento da obra ' + obra.data.nome}
+      >
+        <span class="card-fill" style={largura}></span>
+      </span>
+    </span>
+
+    <span class="card-pct">{pct}<i>%</i></span>
+  </a>
+
+  <script is:inline>
+    // Barra parada passa impressão de empresa parada: passados 45 dias sem
+    // atualização, o cartão sai do ar. O site é estático, então a conta roda
+    // no navegador. `is:inline` para valer antes da pintura, sem salto.
+    (function () {
+      var c = document.currentScript && document.currentScript.previousElementSibling;
+      if (!c || !c.classList.contains('card-exec')) return;
+      var q = c.getAttribute('data-atualizado');
+      if (!q) return;
+      if ((Date.now() - Date.parse(q)) / 86400000 > 45) c.remove();
+    })();
+  </script>
+)}
+
+<style>
+  .card-exec {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(16px, 1.8vw, 26px);
+    width: clamp(320px, 36vw, 560px);
+    padding: clamp(14px, 1.3vw, 20px) clamp(16px, 1.6vw, 24px);
+    background: rgba(10, 10, 10, .78);
+    border: 1px solid var(--line);
+    transition: border-color .3s var(--ease), background .3s var(--ease);
+  }
+
+  .card-exec:hover {
+    background: rgba(10, 10, 10, .9);
+    border-color: var(--line-2);
+  }
+
+  .card-icone {
+    display: block;
+    color: var(--orange);
+    padding-right: clamp(14px, 1.6vw, 22px);
+    border-right: 1px solid var(--line);
+  }
+  .card-icone svg { display: block; width: clamp(42px, 3.6vw, 56px); height: auto }
+
+  .card-corpo { display: block; min-width: 0 }
+
+  .card-titulo {
+    display: block;
+    font-family: var(--ff-mono);
+    font-size: clamp(10px, .78vw, 12px);
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .card-titulo b { color: var(--orange); font-weight: 500 }
+
+  .card-obra {
+    display: block;
+    margin-top: 5px;
+    font-size: clamp(12px, .9vw, 14px);
+    color: var(--gray-200);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-trilho {
+    display: block;
+    height: 5px;
+    margin-top: clamp(10px, 1vw, 14px);
+    background: var(--gray-900);
+    overflow: hidden;
+  }
+
+  /* A barra cresce de zero até a marca, no mesmo tempo e na mesma curva
+     dos fios do Hero — é o gesto que o site já faz ao abrir.
+     A largura final vem de --alvo, posto no style da tag. */
+  .card-fill {
+    display: block;
+    position: relative;
+    height: 100%;
+    width: 0;
+    background: var(--orange);
+    animation: encher 1.6s var(--ease) .35s forwards;
+  }
+
+  @keyframes encher {
+    to { width: var(--alvo) }
+  }
+
+  /* Brilho lento percorrendo o trecho já executado: a obra está andando.
+     Entra só depois que a barra terminou de crescer. */
+  .card-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, .5) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: brilho 3.2s var(--ease) 2.1s infinite;
+  }
+
+  @keyframes brilho {
+    0% { transform: translateX(-100%) }
+    55%, 100% { transform: translateX(100%) }
+  }
+
+  /* Quem pede menos movimento recebe a barra pronta, sem brilho */
+  @media (prefers-reduced-motion: reduce) {
+    .card-fill { width: var(--alvo); animation: none }
+    .card-fill::after { display: none }
+  }
+
+  .card-pct {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 2.6vw, 3rem);
+    line-height: .85;
+    color: var(--white);
+    padding-left: clamp(16px, 1.8vw, 26px);
+    border-left: 1px solid var(--line);
+  }
+  .card-pct i { font-style: normal; font-size: .62em }
+
+  @media (max-width: 860px) {
+    .card-exec { width: 100% }
+    .card-icone { padding-right: 14px }
+  }
+</style>
