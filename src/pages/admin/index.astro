@@ -390,7 +390,7 @@ const ETAPAS_PADRAO = [
 
     let modo = 'andamento';
     let atual = null;          // obra sendo editada
-    let etapas = [];           // [{nome, peso, situacao, data, fotos:[], novas:[]}]
+    let etapas = [];           // [{nome, peso, situacao, data, fotos:[texto ou objeto]}]
     let capaNova = null;
     let galeria = [];          // fotos que ficam: texto = já publicada, objeto = nova
     let statusEdit = 'concluida';
@@ -520,28 +520,31 @@ const ETAPAS_PADRAO = [
           extra.append(data);
         }
 
-        const fotos = document.createElement('label');
-        fotos.className = 'solta solta--peq';
+        // Fotos da etapa: miniaturas na ordem em que vão aparecer no site
+        const fotosCaixa = document.createElement('div');
+        fotosCaixa.className = 'miniaturas miniaturas--etapa';
+        editorFotos(fotosCaixa, e.fotos, { aoMudar: pintarEtapas });
+
+        const somar = document.createElement('label');
+        somar.className = 'solta solta--peq';
         const inp = document.createElement('input');
         inp.type = 'file';
         inp.accept = 'image/*';
         inp.multiple = true;
         inp.hidden = true;
         const txt = document.createElement('span');
-        const jaTem = (e.fotos || []).length;
-        const novas = (e.novas || []).length;
-        txt.textContent =
-          novas > 0 ? novas + ' foto(s) para subir' : jaTem > 0 ? jaTem + ' foto(s) já no site' : 'Fotos desta etapa';
+        txt.textContent = e.fotos.length ? 'Acrescentar fotos desta etapa' : 'Fotos desta etapa';
         inp.onchange = async () => {
-          txt.textContent = 'preparando...';
-          etapas[i].novas = [];
-          for (const f of inp.files) etapas[i].novas.push(await reduzir(f));
+          const escolhidas = [...inp.files];
+          if (!escolhidas.length) return;
+          txt.textContent = 'preparando ' + escolhidas.length + ' foto(s)...';
+          for (const f of escolhidas) etapas[i].fotos.push(await reduzir(f));
           pintarEtapas();
         };
-        fotos.append(inp, txt);
-        extra.append(fotos);
+        somar.append(inp, txt);
+        extra.append(somar);
 
-        linha.append(topo, estados, extra);
+        linha.append(topo, estados, extra, fotosCaixa);
         caixa.append(linha);
       });
     }
@@ -552,7 +555,58 @@ const ETAPAS_PADRAO = [
     // publicar por engano punha "a fazer" numa pista entregue há anos.
     const emExecucao = () => dados.obras.filter((o) => o.status === 'em_execucao');
     const etapasPadrao = () =>
-      dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
+      dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [] }));
+
+    // ── editor de fotos ────────────────────────────────────────────
+    // Usado na galeria e em cada etapa. A ordem da lista é a ordem no site.
+    // Texto = foto já publicada (miniatura gerada no build); objeto = nova.
+    // Setas em vez de arrastar: no celular, arrastar miniatura é impreciso.
+    function editorFotos(caixa, lista, { destacarPrimeira = false, aoMudar }) {
+      caixa.innerHTML = '';
+
+      const botao = (classe, texto, titulo, acao) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = classe;
+        b.textContent = texto;
+        b.title = titulo;
+        b.setAttribute('aria-label', titulo);
+        b.onclick = () => { acao(); aoMudar(); };
+        return b;
+      };
+
+      const trocar = (a, b) => { [lista[a], lista[b]] = [lista[b], lista[a]]; };
+
+      lista.forEach((f, i) => {
+        const item = document.createElement('div');
+        item.className = 'mini' + (typeof f === 'string' ? '' : ' mini--nova');
+
+        const src =
+          typeof f === 'string' ? dados.miniaturas[f] : 'data:image/jpeg;base64,' + f.base64;
+        if (src) {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          item.append(img);
+        }
+
+        // Posição: é ela que decide a ordem no site
+        const pos = document.createElement('span');
+        pos.className = 'mini-pos';
+        // Na galeria, a primeira foto aparece em tamanho grande na página
+        pos.textContent = destacarPrimeira && i === 0 ? '1 · grande' : String(i + 1);
+        item.append(pos);
+
+        item.append(botao('mini-tirar', '✕', 'Tirar esta foto', () => lista.splice(i, 1)));
+        if (i > 0) {
+          item.append(botao('mini-seta mini-seta--esq', '◀', 'Mover para antes', () => trocar(i, i - 1)));
+        }
+        if (i < lista.length - 1) {
+          item.append(botao('mini-seta mini-seta--dir', '▶', 'Mover para depois', () => trocar(i, i + 1)));
+        }
+        caixa.append(item);
+      });
+    }
 
     // ── ficha ──────────────────────────────────────────────────────
     function pintarTipos() {
@@ -568,30 +622,7 @@ const ETAPAS_PADRAO = [
     }
 
     function pintarGaleria() {
-      const caixa = $('galeria');
-      caixa.innerHTML = '';
-      galeria.forEach((f, i) => {
-        const item = document.createElement('div');
-        item.className = 'mini' + (typeof f === 'string' ? '' : ' mini--nova');
-
-        const src =
-          typeof f === 'string' ? dados.miniaturas[f] : 'data:image/jpeg;base64,' + f.base64;
-        if (src) {
-          const img = document.createElement('img');
-          img.src = src;
-          img.alt = '';
-          item.append(img);
-        }
-
-        const x = document.createElement('button');
-        x.type = 'button';
-        x.className = 'mini-tirar';
-        x.textContent = '✕';
-        x.title = 'Tirar da galeria';
-        x.onclick = () => { galeria.splice(i, 1); pintarGaleria(); };
-        item.append(x);
-        caixa.append(item);
-      });
+      editorFotos($('galeria'), galeria, { destacarPrimeira: true, aoMudar: pintarGaleria });
     }
 
     function limparFicha() {
@@ -712,8 +743,9 @@ const ETAPAS_PADRAO = [
         peso: e.peso ?? 10,
         situacao: e.situacao ?? 'a_fazer',
         data: e.data ?? null,
-        fotos: e.fotos ?? [],
-        novas: [],
+        // Cópia: mexer na ordem não pode alterar o original, senão trocar de
+        // obra e voltar mostraria uma ordem que nunca foi publicada
+        fotos: [...(e.fotos ?? [])],
       }));
       // Só o andamento sugere as etapas padrão. Na edição, obra sem etapas
       // continua sem etapas: inventar seria mudar o que não foi pedido.
@@ -730,7 +762,7 @@ const ETAPAS_PADRAO = [
         peso: e.peso,
         situacao: e.situacao,
         data: e.situacao === 'feita' ? e.data : null,
-        fotos: [...(e.fotos || []), ...(e.novas || [])],
+        fotos: e.fotos || [],
       }));
 
       if (modo === 'nova') {
@@ -834,7 +866,7 @@ const ETAPAS_PADRAO = [
     };
 
     $('add-etapa').onclick = () => {
-      etapas.push({ nome: '', peso: 10, situacao: 'a_fazer', data: null, fotos: [], novas: [] });
+      etapas.push({ nome: '', peso: 10, situacao: 'a_fazer', data: null, fotos: [] });
       pintarEtapas();
       pintarProgresso();
     };
@@ -918,14 +950,19 @@ const ETAPAS_PADRAO = [
     .area { max-width: 880px; margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--pad) 90px }
     .bloco { display: block }
 
-    /* escolha inicial */
+    /* escolha inicial: as três lado a lado no computador, empilhadas no
+       celular. Com auto-fit cabiam só duas por linha e a terceira deixava
+       um quadrado vazio ao lado. */
     .escolhas {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1px;
       margin-top: 20px;
       background: var(--line);
       border: 1px solid var(--line);
+    }
+    @media (max-width: 760px) {
+      .escolhas { grid-template-columns: 1fr }
     }
     .escolha {
       display: block;
@@ -1045,6 +1082,39 @@ const ETAPAS_PADRAO = [
       cursor: pointer;
     }
     .mini-tirar:hover { border-color: var(--orange); color: var(--orange) }
+
+    /* posição da foto: é a ordem em que ela aparece no site */
+    .mini-pos {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      padding: 3px 6px;
+      background: rgba(10, 10, 10, .85);
+      color: var(--white);
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* setas para mudar a ordem, nos cantos de baixo */
+    .mini-seta {
+      position: absolute;
+      bottom: 4px;
+      width: 30px;
+      height: 26px;
+      background: rgba(10, 10, 10, .85);
+      border: 1px solid var(--line-2);
+      color: var(--white);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .mini-seta--esq { left: 4px }
+    .mini-seta--dir { right: 4px }
+    .mini-seta:hover { border-color: var(--orange); color: var(--orange) }
+
+    .miniaturas--etapa { margin: 12px 0 0 }
+    .miniaturas--etapa:empty { display: none }
 
     /* obra entregue, no fim do andamento */
     .entregue {
