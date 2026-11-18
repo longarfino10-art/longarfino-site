@@ -12,6 +12,8 @@
 // O envio vai para /api/publicar, no worker/index.js.
 
 import { load as lerYaml } from 'js-yaml';
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
 
 import bebasWoff from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
 import '@fontsource/bebas-neue/latin-400.css';
@@ -59,6 +61,32 @@ const obras = Object.entries(crus)
   .sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
 
 const hoje = new Date().toISOString().slice(0, 10);
+
+// Miniaturas para a edição: o caminho original da foto não abre no
+// navegador (src/assets não é público), então gero uma versão pequena de
+// cada uma e guardo pelo caminho. A coleção traz a foto já resolvida; o .md
+// cru traz o caminho — as duas listas andam na mesma ordem.
+const colecao = await getCollection('obras');
+const miniaturas: Record<string, string> = {};
+
+for (const entrada of colecao) {
+  const cru = obras.find((o) => o.slug === entrada.id);
+  if (!cru) continue;
+
+  const pares: [string, any][] = [[cru.capa, entrada.data.capa]];
+  (cru.fotos ?? []).forEach((p: string, i: number) => pares.push([p, entrada.data.fotos[i]]));
+  (cru.etapas ?? []).forEach((et: any, i: number) =>
+    (et.fotos ?? []).forEach((p: string, j: number) =>
+      pares.push([p, entrada.data.etapas[i]?.fotos[j]]),
+    ),
+  );
+
+  for (const [caminho, foto] of pares) {
+    if (!caminho || !foto || miniaturas[caminho]) continue;
+    const mini = await getImage({ src: foto, width: 240, format: 'webp' });
+    miniaturas[caminho] = mini.src;
+  }
+}
 
 // Etapas sugeridas numa obra nova. O Lucas ajusta nome e peso.
 const ETAPAS_PADRAO = [
@@ -133,6 +161,11 @@ const ETAPAS_PADRAO = [
           <b class="d">Cadastrar obra nova</b>
           <span>Ficha completa de uma obra que ainda não está no site</span>
         </button>
+
+        <button class="escolha" data-modo="editar" type="button">
+          <b class="d">Editar obra</b>
+          <span>Corrigir dados, texto, capa ou fotos de qualquer obra que já está no site</span>
+        </button>
       </div>
 
       <p class="aviso oculto" id="sem-obra">
@@ -154,16 +187,16 @@ const ETAPAS_PADRAO = [
         <select id="obra" class="entrada"></select>
       </div>
 
-      <!-- ficha, só na obra nova -->
+      <!-- ficha: obra nova e edição -->
       <div id="ficha" class="oculto">
         <div class="grade2">
           <div class="campo">
             <label class="rot" for="nome">Nome da obra</label>
-            <input class="entrada" id="nome" type="text" placeholder="Pista Laguna" />
+            <input class="entrada" id="nome" type="text" placeholder="Ex.: Pista Laguna" />
           </div>
           <div class="campo">
             <label class="rot" for="cidade">Cidade</label>
-            <input class="entrada" id="cidade" type="text" placeholder="Laguna" />
+            <input class="entrada" id="cidade" type="text" placeholder="Ex.: Laguna" />
           </div>
           <div class="campo">
             <label class="rot" for="uf">Estado</label>
@@ -175,15 +208,15 @@ const ETAPAS_PADRAO = [
           </div>
           <div class="campo">
             <label class="rot" for="area">Área em m²</label>
-            <input class="entrada" id="area" type="number" min="1" placeholder="360" />
+            <input class="entrada" id="area" type="number" min="1" placeholder="Ex.: 360" />
           </div>
           <div class="campo">
             <label class="rot" for="cliente">Cliente</label>
-            <input class="entrada" id="cliente" type="text" placeholder="Prefeitura de Laguna" />
+            <input class="entrada" id="cliente" type="text" placeholder="Ex.: Prefeitura de Laguna" />
           </div>
           <div class="campo">
             <label class="rot" for="duracao">Período</label>
-            <input class="entrada" id="duracao" type="text" placeholder="out/2026 a mar/2027" />
+            <input class="entrada" id="duracao" type="text" placeholder="Ex.: out/2026 a mar/2027" />
           </div>
         </div>
 
@@ -205,9 +238,22 @@ const ETAPAS_PADRAO = [
 
         <div class="campo">
           <span class="rot">Foto de capa</span>
-          <label class="solta" for="capa">
-            <input id="capa" type="file" accept="image/*" hidden />
-            <span id="capa-txt">Escolher foto</span>
+          <div class="capa-linha">
+            <img class="capa-mini oculto" id="capa-mini" alt="Capa atual" />
+            <label class="solta" for="capa">
+              <input id="capa" type="file" accept="image/*" hidden />
+              <span id="capa-txt">Escolher foto</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- galeria, só na edição: as fotos atuais com ✕ e o botão de somar -->
+        <div class="campo oculto" id="campo-galeria">
+          <span class="rot">Galeria da obra</span>
+          <div class="miniaturas" id="galeria"></div>
+          <label class="solta solta--peq" for="galeria-novas">
+            <input id="galeria-novas" type="file" accept="image/*" multiple hidden />
+            <span id="galeria-txt">Acrescentar fotos à galeria</span>
           </label>
         </div>
 
@@ -215,6 +261,20 @@ const ETAPAS_PADRAO = [
           <label class="rot" for="texto">Texto da obra</label>
           <textarea class="entrada" id="texto" rows="5"
                     placeholder="Como foi a execução, o que tem na pista..."></textarea>
+        </div>
+
+        <!-- situação e destaque, só na edição -->
+        <div class="campo oculto" id="campo-situacao">
+          <span class="rot">Situação</span>
+          <div class="pastilhas">
+            <button class="pastilha" type="button" data-status="em_execucao">Em execução</button>
+            <button class="pastilha" type="button" data-status="concluida">Concluída</button>
+          </div>
+
+          <label class="lembrar">
+            <input type="checkbox" id="destaque" />
+            <span>Mostrar entre os destaques da home</span>
+          </label>
         </div>
       </div>
 
@@ -237,6 +297,15 @@ const ETAPAS_PADRAO = [
         </button>
       </div>
 
+      <!-- fim de obra, só no andamento -->
+      <label class="entregue oculto" id="campo-entregue">
+        <input type="checkbox" id="entregue" />
+        <span>
+          <b>Obra entregue</b>
+          O cartão sai da home e as etapas viram a seção "Como foi feita" na página da obra.
+        </span>
+      </label>
+
       <div class="rodape">
         <button class="btn btn--fill" type="submit" id="publicar">
           Publicar <i class="arw"></i>
@@ -248,7 +317,7 @@ const ETAPAS_PADRAO = [
     </form>
   </main>
 
-  <script type="application/json" id="dados" set:html={JSON.stringify({ obras, hoje, ETAPAS_PADRAO })} />
+  <script type="application/json" id="dados" set:html={JSON.stringify({ obras, hoje, ETAPAS_PADRAO, miniaturas })} />
 
   <script>
     const dados = JSON.parse(document.getElementById('dados').textContent);
@@ -323,6 +392,9 @@ const ETAPAS_PADRAO = [
     let atual = null;          // obra sendo editada
     let etapas = [];           // [{nome, peso, situacao, data, fotos:[], novas:[]}]
     let capaNova = null;
+    let galeria = [];          // fotos que ficam: texto = já publicada, objeto = nova
+    let statusEdit = 'concluida';
+    let publicado = false;     // depois de publicar, só recarregando
     const tiposEscolhidos = new Set();
 
     // ── fotos ──────────────────────────────────────────────────────
@@ -479,7 +551,118 @@ const ETAPAS_PADRAO = [
     // armadilha: numa obra sem etapas o painel sugere as seis padrão, e
     // publicar por engano punha "a fazer" numa pista entregue há anos.
     const emExecucao = () => dados.obras.filter((o) => o.status === 'em_execucao');
+    const etapasPadrao = () =>
+      dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
 
+    // ── ficha ──────────────────────────────────────────────────────
+    function pintarTipos() {
+      document.querySelectorAll('[data-tipo]').forEach((b) =>
+        b.classList.toggle('pastilha--on', tiposEscolhidos.has(b.dataset.tipo)),
+      );
+    }
+
+    function pintarStatus() {
+      document.querySelectorAll('[data-status]').forEach((b) =>
+        b.classList.toggle('pastilha--on', b.dataset.status === statusEdit),
+      );
+    }
+
+    function pintarGaleria() {
+      const caixa = $('galeria');
+      caixa.innerHTML = '';
+      galeria.forEach((f, i) => {
+        const item = document.createElement('div');
+        item.className = 'mini' + (typeof f === 'string' ? '' : ' mini--nova');
+
+        const src =
+          typeof f === 'string' ? dados.miniaturas[f] : 'data:image/jpeg;base64,' + f.base64;
+        if (src) {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          item.append(img);
+        }
+
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'mini-tirar';
+        x.textContent = '✕';
+        x.title = 'Tirar da galeria';
+        x.onclick = () => { galeria.splice(i, 1); pintarGaleria(); };
+        item.append(x);
+        caixa.append(item);
+      });
+    }
+
+    function limparFicha() {
+      for (const id of ['nome', 'cidade', 'area', 'cliente', 'duracao', 'descricao', 'texto']) {
+        $(id).value = '';
+      }
+      $('uf').value = 'SC';
+      $('conta').textContent = '0';
+      tiposEscolhidos.clear();
+      pintarTipos();
+      capaNova = null;
+      $('capa').value = '';
+      $('capa-txt').textContent = 'Escolher foto';
+      $('capa-mini').classList.add('oculto');
+      galeria = [];
+    }
+
+    // Preenche com o que está publicado. Publicar sem mexer em nada regrava
+    // o arquivo igual — o teste de ida e volta provou isso para as 6 obras.
+    function preencherFicha(o) {
+      $('nome').value = o.nome ?? '';
+      $('cidade').value = o.cidade ?? '';
+
+      // Estado fora da lista não pode virar vazio sem ninguém pedir
+      const uf = $('uf');
+      if (o.uf && ![...uf.options].some((op) => op.value === o.uf)) {
+        uf.append(new Option(o.uf, o.uf));
+      }
+      uf.value = o.uf ?? 'SC';
+
+      $('area').value = o.area_m2 ?? '';
+      $('cliente').value = o.cliente ?? '';
+      $('duracao').value = o.duracao ?? '';
+      $('descricao').value = o.descricao_curta ?? '';
+      $('conta').textContent = String($('descricao').value.length);
+      $('texto').value = o.corpo ?? '';
+
+      tiposEscolhidos.clear();
+      (o.tipo ?? []).forEach((t) => tiposEscolhidos.add(t));
+      pintarTipos();
+
+      capaNova = null;
+      $('capa').value = '';
+      const mini = dados.miniaturas[o.capa];
+      $('capa-mini').classList.toggle('oculto', !mini);
+      if (mini) $('capa-mini').src = mini;
+      $('capa-txt').textContent = 'Trocar capa';
+
+      galeria = [...(o.fotos ?? [])];
+      pintarGaleria();
+
+      statusEdit = o.status ?? 'concluida';
+      pintarStatus();
+      $('destaque').checked = Boolean(o.destaque);
+    }
+
+    function lerFicha() {
+      return {
+        nome: $('nome').value,
+        cidade: $('cidade').value,
+        uf: $('uf').value,
+        tipo: [...tiposEscolhidos],
+        cliente: $('cliente').value,
+        duracao: $('duracao').value,
+        area_m2: Number($('area').value),
+        descricao_curta: $('descricao').value,
+        corpo: $('texto').value,
+      };
+    }
+
+    // ── modos ──────────────────────────────────────────────────────
     function abrir(novoModo) {
       if (novoModo === 'andamento' && emExecucao().length === 0) {
         $('sem-obra').classList.remove('oculto');
@@ -490,17 +673,26 @@ const ETAPAS_PADRAO = [
       modo = novoModo;
       $('inicio').classList.add('oculto');
       $('form').classList.remove('oculto');
-      $('ficha').classList.toggle('oculto', modo !== 'nova');
-      $('campo-obra').classList.toggle('oculto', modo !== 'andamento');
-      $('rotulo').textContent = modo === 'nova' ? 'Obra nova' : 'Andamento';
+      $('aviso').className = 'aviso oculto';
+
+      $('ficha').classList.toggle('oculto', modo === 'andamento');
+      $('campo-obra').classList.toggle('oculto', modo === 'nova');
+      $('campo-galeria').classList.toggle('oculto', modo !== 'editar');
+      $('campo-situacao').classList.toggle('oculto', modo !== 'editar');
+      $('campo-entregue').classList.toggle('oculto', modo !== 'andamento');
+      $('entregue').checked = false;
+      $('rotulo').textContent =
+        { nova: 'Obra nova', editar: 'Editar obra', andamento: 'Andamento' }[modo];
 
       if (modo === 'nova') {
         atual = null;
-        etapas = dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
+        limparFicha();
+        etapas = etapasPadrao();
       } else {
+        const lista = modo === 'andamento' ? emExecucao() : dados.obras;
         const sel = $('obra');
         sel.innerHTML = '';
-        for (const o of emExecucao()) {
+        for (const o of lista) {
           const op = document.createElement('option');
           op.value = o.slug;
           op.textContent = o.nome + ' — ' + o.cidade;
@@ -523,9 +715,10 @@ const ETAPAS_PADRAO = [
         fotos: e.fotos ?? [],
         novas: [],
       }));
-      if (etapas.length === 0) {
-        etapas = dados.ETAPAS_PADRAO.map((e) => ({ ...e, situacao: 'a_fazer', fotos: [], novas: [] }));
-      }
+      // Só o andamento sugere as etapas padrão. Na edição, obra sem etapas
+      // continua sem etapas: inventar seria mudar o que não foi pedido.
+      if (etapas.length === 0 && modo === 'andamento') etapas = etapasPadrao();
+      if (modo === 'editar') preencherFicha(atual);
       pintarEtapas();
       pintarProgresso();
     }
@@ -542,30 +735,38 @@ const ETAPAS_PADRAO = [
 
       if (modo === 'nova') {
         return {
-          nome: $('nome').value,
-          cidade: $('cidade').value,
-          uf: $('uf').value,
-          tipo: [...tiposEscolhidos],
+          ...lerFicha(),
           status: 'em_execucao',
-          cliente: $('cliente').value,
-          duracao: $('duracao').value,
-          area_m2: Number($('area').value),
-          descricao_curta: $('descricao').value,
           capa: capaNova,
           fotos: [],
           etapas: etapasEnvio,
           atualizado_em: dados.hoje,
-          corpo: $('texto').value,
           destaque: false,
           ordem: 1,
         };
       }
 
+      if (modo === 'editar') {
+        return {
+          ...atual,
+          ...lerFicha(),
+          slug: atual.slug,
+          status: statusEdit,
+          destaque: $('destaque').checked,
+          capa: capaNova ?? atual.capa,
+          fotos: galeria,
+          etapas: etapasEnvio,
+        };
+      }
+
+      // andamento
+      const entregue = $('entregue').checked;
       return {
         ...atual,
         slug: atual.slug,
         etapas: etapasEnvio,
         atualizado_em: dados.hoje,
+        ...(entregue ? { status: 'concluida', ano: atual.ano || new Date().getFullYear() } : {}),
       };
     }
 
@@ -603,18 +804,21 @@ const ETAPAS_PADRAO = [
             '</li></ul>';
           $('situacao').textContent = '';
         } else {
+          // Trava até recarregar: esta tela ainda tem os dados de antes da
+          // publicação, e enviar de novo desfaria o que acabou de subir.
+          publicado = true;
           aviso.className = 'aviso aviso--bom';
           aviso.innerHTML =
-            '<b>Publicado.</b> Commit ' + resposta.commit +
-            '. O site se atualiza sozinho em 1 a 2 minutos.';
-          $('situacao').textContent = '';
+            '<b>Publicado.</b> O site se atualiza sozinho em 1 a 2 minutos.' +
+            '<br>Para fazer outra alteração, espere esse tempo e <b>recarregue esta página</b>.';
+          $('situacao').textContent = 'commit ' + resposta.commit;
         }
       } catch (e) {
         aviso.className = 'aviso aviso--ruim';
         aviso.textContent = 'Falhou o envio: ' + e.message;
         $('situacao').textContent = '';
       } finally {
-        $('publicar').disabled = false;
+        $('publicar').disabled = publicado;
       }
     });
 
@@ -640,9 +844,23 @@ const ETAPAS_PADRAO = [
         const t = b.dataset.tipo;
         if (tiposEscolhidos.has(t)) tiposEscolhidos.delete(t);
         else tiposEscolhidos.add(t);
-        b.classList.toggle('pastilha--on', tiposEscolhidos.has(t));
+        pintarTipos();
       };
     });
+
+    document.querySelectorAll('[data-status]').forEach((b) => {
+      b.onclick = () => { statusEdit = b.dataset.status; pintarStatus(); };
+    });
+
+    $('galeria-novas').onchange = async () => {
+      const arquivos = [...$('galeria-novas').files];
+      if (!arquivos.length) return;
+      $('galeria-txt').textContent = 'preparando ' + arquivos.length + ' foto(s)...';
+      for (const f of arquivos) galeria.push(await reduzir(f));
+      $('galeria-novas').value = '';
+      $('galeria-txt').textContent = 'Acrescentar fotos à galeria';
+      pintarGaleria();
+    };
 
     $('descricao').oninput = () => { $('conta').textContent = $('descricao').value.length; };
 
@@ -652,6 +870,9 @@ const ETAPAS_PADRAO = [
       $('capa-txt').textContent = 'preparando...';
       capaNova = await reduzir(f);
       $('capa-txt').textContent = f.name;
+      // Mostra a capa nova no lugar da antiga, para conferir antes de publicar
+      $('capa-mini').src = 'data:image/jpeg;base64,' + capaNova.base64;
+      $('capa-mini').classList.remove('oculto');
     };
   </script>
 
@@ -788,6 +1009,59 @@ const ETAPAS_PADRAO = [
     }
     .solta:hover { border-color: var(--orange); color: var(--white) }
     .solta--peq { padding: 10px; font-size: 12px; text-align: left }
+
+    /* capa atual ao lado do botão de trocar */
+    .capa-linha { display: flex; gap: 12px; align-items: stretch }
+    .capa-linha .solta { flex: 1; display: flex; align-items: center; justify-content: center }
+    .capa-mini { width: 120px; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line) }
+
+    /* galeria da edição: miniatura com ✕ no canto */
+    .miniaturas {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mini {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      background: var(--concrete);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .mini img { width: 100%; height: 100%; object-fit: cover; display: block }
+    /* foto que ainda vai subir: fio laranja, para distinguir das publicadas */
+    .mini--nova { border-color: var(--orange) }
+    .mini-tirar {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 26px;
+      height: 26px;
+      background: rgba(10, 10, 10, .85);
+      border: 1px solid var(--line-2);
+      color: var(--white);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .mini-tirar:hover { border-color: var(--orange); color: var(--orange) }
+
+    /* obra entregue, no fim do andamento */
+    .entregue {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-top: 26px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: border-color .25s var(--ease);
+    }
+    .entregue:hover { border-color: var(--line-2) }
+    .entregue:has(input:checked) { border-color: var(--orange) }
+    .entregue input { accent-color: var(--orange); width: 18px; height: 18px; margin-top: 2px; flex: none }
+    .entregue span { font-size: 13px; color: var(--gray-500); line-height: 1.5 }
+    .entregue b { display: block; color: var(--white); font-weight: 600; font-size: 14px; margin-bottom: 2px }
 
     /* etapas */
     .cabeca-etapas { display: flex; align-items: baseline; justify-content: space-between }

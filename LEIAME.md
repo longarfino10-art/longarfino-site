@@ -13,6 +13,15 @@
 
 A porcentagem da barra não é digitada: ela sai das etapas marcadas.
 
+**Quando a obra terminar:** em "Atualizar andamento", marque **Obra entregue**
+antes de publicar. O cartão sai da home e as etapas viram "Como foi feita".
+
+**Para corrigir qualquer obra** (nome, texto, capa, fotos, situação): use
+**Editar obra**. O que você não mexer continua exatamente igual.
+
+Depois de publicar, espere 2 minutos e recarregue a página antes de fazer
+outra alteração.
+
 ## Publicar uma obra pela pasta (quando precisar mexer no código)
 
 1. Fotos grandes (JPG/PNG, sem otimizar) em `src/assets/obras/<slug>/`

@@ -431,6 +431,13 @@ senha errada recusa, errada com atraso de 1,6s; senha certa entra; formulário
 incompleto volta com erro em português; envio válido chega até o commit.
 Tela de entrada, "lembrar neste aparelho" e "sair" conferidos no navegador.
 
+**Editar obra e Obra entregue (17/11):** o painel edita qualquer obra (ficha,
+texto, capa, galeria com miniaturas, situação, destaque) e o andamento ganhou
+o "Obra entregue". Regra pedida pelo Lucas: **o que não for mexido não pode
+mudar.** Verificado: as 6 obras regravadas pelo painel saem byte por byte
+iguais ao GitHub; tirar uma foto da galeria da Morrinhos mudou exatamente uma
+linha do arquivo.
+
 **Não verificado ainda:** o commit de verdade no GitHub. Só com o token real,
 depois de publicado.
 

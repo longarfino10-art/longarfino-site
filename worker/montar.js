@@ -176,8 +176,9 @@ export function montarArquivos(d) {
   l.push('ordem: ' + (Number(d.ordem) > 0 ? Number(d.ordem) : 99));
   l.push('---');
   l.push('');
+  // Sem quebra de linha no fim, como os arquivos atuais: editar uma obra
+  // sem mexer em nada tem de regravar o arquivo byte por byte igual.
   l.push(String(d.corpo ?? '').trim());
-  l.push('');
 
   arquivos.push({
     caminho: 'src/content/obras/' + slug + '.md',

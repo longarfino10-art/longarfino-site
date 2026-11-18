@@ -79,6 +79,19 @@ async function publicar(request, env) {
   const dados = await request.json();
   const { slug, arquivos } = montarArquivos(dados);
 
+  // Ensaio: só existe no .dev.vars local. Devolve o que seria gravado em
+  // vez de gravar — é como se testa o painel sem mexer no repositório.
+  if (env.PAINEL_ENSAIO === '1') {
+    return json({
+      ok: true,
+      ensaio: true,
+      slug,
+      arquivos: arquivos.map((a) =>
+        a.base64 ? { caminho: a.caminho, bytes: a.base64.length } : a,
+      ),
+    });
+  }
+
   const quemEnviou = request.headers.get('Cf-Access-Authenticated-User-Email') || 'painel';
   const mensagem =
     (dados.slug ? 'obra: atualiza ' : 'obra: publica ') + slug + '\n\nPelo painel, por ' + quemEnviou;

@@ -67,10 +67,20 @@ Tela própria, com a identidade do site. Três peças:
 
 As fotos são reduzidas no celular (2000px, JPEG 0.82) antes de subir.
 
+Três modos: **andamento** (só obras em execução; tem o "Obra entregue", que
+vira `status: concluida`), **obra nova** e **editar** (qualquer obra; a
+galeria mostra miniaturas geradas no build com `getImage`).
+
 **Mexeu no schema, mexa no `worker/montar.js`.** É ele que escreve o
 frontmatter; se sair de sincronia, o painel grava algo que o build recusa.
-Para testar: gerar um `.md` pelo `montarArquivos()`, gravar em
-`src/content/obras/`, rodar o build e apagar.
+
+**Regra inegociável: editar sem mexer em nada regrava o arquivo byte por byte
+igual.** Testado nas 6 obras contra o que está no GitHub. Por isso o
+`montar.js` não põe quebra de linha no fim e o painel não inventa etapas numa
+obra que não tinha. Qualquer mudança no `montar.js` repete esse teste: ler
+cada `.md` com `js-yaml`, passar pelo `montarArquivos()` com o `slug`, e
+comparar com `git show HEAD:<arquivo>` (o disco no Windows tem CRLF; o
+repositório, LF).
 
 **Proteção, em ordem:** Access configurado (`ACCESS_TEAM` + `ACCESS_AUD` no
 `wrangler.jsonc`) → só vale o Access. Senão, segredo `PAINEL_SENHA` → vale a
@@ -86,9 +96,15 @@ Segredos do Worker (`GITHUB_TOKEN`, `PAINEL_SENHA`) ficam no painel da
 Cloudflare, nunca no repositório.
 
 **Testar o Worker local:** `npx wrangler@4 dev` depois do build, com a senha
-de teste em `.dev.vars` (está no `.gitignore`). No Windows, parar o wrangler
-deixa processos `workerd` órfãos segurando a porta — se a porta estiver
-ocupada, use outra (`--port 8788`) em vez de sair matando processo.
+de teste em `.dev.vars` (está no `.gitignore`). Com `PAINEL_ENSAIO="1"` no
+`.dev.vars`, o `/api/publicar` devolve os arquivos que gravaria em vez de
+commitar — é como se testa o painel sem tocar no repositório. Essa variável
+nunca vai para produção. No Windows, parar o wrangler deixa processos
+`workerd` órfãos segurando a porta — se a porta estiver ocupada, use outra
+(`--port 8788`) em vez de sair matando processo.
+
+Depois de publicar, o painel trava o botão até recarregar: a tela ainda tem
+os dados de antes, e enviar de novo desfaria o que acabou de subir.
 
 ## Regras de conteúdo — as mais importantes do projeto
 
