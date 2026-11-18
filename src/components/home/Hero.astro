@@ -14,6 +14,7 @@ import vitrine from '../../data/vitrine.json';
 import { mapaDeFotos } from '../../lib/fotos';
 import { calcularProgresso } from '../../lib/progresso';
 import { numerosDoSite } from '../../lib/numeros';
+import { capaEnviada as capaDoPainel } from '../../lib/capa';
 // PROVISÓRIA — imagem gerada por IA, só para validar a composição.
 // Substituir por fotografia real da Longarfino antes do lançamento.
 // A foto real de reserva está em assets/hero-real-bowl.jpg (vertical).
@@ -29,11 +30,7 @@ const fotosPorCaminho = await mapaDeFotos();
 // Capa principal: a foto que o Lucas sobe pelo painel fica em
 // src/assets/capa/ e o nome vai em vitrine.capa. Sem nome (ou arquivo que
 // sumiu), vale a foto original.
-const capasEnviadas = import.meta.glob<{ default: ImageMetadata }>(
-  '../../assets/capa/*.{jpeg,jpg,png,webp}',
-  { eager: true },
-);
-const capaEnviada = vitrine.capa ? capasEnviadas['../../assets/capa/' + vitrine.capa]?.default : null;
+const capaEnviada = capaDoPainel();
 const fotoPrincipal = capaEnviada ?? fotoHero;
 const altPrincipal = capaEnviada
   ? 'Skatepark em concreto executado pela Longarfino'

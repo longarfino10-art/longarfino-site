@@ -67,7 +67,12 @@ export default {
 const json = (dados, status = 200) =>
   new Response(JSON.stringify(dados), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      // Resposta do painel nunca fica em cache nem é interpretada como outra coisa
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    },
   });
 
 async function comErro(fn) {

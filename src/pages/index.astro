@@ -17,11 +17,36 @@ import { numerosDoSite } from '../lib/numeros';
 
 // O total de m² entra na descrição do Google: calculado, nunca escrito à mão
 const { m2Texto } = await numerosDoSite();
+// Ficha da empresa para o Google (schema.org). Só dado que já está
+// publicado no site e conferido no CNPJ (PLANEJAMENTO.md, Dados oficiais).
+// foundingDate é a abertura da empresa (2019), não o "desde 2007" da
+// experiência — a ficha fala da empresa.
+const empresa = {
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  name: "Longarfino Skateparks",
+  url: "https://longarfinoskateparks.com.br/",
+  description: "Projeto e execução de skateparks, bowls e estruturas para skate em concreto armado.",
+  email: "longarfinoparks@gmail.com",
+  telephone: "+55 51 98624-5321",
+  foundingDate: "2019-05-10",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Rodovia SC 434, 169 — Aracatuba",
+    addressLocality: "Imbituba",
+    addressRegion: "SC",
+    postalCode: "88780-000",
+    addressCountry: "BR",
+  },
+  areaServed: { "@type": "Country", name: "Brasil" },
+  sameAs: ["https://instagram.com/longarfinoskateparks"],
+};
 ---
 
 <Base
   titulo="Longarfino Skateparks — Projeto e execução de skateparks em concreto"
   descricao={'Projetamos e executamos skateparks, bowls e estruturas para skate em concreto armado. Desde 2007, ' + m2Texto + ' m² construídos. Imbituba — SC.'}
+  dadosEstruturados={empresa}
   comentarios
 >
   <Desenhos />

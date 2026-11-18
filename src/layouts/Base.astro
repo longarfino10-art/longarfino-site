@@ -29,22 +29,41 @@ import Footer from '../components/layout/Footer.astro';
 import Analytics from '../components/layout/Analytics.astro';
 import ComentarioFlutuante from '../components/layout/ComentarioFlutuante.astro';
 
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { fotoDeCompartilhar } from '../lib/capa';
+
 interface Props {
   titulo: string;
   descricao: string;
-  /** Imagem de compartilhamento. Caminho a partir de public/ */
-  imagemOg?: string;
+  /** Foto de compartilhamento (WhatsApp, Instagram…). Sem ela, vale a de
+      src/lib/capa.ts. Recortada em 1200×630 no build. */
+  imagemOg?: ImageMetadata;
+  /** Ficha da empresa para o Google (schema.org). Só na home. */
+  dadosEstruturados?: Record<string, unknown>;
   /** Comentários surgindo no canto durante a navegação. Só nas páginas
       de navegar (home, obras, A Longarfino) — em contato, política e
       afins seria ruído. */
   comentarios?: boolean;
 }
 
-const { titulo, descricao, imagemOg = '/og/padrao.jpg', comentarios = false } = Astro.props;
+const { titulo, descricao, imagemOg, dadosEstruturados, comentarios = false } = Astro.props;
 
 // URL canônica desta página, montada a partir do `site` do astro.config.mjs
 const canonica = new URL(Astro.url.pathname, Astro.site);
-const urlOg = new URL(imagemOg, Astro.site);
+
+// A imagem de compartilhamento sai de uma foto da coleção, no tamanho que
+// WhatsApp e Instagram esperam. Antes apontava para /og/padrao.jpg, que
+// nunca existiu — o link ia sem foto.
+const og = await getImage({
+  src: imagemOg ?? (await fotoDeCompartilhar()),
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+  quality: 80,
+});
+const urlOg = new URL(og.src, Astro.site);
 ---
 
 <!DOCTYPE html>
@@ -67,8 +86,15 @@ const urlOg = new URL(imagemOg, Astro.site);
   <meta property="og:title" content={titulo} />
   <meta property="og:description" content={descricao} />
   <meta property="og:image" content={urlOg} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:url" content={canonica} />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:site_name" content="Longarfino Skateparks" />
   <meta name="twitter:card" content="summary_large_image" />
+  {dadosEstruturados && (
+    <script type="application/ld+json" set:html={JSON.stringify(dadosEstruturados)} />
+  )}
 
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

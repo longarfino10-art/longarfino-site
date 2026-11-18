@@ -24,6 +24,17 @@ olhar a página.
 `git push` na `main` publica sozinho — o Cloudflare Workers Builds observa o
 repositório. Não existe workflow em `.github/`. Nunca commitar `dist/`.
 
+Cabeçalhos de cache e segurança em `public/_headers` (`/_astro/*` guardado
+por um ano — o nome tem hash; `/admin/*` sem cache). A API põe os seus no
+`json()` do `worker/index.js`.
+
+**Imagem de compartilhamento** (WhatsApp, Instagram): gerada no build pelo
+`Base.astro`, 1200×630 JPEG. Página de obra usa a capa da obra (`imagemOg`);
+as outras usam `fotoDeCompartilhar()` de `src/lib/capa.ts` — capa subida no
+painel, senão a capa da primeira obra da vitrine. Nunca a `hero.webp`, que
+está marcada como provisória. A home leva a ficha da empresa para o Google
+(`dadosEstruturados`, schema.org), só com dado conferido no CNPJ.
+
 ## Como o conteúdo funciona
 
 Cada obra é um `.md` em `src/content/obras/`, validado pelo schema em
