@@ -12,12 +12,15 @@ armadilhas e registro de sessões. Ler antes de mudança grande, atualizar depoi
     npm run dev       # localhost:4321
     npm run build     # gera ./dist
     npm run preview   # confere o build
+    npm test          # testes do painel e do Worker
 
 Node >= 22.12. Para deixar o servidor rodando em segundo plano:
 `npx astro dev --background`, e depois `astro dev stop`, `status` ou `logs`.
 
-Não há teste nem lint no projeto. A verificação é o `npm run build` passar e
-olhar a página.
+`npm test` roda os testes do painel e do Worker (`testes/`, com o `node:test`,
+sem dependência nova). Rode antes de publicar qualquer mudança em `worker/`
+ou no schema. O resto se verifica com o `npm run build` passando e olhando a
+página. Não há lint.
 
 ## Deploy
 
@@ -129,7 +132,7 @@ Tela própria, com a identidade do site. Três peças:
 | Arquivo | Papel |
 |---|---|
 | `src/pages/admin/index.astro` | A tela. Lê os `.md` crus no build (com `js-yaml`) porque o `image()` troca o caminho da foto por objeto |
-| `worker/index.js` | `POST /api/publicar-tudo`: confere a senha/Access e faz **um** commit com todas as alterações pela Git Data API |
+| `worker/index.js` | Duas rotas: `POST /api/entrar` (confere a senha) e `POST /api/publicar-tudo`: confere a senha/Access e faz **um** commit com todas as alterações pela Git Data API |
 | `worker/montar.js` | Transforma cada alteração nos arquivos (`montarArquivos`, `montarVitrine`, `montarNumeros`, `montarDepoimentos`, e `montarTudo` que junta). Sem dependência de runtime — é a parte testável |
 
 As fotos são reduzidas no celular (2000px, JPEG 0.82) antes de subir.
@@ -151,10 +154,9 @@ frontmatter; se sair de sincronia, o painel grava algo que o build recusa.
 **Regra inegociável: editar sem mexer em nada regrava o arquivo byte por byte
 igual.** Testado nas 6 obras contra o que está no GitHub. Por isso o
 `montar.js` não põe quebra de linha no fim e o painel não inventa etapas numa
-obra que não tinha. Qualquer mudança no `montar.js` repete esse teste: ler
-cada `.md` com `js-yaml`, passar pelo `montarArquivos()` com o `slug`, e
-comparar com `git show HEAD:<arquivo>` (o disco no Windows tem CRLF; o
-repositório, LF).
+obra que não tinha. O `npm test` confere isso em todas as obras publicadas
+(`testes/obras.test.mjs`) e nos três JSON de `src/data/` — obra nova entra
+no teste sozinha. Um espaço a mais no `montar.js` já derruba 7 testes.
 
 **Proteção, em ordem:** Access configurado (`ACCESS_TEAM` + `ACCESS_AUD` no
 `wrangler.jsonc`) → só vale o Access. Senão, segredo `PAINEL_SENHA` → vale a

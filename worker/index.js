@@ -1,8 +1,12 @@
 // Worker na frente do site estático.
 //
-// Só existe por causa de uma rota: POST /api/publicar, que o painel usa
-// para gravar obra e fotos no repositório. Todo o resto cai nos arquivos
-// gerados pelo Astro, sem passar por nada.
+// Só existe por causa do painel /admin, que usa duas rotas:
+//   POST /api/entrar          confere a senha (ou o Access) ao abrir
+//   POST /api/publicar-tudo   grava o rascunho inteiro num commit só
+// Todo o resto cai nos arquivos gerados pelo Astro, sem passar por nada.
+// (As rotas de uma alteração por vez — /api/publicar, /api/vitrine,
+// /api/numeros, /api/depoimentos — saíram em 18/11: o painel só usa o
+// Publicar tudo desde que ganhou rascunho.)
 //
 // O token do GitHub vive aqui como segredo do Worker. O Lucas nunca vê
 // nem digita token nenhum — era esse o ponto de ter um backend.
@@ -22,35 +26,19 @@
 // Quando o Zero Trust for ligado, basta preencher as duas variáveis: a
 // senha deixa de ser aceita sem mudar uma linha de código.
 
-import { montarArquivos, montarVitrine, montarNumeros, montarDepoimentos, montarTudo } from './montar.js';
+import { montarTudo } from './montar.js';
 
 // O plano gratuito do Workers permite 50 chamadas de rede por requisição.
 // O commit gasta 5 fixas e 1 por foto (texto vai junto na árvore, sem
 // chamada própria). 40 fotos por publicação deixa folga.
 const MAX_FOTOS_POR_PUBLICACAO = 40;
 
-// Dados do site que o painel grava além das obras. Cada um tem o seu
-// montador (testável no node) e a mensagem do commit.
-const DADOS = {
-  '/api/vitrine': { montar: montarVitrine, mensagem: 'vitrine: atualiza as fotos da capa' },
-  '/api/numeros': { montar: montarNumeros, mensagem: 'numeros: atualiza o histórico fora do site' },
-  '/api/depoimentos': { montar: montarDepoimentos, mensagem: 'depoimentos: atualiza a lista' },
-};
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/publicar') {
-      return comErro(() => publicar(request, env));
-    }
-
     if (url.pathname === '/api/entrar') {
       return comErro(() => entrar(request, env));
-    }
-
-    if (DADOS[url.pathname]) {
-      return comErro(() => gravarDados(request, env, DADOS[url.pathname]));
     }
 
     if (url.pathname === '/api/publicar-tudo') {
@@ -96,42 +84,6 @@ async function entrar(request, env) {
   return json({ ok: true, modo: temAccess(env) ? 'access' : 'senha' });
 }
 
-async function publicar(request, env) {
-  if (request.method !== 'POST') return json({ ok: false, erros: ['método'] }, 405);
-
-  const negado = await autorizar(request, env);
-  if (negado) return json({ ok: false, erros: [negado] }, 403);
-
-  const dados = await request.json();
-  const { slug, arquivos } = montarArquivos(dados);
-
-  // Ensaio: só existe no .dev.vars local. Devolve o que seria gravado em
-  // vez de gravar — é como se testa o painel sem mexer no repositório.
-  if (env.PAINEL_ENSAIO === '1') {
-    return json({
-      ok: true,
-      ensaio: true,
-      slug,
-      arquivos: arquivos.map((a) =>
-        a.base64 ? { caminho: a.caminho, bytes: a.base64.length } : a,
-      ),
-    });
-  }
-
-  const quemEnviou = request.headers.get('Cf-Access-Authenticated-User-Email') || 'painel';
-  const mensagem =
-    (dados.slug ? 'obra: atualiza ' : 'obra: publica ') + slug + '\n\nPelo painel, por ' + quemEnviou;
-
-  const commit = await commitar(env, arquivos, mensagem);
-
-  return json({
-    ok: true,
-    slug,
-    commit: commit.sha.slice(0, 7),
-    arquivos: arquivos.length,
-  });
-}
-
 // Todas as alterações salvas no rascunho do painel, num commit só
 async function publicarTudo(request, env) {
   if (request.method !== 'POST') return json({ ok: false, erros: ['método'] }, 405);
@@ -167,28 +119,6 @@ async function publicarTudo(request, env) {
   const commit = await commitar(env, arquivos, titulo + '\n\n' + corpo + 'Pelo painel, por ' + quemEnviou);
 
   return json({ ok: true, commit: commit.sha.slice(0, 7), arquivos: arquivos.length, resumo });
-}
-
-// Vitrine, números e depoimentos: mesma porta, montador diferente
-async function gravarDados(request, env, { montar, mensagem }) {
-  if (request.method !== 'POST') return json({ ok: false, erros: ['método'] }, 405);
-
-  const negado = await autorizar(request, env);
-  if (negado) return json({ ok: false, erros: [negado] }, 403);
-
-  const { arquivos } = montar(await request.json());
-
-  if (env.PAINEL_ENSAIO === '1') {
-    return json({
-      ok: true,
-      ensaio: true,
-      arquivos: arquivos.map((a) => (a.base64 ? { caminho: a.caminho, bytes: a.base64.length } : a)),
-    });
-  }
-
-  const quemEnviou = request.headers.get('Cf-Access-Authenticated-User-Email') || 'painel';
-  const commit = await commitar(env, arquivos, mensagem + '\n\nPelo painel, por ' + quemEnviou);
-  return json({ ok: true, commit: commit.sha.slice(0, 7), arquivos: arquivos.length });
 }
 
 // ── autorização ─────────────────────────────────────────────────────

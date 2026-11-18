@@ -428,8 +428,8 @@ duas, e o esforço vai para o cadastro pelo próprio site.
 | Legenda da vitrine | Marcador de mapa no meio da foto (quadrado laranja pulsando + raio + texto), posição ajustável por foto no painel. Substituiu a linha na base, que ficava colada nos números |
 | Comentários na navegação | Cartão discreto no canto inferior esquerdo, entrando pela esquerda, em loop. Só depois da primeira tela e nunca junto da seção de depoimentos ou do rodapé |
 | Park Abraão | Marcado "em execução" foi teste do Lucas (17/11). Voltou a concluída, sem a etapa de teste; a nova ordem da galeria que ele escolheu foi mantida |
-| Avaliação técnica (18/11) | Corrigido: imagem de compartilhamento (era 404 — link ia sem foto), cache de 1 ano em `/_astro/`, cabeçalhos de segurança, ficha da empresa para o Google, Astro 7.4.1. Pendente na Cloudflare (Lucas): "Always Use HTTPS", www → sem www, limite de tentativas em `/api/*`. Alerta restante do `npm audit` (picomatch) é de ferramenta de build, sem correção publicada, sem efeito em site estático |
-| Testes do painel | Ainda fora do repositório (só na pasta temporária da sessão). Próximo passo sugerido: virar `npm test` |
+| Avaliação técnica (18/11) | Corrigido: imagem de compartilhamento (era 404 — link ia sem foto), cache de 1 ano em `/_astro/`, cabeçalhos de segurança, ficha da empresa para o Google, Astro 7.4.1. Na Cloudflare: "Always Use HTTPS" ligado; a regra www → raiz já existia mas nunca funcionou (comparava o URI completo sem o `https://`) e foi corrigida; limite de tentativas em `/api/*` (10 por 10s por IP, bloqueio de 10s) preenchido, mas o botão Implantar não respondeu à automação: conferir se a regra existe em Segurança → Regras de segurança → Rate Limiting. Alerta restante do `npm audit` (picomatch) é de ferramenta de build, sem correção publicada, sem efeito em site estático |
+| Testes | `npm test`: 35 testes em `testes/` — ida e volta byte a byte de todas as obras e JSON, validações, Publicar tudo e o Worker chamado de verdade (modo ensaio). Rotas antigas de uma alteração por vez saíram do Worker. Planejamento de 01/09 que estava em `src/` foi para `docs/historico/` |
 
 ### Decisões fechadas em 17/11
 
