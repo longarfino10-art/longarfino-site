@@ -134,6 +134,11 @@ const ETAPAS_PADRAO = [
           <span>Ficha completa de uma obra que ainda não está no site</span>
         </button>
       </div>
+
+      <p class="aviso oculto" id="sem-obra">
+        Nenhuma obra em execução no site ainda. Para começar, use <b>Cadastrar obra nova</b>
+        — ela já entra como em execução.
+      </p>
     </section>
 
     <!-- ── formulário ───────────────────────────────────────────── -->
@@ -470,7 +475,18 @@ const ETAPAS_PADRAO = [
     }
 
     // ── modos ──────────────────────────────────────────────────────
+    // "Andamento" lista só obra em execução. Mostrar as concluídas era
+    // armadilha: numa obra sem etapas o painel sugere as seis padrão, e
+    // publicar por engano punha "a fazer" numa pista entregue há anos.
+    const emExecucao = () => dados.obras.filter((o) => o.status === 'em_execucao');
+
     function abrir(novoModo) {
+      if (novoModo === 'andamento' && emExecucao().length === 0) {
+        $('sem-obra').classList.remove('oculto');
+        return;
+      }
+      $('sem-obra').classList.add('oculto');
+
       modo = novoModo;
       $('inicio').classList.add('oculto');
       $('form').classList.remove('oculto');
@@ -484,7 +500,7 @@ const ETAPAS_PADRAO = [
       } else {
         const sel = $('obra');
         sel.innerHTML = '';
-        for (const o of dados.obras) {
+        for (const o of emExecucao()) {
           const op = document.createElement('option');
           op.value = o.slug;
           op.textContent = o.nome + ' — ' + o.cidade;
