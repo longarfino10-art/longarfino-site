@@ -19,6 +19,11 @@ fotos:
   - "./../../assets/obras/ct-curitiba/img-2235.jpeg"
   - "./../../assets/obras/ct-curitiba/img-1941.jpeg"
   - "./../../assets/obras/ct-curitiba/img-1937.jpeg"
+etapas:
+  - nome: "Etapa 1"
+    peso: 10
+    situacao: "fazendo"
+atualizado_em: 2026-11-25
 destaque: true
 ordem: 2
 ---
