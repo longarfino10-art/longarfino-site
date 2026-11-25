@@ -3,7 +3,7 @@ nome: "Centro de Treinamento de Curitiba"
 cidade: "Curitiba"
 uf: "PR"
 tipo: ["Park", "Street", "Bowl"]
-status: "concluida"
+status: "em_execucao"
 duracao: "jan a mai/2025"
 ano: 2025
 area_m2: 1200

@@ -12,7 +12,11 @@
       "obra": "pista-trindade"
     },
     {
-      "obra": "ct-curitiba"
+      "obra": "ct-curitiba",
+      "marcador": {
+        "x": 53,
+        "y": 43
+      }
     },
     {
       "obra": "pista-morrinhos"
