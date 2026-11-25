@@ -3,7 +3,7 @@ nome: "Centro de Treinamento de Curitiba"
 cidade: "Curitiba"
 uf: "PR"
 tipo: ["Park", "Street", "Bowl"]
-status: "em_execucao"
+status: "concluida"
 duracao: "jan a mai/2025"
 ano: 2025
 area_m2: 1200
@@ -19,11 +19,6 @@ fotos:
   - "./../../assets/obras/ct-curitiba/img-2235.jpeg"
   - "./../../assets/obras/ct-curitiba/img-1941.jpeg"
   - "./../../assets/obras/ct-curitiba/img-1937.jpeg"
-etapas:
-  - nome: "Etapa 1"
-    peso: 10
-    situacao: "fazendo"
-atualizado_em: 2026-11-25
 destaque: true
 ordem: 2
 ---
